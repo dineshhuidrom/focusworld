@@ -179,5 +179,12 @@ v1.6 to v1.9 are live: Ask Pip, categories, picture cards, Ad label, details for
 | Breaks | Quiet by default (dinesh chose A). Visitors choose: 🔊 button on the break screen, or "Play during breaks" in Sounds. Remembered |
 | 🔊 button | Beside Pause and Stop: one tap stops all sounds, one tap plays them again (crossed out when off). Toast on the first session says "Tap 🔊 to stop it". Pip and the FAQ explain it |
 | Tests | New `sound_test.py` (26 checks, incl. a 40-second recording with no gaps/clicks). Tests that counted today's products/categories now read them from the shop, so dinesh's My Shop edits don't break them. All suites pass |
-| Not live yet | Waiting for dinesh's yes (the +91 fix went live at 21:57) |
+| Live | 10 Nov 22:25 (the +91 fix went live at 21:57) |
+
+## 10 Nov 2026 — v1.11 The bar follows the timer (dinesh: "a 2-minute timer with a bar saying 8 min away feels like a long way to go")
+| What | How |
+|---|---|
+| While a timer runs | The bar under it shows **this round**: a 2-minute round fills it in exactly 2 minutes. Right side: "Wildflowers pops up at the end ✨" when this round unlocks it, else "+25 min for your island". Says "Paused" when paused, "Break" in breaks |
+| When no timer runs | Unchanged: "Next up: Wildflowers · 6 min away", to help pick a length |
+| Tests | `sound_test.py` now 31 checks (bar empty at start, half full after 1 of 2 minutes, Paused, Break), e2e 58, Ask Pip pass |
 

@@ -1,4 +1,5 @@
-"""Sounds follow the timer, the 🔊 buttons work, breaks are quiet unless chosen, and the lofi music has no gaps.
+"""Sounds follow the timer, the 🔊 buttons work, breaks are quiet unless chosen, the lofi music has no gaps,
+and the bar under the timer fills exactly with the running timer.
 Run after `python3 build.py`:   python3 tests/sound_test.py
 """
 import asyncio, math, os
@@ -89,6 +90,14 @@ async def main():
         check(await pg.is_visible("#muteBtn"), "a 🔊 button sits beside Pause and Stop")
         await pg.screenshot(path=os.path.join(OUT, "sound_01_focus_on.png"))
 
+        # 1b. the bar under the timer follows this round: a 2-minute round fills it in 2 minutes
+        name = await pg.inner_text("#nextName"); right = await pg.inner_text("#nextLeft")
+        w0 = await pg.evaluate("parseFloat(document.getElementById('nextBar').style.width)")
+        check(name == "This round" and "First sprout" in right and w0 < 5, "bar: 'This round', starts empty (%s | %s | %.1f%%)" % (name, right, w0))
+        await shift_session(pg, MIN)
+        w1 = await pg.evaluate("parseFloat(document.getElementById('nextBar').style.width)")
+        check(45 <= w1 <= 55, "after 1 of 2 minutes the bar is half full (%.1f%%)" % w1)
+
         # 2. one tap stops all sounds, one tap brings them back
         await pg.click("#muteBtn"); await pg.wait_for_timeout(400)
         st = await pg.evaluate("window.__fw.state().settings.soundsOn")
@@ -102,6 +111,7 @@ async def main():
         # 3. pause = quiet, resume = music again
         await pg.click("#pauseBtn"); await pg.wait_for_timeout(400)
         check(not await playing(pg), "paused: quiet")
+        check(await pg.inner_text("#nextName") == "Paused", "the bar says Paused")
         await pg.click("#pauseBtn"); await pg.wait_for_timeout(400)
         check(await playing(pg), "resumed: music again")
 
@@ -117,9 +127,12 @@ async def main():
         await pg.click("button[data-min='25']")
         await pg.click("#startBtn"); await pg.wait_for_timeout(1200)
         check(await playing(pg), "25-minute focus: music plays")
+        right = await pg.inner_text("#nextLeft")
+        check("min for your island" in right or "pops up at the end" in right, "a 25-minute round says what it gives: " + right)
         await shift_session(pg, 25 * MIN)
         mode = await pg.get_attribute("#panel", "data-mode")
         check(mode == "break" and not await playing(pg), "break: quiet by default (%s)" % mode)
+        check(await pg.inner_text("#nextName") == "Break", "the bar follows the break timer")
         await close_pip(pg)
         check(await pg.is_visible("#breakMuteBtn") and "off" in (await pg.get_attribute("#breakMuteBtn", "class")),
               "in the break, a 🔊 button offers music")

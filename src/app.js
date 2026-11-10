@@ -440,7 +440,7 @@
   }
   function renderNext() {
     var base = L.totalMin(S), s = S.session;
-    var extra = s && s.kind === 'focus' ? L.elapsed(s, now()) / MIN : 0;
+    if (s) { renderRoundBar(s, base); return; }
     var p = L.progressToNext(base);
     if (!p.next) {
       el.nextName.textContent = 'Your island is complete! \uD83C\uDFDD\uFE0F';
@@ -450,11 +450,29 @@
       return;
     }
     var idx = L.ITEMS.indexOf(p.next), prevAt = idx > 0 ? L.ITEMS[idx - 1].at : 0;
-    var proj = base + extra;
-    var frac = L.clamp((proj - prevAt) / (p.next.at - prevAt), 0, 1);
-    var left = p.next.at - proj;
+    var frac = L.clamp((base - prevAt) / (p.next.at - prevAt), 0, 1);
+    var left = p.next.at - base;
     el.nextName.textContent = 'Next up: ' + p.next.name;
     el.nextLeft.textContent = left <= 0 ? 'pops up when you finish!' : Math.ceil(left) + ' min away';
+    setBar(frac);
+  }
+  // While a timer runs, the bar follows that timer: a 2-minute round fills it in exactly 2 minutes
+  // (dinesh: a bar saying "8 min away" during a 2-minute round makes the goal feel far away).
+  function renderRoundBar(s, base) {
+    var frac = L.clamp(L.elapsed(s, now()) / s.plannedMs, 0, 1);
+    if (s.kind === 'break') {
+      el.nextName.textContent = 'Break';
+      el.nextLeft.textContent = 'Rest your eyes \uD83C\uDF3F';
+    } else {
+      var p = L.progressToNext(base), roundMin = s.plannedMs / MIN;
+      el.nextName.textContent = s.pausedAt != null ? 'Paused' : 'This round';
+      el.nextLeft.textContent = p.next && base + roundMin >= p.next.at
+        ? p.next.name + ' pops up at the end \u2728'
+        : '+' + Math.round(roundMin) + ' min for your island';
+    }
+    setBar(frac);
+  }
+  function setBar(frac) {
     el.nextBar.style.width = (frac * 100).toFixed(1) + '%';
     el.nextBarWrap.setAttribute('aria-valuenow', String(Math.round(frac * 100)));
   }
