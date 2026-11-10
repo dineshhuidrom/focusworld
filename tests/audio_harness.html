@@ -1,0 +1,30 @@
+<!doctype html><html><head><meta charset="utf-8"></head><body>
+<script src="../src/audio.js"></script>
+<script>
+window.testSound = async function (name, secs) {
+  var sr = 44100, ctx = new OfflineAudioContext(2, sr * secs, sr);
+  var e = new FWAudio.Engine();
+  e.init(ctx);
+  var lv = {}; lv[name] = 1;
+  e.setLevels(lv, 1);
+  if (e.timer) clearInterval(e.timer);
+  e.pumpAll(secs);
+  var buf = await ctx.startRendering();
+  var peak = 0, sum = 0, nan = 0, n = 0, rmsLate = 0, nl = 0;
+  for (var ch = 0; ch < 2; ch++) {
+    var d = buf.getChannelData(ch);
+    for (var i = 0; i < d.length; i++) {
+      var v = d[i];
+      if (!isFinite(v)) { nan++; continue; }
+      var a = Math.abs(v); if (a > peak) peak = a; sum += v * v; n++;
+      if (i > d.length / 2) { rmsLate += v * v; nl++; }
+    }
+  }
+  return { name: name, peak: +peak.toFixed(3), rms: +Math.sqrt(sum / n).toFixed(4), rmsLate: +Math.sqrt(rmsLate / nl).toFixed(4), nan: nan };
+};
+window.testChime = async function () {
+  var ctx = new OfflineAudioContext(2, 44100 * 3, 44100), e = new FWAudio.Engine(); e.init(ctx); e.chime(1);
+  var buf = await ctx.startRendering(); var d = buf.getChannelData(0), p = 0; for (var i = 0; i < d.length; i++) p = Math.max(p, Math.abs(d[i]));
+  return +p.toFixed(3);
+};
+</script></body></html>

@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#16204a">
+<link rel="icon" href="/icons/icon-192.png">
+<title>My Shop · {{APP_NAME}}</title>
+<style>{{CSS}}</style>
+</head>
+<body>
+<div class="sky" aria-hidden="true"><span></span><span></span><span></span></div>
+
+<!-- ============ login ============ -->
+<main id="login" class="login" hidden>
+  <form id="loginForm" class="login-card" novalidate>
+    <div class="mascot" aria-hidden="true"><span class="sprout">&#x1F331;</span></div>
+    <h1>Welcome back, shopkeeper!</h1>
+    <p class="muted">This is your private shop room. Only your password opens it.</p>
+    <input type="text" name="username" value="my-shop" autocomplete="username" hidden>
+    <label class="field">
+      <span>Your My Shop password</span>
+      <span class="pw">
+        <input id="pw" type="password" autocomplete="current-password" required minlength="1" enterkeyhint="go" spellcheck="false" autocapitalize="off">
+        <button type="button" id="pwShow" class="ghost-btn" aria-label="Show password" aria-pressed="false">Show</button>
+      </span>
+    </label>
+    <p class="msg" id="loginMsg" role="alert"></p>
+    <button class="btn primary big" id="loginBtn" type="submit"><span>Open my shop</span></button>
+    <a class="back" href="/">&larr; Back to {{APP_NAME}}</a>
+  </form>
+</main>
+
+<!-- ============ shop ============ -->
+<div id="app" class="app" hidden>
+  <header class="bar">
+    <div class="bar-title">
+      <b>My Shop</b>
+      <button type="button" id="status" class="status" aria-live="polite"><i></i><span>Loading…</span></button>
+    </div>
+    <div class="bar-actions">
+      <a class="icon-btn" href="/" target="_blank" rel="noopener" aria-label="Open my site" title="Open my site">&#x1F3DD;&#xFE0F;</a>
+      <button type="button" class="icon-btn" id="menuBtn" aria-label="More" aria-haspopup="true" aria-expanded="false">&#x22EF;</button>
+      <div class="menu" id="menu" role="menu" hidden>
+        <button type="button" role="menuitem" id="reloadBtn">&#x1F504; Get newest from GitHub</button>
+        <button type="button" role="menuitem" id="logoutBtn">&#x1F44B; Log out</button>
+      </div>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Shop parts">
+    <button type="button" role="tab" id="tabProducts" aria-selected="true" aria-controls="paneProducts">Products <em id="countProducts">0</em></button>
+    <button type="button" role="tab" id="tabLinks" aria-selected="false" aria-controls="paneLinks">Follow links <em id="countLinks">0</em></button>
+  </nav>
+
+  <section id="paneProducts" role="tabpanel" aria-labelledby="tabProducts" class="pane">
+    <div id="productList" class="list"></div>
+    <div id="productsEmpty" class="empty" hidden>
+      <div class="mascot small" aria-hidden="true"><span class="sprout">&#x1F331;</span></div>
+      <b>Your shelf is empty</b>
+      <span>Add your first product. It takes about a minute.</span>
+    </div>
+    <button type="button" class="btn primary add" id="addProduct"><span aria-hidden="true">+</span> Add a product</button>
+  </section>
+
+  <section id="paneLinks" role="tabpanel" aria-labelledby="tabLinks" class="pane" hidden>
+    <p class="muted pad">These show at the bottom of the Toolshed as <b>Say hi to the maker</b>. Great for your YouTube channel or Instagram.</p>
+    <div id="linkList" class="list"></div>
+    <div id="linksEmpty" class="empty" hidden>
+      <b>No follow links yet</b>
+      <span>Add your YouTube, Instagram or anything else.</span>
+    </div>
+    <button type="button" class="btn primary add" id="addLink"><span aria-hidden="true">+</span> Add a follow link</button>
+  </section>
+
+  <footer class="publish" id="publishBar" hidden>
+    <div class="publish-text"><b id="changeCount">1 change</b><span>Only you can see this until you publish.</span></div>
+    <button type="button" class="ghost-btn" id="undoAll">Undo all</button>
+    <button type="button" class="btn primary" id="publishBtn">Publish</button>
+  </footer>
+</div>
+
+<!-- ============ product editor ============ -->
+<section id="editor" class="editor" role="dialog" aria-modal="true" aria-labelledby="edTitle" hidden>
+  <header class="ed-head">
+    <button type="button" class="ghost-btn" id="edCancel">Cancel</button>
+    <h2 id="edTitle">New product</h2>
+    <button type="button" class="btn primary small" id="edSave">Save</button>
+  </header>
+  <div class="ed-body" id="edBody">
+    <div class="preview-wrap">
+      <p class="eyebrow">How visitors will see it</p>
+      <div id="preview" class="card-preview"></div>
+    </div>
+
+    <fieldset class="step" id="stepKind">
+      <legend><i>1</i> What is it?</legend>
+      <div class="kinds" id="kinds" role="radiogroup" aria-label="Kind of product"></div>
+    </fieldset>
+
+    <fieldset class="step">
+      <legend><i>2</i> Where does the button go?</legend>
+      <label class="field">
+        <span>Link (your Gumroad page, app, website or YouTube video)</span>
+        <input id="fUrl" type="url" inputmode="url" placeholder="https://…" autocomplete="off" spellcheck="false" autocapitalize="off">
+      </label>
+      <p class="hint" id="urlHint"></p>
+      <button type="button" class="btn soft" id="ytBtn" hidden>&#x25B6;&#xFE0F; Use the YouTube video's cover</button>
+    </fieldset>
+
+    <fieldset class="step">
+      <legend><i>3</i> Cover picture</legend>
+      <div class="cover" id="cover">
+        <img id="coverImg" alt="" hidden>
+        <div class="cover-empty" id="coverEmpty"><b>&#x1F5BC;&#xFE0F;</b><span>Tap to pick a picture</span><small>Wide pictures look best (16:9)</small></div>
+        <input id="fFile" type="file" accept="image/jpeg,image/png,image/webp" class="file-input" aria-label="Pick a cover picture">
+      </div>
+      <div class="seg" id="fitSeg" role="radiogroup" aria-label="How the picture fits" hidden>
+        <button type="button" role="radio" data-fit="fill" aria-checked="true">Fill the card</button>
+        <button type="button" role="radio" data-fit="fit">Show it all</button>
+      </div>
+      <p class="hint" id="coverHint"></p>
+    </fieldset>
+
+    <fieldset class="step">
+      <legend><i>4</i> The words</legend>
+      <label class="field"><span>Title <small class="count" data-for="fTitle"></small></span>
+        <input id="fTitle" maxlength="90" placeholder="e.g. Pass your exam with a calm 7-day plan" autocomplete="off"></label>
+      <label class="field"><span>Short hook (shown on the break card) <small class="count" data-for="fHook"></small></span>
+        <input id="fHook" maxlength="100" placeholder="e.g. Exams soon? Get a calm plan in 1 minute." autocomplete="off"></label>
+      <label class="field"><span>Description <small class="count" data-for="fText"></small></span>
+        <textarea id="fText" maxlength="260" rows="3" placeholder="What does it do, in 1–2 simple sentences?"></textarea></label>
+      <div class="two">
+        <label class="field"><span>Small label above the title <small class="count" data-for="fKicker"></small></span>
+          <input id="fKicker" maxlength="40" placeholder="e.g. For students" autocomplete="off"></label>
+        <label class="field"><span>Button words <small class="count" data-for="fCta"></small></span>
+          <input id="fCta" maxlength="24" placeholder="Take a look" autocomplete="off"></label>
+      </div>
+    </fieldset>
+
+    <fieldset class="step">
+      <legend><i>5</i> Price</legend>
+      <label class="switch-row"><span><b>It's free</b><small>Shows a green Free badge</small></span>
+        <input type="checkbox" id="fFree" class="switch"></label>
+      <label class="field" id="priceField"><span>Price</span>
+        <input id="fPrice" maxlength="14" placeholder="e.g. $19 or ₹499" autocomplete="off"></label>
+    </fieldset>
+
+    <fieldset class="step">
+      <legend><i>6</i> Extras <small>(you can skip these)</small></legend>
+      <label class="field"><span>Search words (who is it for?) — press Enter after each</span>
+        <div class="tags" id="tagBox"><input id="fTag" maxlength="32" placeholder="e.g. exam" autocomplete="off" enterkeyhint="enter"></div></label>
+      <label class="switch-row"><span><b>Show on the break card</b><small>Featured products can pop up during breaks</small></span>
+        <input type="checkbox" id="fFeatured" class="switch"></label>
+      <label class="switch-row"><span><b>Show in the shop</b><small>Turn off to hide it without deleting</small></span>
+        <input type="checkbox" id="fVisible" class="switch" checked></label>
+    </fieldset>
+    <p class="msg" id="edMsg" role="alert"></p>
+    <button type="button" class="danger-btn" id="edDelete" hidden>Delete this product</button>
+  </div>
+</section>
+
+<!-- ============ link editor ============ -->
+<section id="linkEditor" class="editor small-ed" role="dialog" aria-modal="true" aria-labelledby="leTitle" hidden>
+  <header class="ed-head">
+    <button type="button" class="ghost-btn" id="leCancel">Cancel</button>
+    <h2 id="leTitle">Follow link</h2>
+    <button type="button" class="btn primary small" id="leSave">Save</button>
+  </header>
+  <div class="ed-body">
+    <fieldset class="step">
+      <legend><i>1</i> Where does it go?</legend>
+      <div class="kinds" id="platforms" role="radiogroup" aria-label="Where the link goes"></div>
+    </fieldset>
+    <fieldset class="step">
+      <legend><i>2</i> The link</legend>
+      <label class="field"><span>Link</span>
+        <input id="lUrl" type="url" inputmode="url" placeholder="https://…" autocomplete="off" spellcheck="false" autocapitalize="off"></label>
+      <label class="field"><span>Name on the button (optional) <small class="count" data-for="lLabel"></small></span>
+        <input id="lLabel" maxlength="30" placeholder="e.g. Golu Paisa on YouTube" autocomplete="off"></label>
+    </fieldset>
+    <p class="msg" id="leMsg" role="alert"></p>
+    <button type="button" class="danger-btn" id="leDelete" hidden>Delete this link</button>
+  </div>
+</section>
+
+<!-- ============ confirm + toast ============ -->
+<div class="scrim" id="scrim" hidden></div>
+<div class="dialog" id="dialog" role="alertdialog" aria-modal="true" aria-labelledby="dlgTitle" aria-describedby="dlgText" hidden>
+  <div class="dlg-emoji" id="dlgEmoji" aria-hidden="true"></div>
+  <h2 id="dlgTitle"></h2>
+  <p id="dlgText"></p>
+  <div class="dlg-btns"><button type="button" class="ghost-btn" id="dlgNo"></button><button type="button" class="btn primary" id="dlgYes"></button></div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+<canvas id="confetti" class="confetti" aria-hidden="true"></canvas>
+
+<script>{{JS}}</script>
+</body>
+</html>

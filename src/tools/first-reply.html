@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Paper Trail · Free First Reply</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Paper Trail. One calm, light "case file" world: warm paper, ink, a yellow highlighter.
+   Layout: one phone-width column. The 48-hour ring is the hero; everything else is a card under it. */
+:root {
+  --paper: #F7F4EE;
+  --card: #FFFFFF;
+  --ink: #0F1729;
+  --ink2: #3A4458;
+  --muted: #6B7385;
+  --rule: #E4DCCD;
+  --rule2: #F0EADF;
+  --mark: #FFE45A;
+  --mark2: #FFF4B8;
+  --red: #B93A26;
+  --red2: #FBEAE6;
+  --green: #1F7A53;
+  --green2: #E2F2E9;
+  --serif: 'Instrument Serif', Georgia, 'Times New Roman', serif;
+  --sans: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --r: 16px;
+  --shadow: 0 1px 0 rgba(15, 23, 41, 0.04), 0 10px 26px -14px rgba(15, 23, 41, 0.22);
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--paper);
+  background-image: radial-gradient(ellipse 80% 40% at 50% 0%, rgba(255, 228, 90, 0.16), rgba(255, 228, 90, 0) 70%);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 15.5px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+a { color: var(--ink); }
+.app { max-width: 460px; margin: 0 auto; padding: 12px 18px calc(110px + env(safe-area-inset-bottom)); }
+.app.notabs { padding-bottom: 48px; }
+
+/* Header */
+.top { display: flex; align-items: center; justify-content: space-between; padding: 6px 2px 10px; }
+.brand { display: flex; gap: 8px; align-items: center; font-family: var(--mono); font-weight: 700; font-size: 12px; letter-spacing: 0.18em; }
+.brand svg { width: 22px; height: 22px; }
+.top-r { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em; color: var(--muted); text-transform: uppercase; }
+
+/* Type */
+h1 { font-family: var(--serif); font-weight: 400; font-size: 46px; line-height: 1.0; letter-spacing: -0.01em; margin: 14px 0 14px; }
+h1 em, h2 em { font-style: italic; }
+h2 { font-family: var(--serif); font-weight: 400; font-size: 32px; line-height: 1.05; margin: 6px 0 8px; }
+h3 { font-size: 16.5px; font-weight: 700; margin: 0; line-height: 1.3; }
+.kicker { font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+.lead { font-size: 16.5px; line-height: 1.55; color: var(--ink2); margin: 0 0 18px; }
+.small { font-size: 13px; color: var(--muted); line-height: 1.45; }
+.mk { background: linear-gradient(104deg, rgba(255, 228, 90, 0) 0.9%, var(--mark) 2.4%, var(--mark) 96%, rgba(255, 228, 90, 0) 98%); padding: 0 0.14em; border-radius: 0.25em; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+.sec { margin: 26px 0 8px; }
+.sec .kicker { margin-bottom: 4px; }
+
+/* Cards */
+.card { background: var(--card); border: 1px solid var(--rule); border-radius: var(--r); padding: 18px; box-shadow: var(--shadow); margin: 12px 0; position: relative; }
+.card.tint { background: var(--mark2); border-color: #EAD98A; }
+.card.dark { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.card.dark .small, .card.dark .kicker { color: #AEB6C6; }
+.card.warn { border-color: #EBC2B8; background: #FFF8F6; }
+
+/* Buttons */
+.btn { appearance: none; border: 1.5px solid var(--ink); background: var(--card); color: var(--ink); border-radius: 12px; padding: 11px 15px; font-weight: 650; font-size: 14.5px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; text-decoration: none; box-shadow: 0 3px 0 var(--ink); transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.2s ease, color 0.2s ease; -webkit-tap-highlight-color: transparent; }
+.btn:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--ink); }
+.btn:focus-visible, .opt:focus-visible, .chipbtn:focus-visible, .tab:focus-visible { outline: 3px solid var(--mark); outline-offset: 2px; }
+.btn.primary { background: var(--ink); color: var(--paper); box-shadow: 0 3px 0 #000; }
+.btn.mark { background: var(--mark); }
+.btn.big { width: 100%; padding: 16px; font-size: 16.5px; border-radius: 14px; }
+.btn.ghost { border-color: var(--rule); box-shadow: 0 2px 0 var(--rule); }
+.btn.sm { padding: 8px 12px; font-size: 13.5px; border-radius: 10px; }
+.btn.copied { background: var(--green); border-color: var(--green); color: #fff; box-shadow: 0 3px 0 #0E4A31; }
+.btn svg { width: 17px; height: 17px; flex: 0 0 auto; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+.row .btn { flex: 1 1 auto; }
+.private { font-size: 13px; color: var(--muted); display: flex; gap: 6px; align-items: center; justify-content: center; margin-top: 12px; }
+.private svg { width: 15px; height: 15px; }
+.link { appearance: none; background: none; border: 0; padding: 0; color: var(--ink); font-weight: 650; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+
+/* Guide character: Trail, a small paper plane. Used only at key moments. */
+.guide { display: flex; gap: 10px; align-items: flex-start; margin: 18px 0; }
+.guide .av { width: 40px; height: 40px; border-radius: 50%; background: var(--mark); border: 1.5px solid var(--ink); display: grid; place-items: center; flex: 0 0 40px; animation: bob 4s ease-in-out infinite; }
+.guide .av svg { width: 22px; height: 22px; }
+.guide .bub { background: var(--card); border: 1px solid var(--rule); border-radius: 14px 14px 14px 4px; padding: 10px 13px; font-size: 14.5px; line-height: 1.45; box-shadow: var(--shadow); }
+.guide .bub b { display: block; font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); font-weight: 700; margin-bottom: 2px; }
+@keyframes bob { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-3px) rotate(3deg); } }
+
+/* Setup */
+.prog { display: flex; gap: 6px; margin: 2px 0 20px; }
+.prog i { height: 4px; flex: 1; background: var(--rule); border-radius: 4px; transition: background 0.3s ease; }
+.prog i.on { background: var(--ink); }
+.opt { appearance: none; display: flex; width: 100%; text-align: left; padding: 16px; border: 1.5px solid var(--rule); border-radius: 14px; background: var(--card); margin: 10px 0; font-weight: 650; font-size: 15.5px; gap: 12px; align-items: center; cursor: pointer; transition: border-color 0.2s, background 0.2s, box-shadow 0.2s, transform 0.12s; }
+.opt:active { transform: scale(0.99); }
+.opt .ic { width: 34px; height: 34px; border-radius: 10px; background: var(--rule2); display: grid; place-items: center; flex: 0 0 34px; }
+.opt .ic svg { width: 19px; height: 19px; }
+.opt .sub { display: block; font-weight: 400; font-size: 13px; color: var(--muted); margin-top: 2px; }
+.opt[aria-pressed="true"] { border-color: var(--ink); background: var(--mark2); box-shadow: 0 3px 0 var(--ink); }
+.opt[aria-pressed="true"] .ic { background: var(--mark); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chipbtn { appearance: none; border: 1.5px solid var(--rule); background: var(--card); border-radius: 999px; padding: 9px 13px; font-weight: 600; font-size: 14px; cursor: pointer; display: inline-flex; gap: 7px; align-items: center; transition: background 0.2s, color 0.2s, border-color 0.2s, transform 0.12s; }
+.chipbtn:active { transform: scale(0.97); }
+.chipbtn[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.dots { display: inline-flex; gap: 3px; }
+.dots i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: 0.25; }
+.dots i.on { opacity: 1; }
+.field { margin: 12px 0; }
+.field label { display: block; font-weight: 650; font-size: 14px; margin-bottom: 6px; }
+.field .hint { font-weight: 400; color: var(--muted); }
+input[type="text"], input[type="date"], input[type="datetime-local"], select, textarea { width: 100%; font-size: 16px; padding: 12px; border: 1.5px solid var(--rule); border-radius: 12px; background: var(--card); transition: border-color 0.2s, box-shadow 0.2s; }
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 4px var(--mark2); }
+.err { color: var(--red); font-size: 13.5px; font-weight: 600; margin-top: 8px; }
+.navrow { display: flex; gap: 10px; margin-top: 22px; }
+.navrow .btn { flex: 1; }
+
+/* Ring */
+.ringwrap { position: relative; width: 264px; height: 264px; margin: 4px auto 0; }
+.ringwrap svg { width: 100%; height: 100%; display: block; }
+.ringwrap .c { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; pointer-events: none; }
+.cd { font-family: var(--serif); font-size: 48px; line-height: 1; }
+.cd small { font-size: 26px; }
+.cdl { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; color: var(--muted); text-transform: uppercase; margin-top: 7px; max-width: 132px; line-height: 1.4; }
+.cdp { margin-top: 10px; font-size: 13px; font-weight: 650; background: var(--mark); border: 1.5px solid var(--ink); border-radius: 999px; padding: 3px 10px; }
+.arc-draw { stroke-dasharray: var(--len); stroke-dashoffset: var(--len); animation: draw 0.9s cubic-bezier(0.3, 0.7, 0.2, 1) forwards; }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+.pulse { animation: pulse 2.6s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes pulse { 0%, 100% { opacity: 0.45; transform: scale(1); } 50% { opacity: 0; transform: scale(1.9); } }
+
+/* Phases */
+.phase { padding: 0; overflow: hidden; }
+.phase .hd { appearance: none; width: 100%; background: none; border: 0; text-align: left; display: flex; gap: 12px; align-items: center; padding: 16px 16px 14px; cursor: pointer; }
+.pnum { font-family: var(--serif); font-size: 36px; line-height: 0.9; width: 42px; flex: 0 0 42px; }
+.pmeta { flex: 1; min-width: 0; }
+.pname { font-weight: 700; font-size: 17px; }
+.ptime { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 0.04em; margin-top: 2px; }
+.chip { font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; padding: 4px 8px; border-radius: 999px; border: 1px solid var(--rule); white-space: nowrap; color: var(--muted); }
+.chip.now { background: var(--mark); border-color: var(--ink); color: var(--ink); }
+.chip.done { background: var(--green2); color: var(--green); border-color: transparent; }
+.chip.late { background: var(--red2); color: var(--red); border-color: transparent; }
+.pbar { height: 3px; background: var(--rule2); margin: 0 16px; border-radius: 3px; overflow: hidden; }
+.pbar i { display: block; height: 100%; background: var(--ink); transition: width 0.45s cubic-bezier(0.3, 0.7, 0.2, 1); }
+.phase .bd { padding: 6px 16px 14px; }
+.phase .goal { font-size: 14.5px; color: var(--ink2); margin: 8px 0 4px; }
+.phase.is-now { border-color: var(--ink); box-shadow: 0 3px 0 var(--ink), var(--shadow); }
+.step { appearance: none; width: 100%; background: none; border: 0; border-top: 1px dashed var(--rule); text-align: left; display: flex; gap: 12px; padding: 12px 0; align-items: flex-start; cursor: pointer; }
+.cb { flex: 0 0 26px; height: 26px; border: 1.8px solid var(--ink); border-radius: 8px; background: var(--card); display: grid; place-items: center; transition: background 0.2s ease, transform 0.15s ease; }
+.cb svg { width: 16px; height: 16px; }
+.cb path { stroke-dasharray: 22; stroke-dashoffset: 22; transition: stroke-dashoffset 0.32s ease 0.05s; }
+.step:active .cb { transform: scale(0.9); }
+.step.on .cb { background: var(--ink); }
+.step.on .cb path { stroke-dashoffset: 0; }
+.st { font-size: 15px; line-height: 1.4; padding-top: 2px; transition: color 0.2s; }
+.step.on .st { color: var(--muted); text-decoration: line-through; text-decoration-color: rgba(15, 23, 41, 0.35); }
+.chip.fresh { animation: stamp 0.55s cubic-bezier(0.2, 1.5, 0.4, 1) both; }
+.stamp { position: absolute; right: 14px; top: 58px; font-family: var(--mono); font-weight: 700; font-size: 12px; letter-spacing: 0.22em; color: var(--green); border: 2px solid var(--green); border-radius: 6px; padding: 4px 8px; transform: rotate(-8deg); pointer-events: none; background: rgba(255, 255, 255, 0.7); }
+.stamp.fresh { animation: stamp 0.5s cubic-bezier(0.2, 1.5, 0.4, 1) both; }
+@keyframes stamp { 0% { transform: rotate(-10deg) scale(2); opacity: 0; } 60% { transform: rotate(-4deg) scale(0.92); opacity: 1; } 100% { transform: none; opacity: 1; } }
+
+/* Templates */
+.tpl .subj { font-family: var(--mono); font-size: 12px; color: var(--ink2); background: var(--rule2); padding: 8px 10px; border-radius: 8px; margin: 12px 0 10px; word-break: break-word; }
+.tpl .body { white-space: pre-wrap; font-size: 14.5px; line-height: 1.55; border-left: 3px solid var(--ink); padding: 2px 0 2px 12px; word-break: break-word; }
+.ph { background: var(--mark2); border-bottom: 1.5px dashed #C9A800; padding: 0 1px; border-radius: 3px; }
+.fv { font-weight: 650; }
+.tpl .when { display: inline-block; margin-top: 6px; }
+details.more { margin-top: 10px; }
+details.more summary { cursor: pointer; font-weight: 650; list-style: none; display: flex; align-items: center; gap: 8px; }
+details.more summary::-webkit-details-marker { display: none; }
+details.more summary::before { content: "+"; font-family: var(--mono); width: 22px; height: 22px; border: 1.5px solid var(--ink); border-radius: 6px; display: grid; place-items: center; font-size: 14px; transition: transform 0.2s; }
+details.more[open] summary::before { content: "\2212"; }
+ul.ticks, ol.nums { margin: 10px 0 0; padding: 0; list-style: none; }
+ul.ticks li, ol.nums li { position: relative; padding: 6px 0 6px 30px; font-size: 14.5px; line-height: 1.45; }
+ul.ticks li::before { content: ""; position: absolute; left: 4px; top: 10px; width: 14px; height: 8px; border-left: 2px solid var(--green); border-bottom: 2px solid var(--green); transform: rotate(-45deg); }
+ul.ticks.dot li::before { width: 7px; height: 7px; border: 0; transform: none; left: 7px; top: 14px; border-radius: 50%; background: var(--ink); }
+ul.ticks.alert li::before { content: "!"; width: 18px; height: 18px; border: 0; transform: none; left: 2px; top: 7px; border-radius: 50%; background: var(--red); color: #fff; font: 700 12px/18px var(--mono); text-align: center; }
+ul.ticks.x li::before { width: 12px; height: 12px; border: 0; transform: none; left: 5px; top: 10px; background: linear-gradient(45deg, transparent 43%, var(--red) 43%, var(--red) 57%, transparent 57%), linear-gradient(-45deg, transparent 43%, var(--red) 43%, var(--red) 57%, transparent 57%); }
+ol.nums { counter-reset: n; }
+ol.nums li { counter-increment: n; }
+ol.nums li::before { content: counter(n); position: absolute; left: 0; top: 6px; width: 21px; height: 21px; border-radius: 50%; background: var(--ink); color: var(--paper); font-family: var(--mono); font-size: 11px; display: grid; place-items: center; font-weight: 700; }
+.li-sub { display: block; color: var(--muted); font-size: 13.5px; }
+
+/* Proof */
+.proof .ph2 { display: flex; justify-content: space-between; gap: 10px; align-items: center; }
+.str { font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); display: flex; gap: 6px; align-items: center; white-space: nowrap; }
+.toggle { appearance: none; border: 1.5px solid var(--ink); border-radius: 999px; background: var(--card); padding: 8px 12px; font-weight: 650; font-size: 13.5px; display: inline-flex; gap: 8px; align-items: center; cursor: pointer; margin-top: 12px; box-shadow: 0 2px 0 var(--ink); transition: background 0.2s, color 0.2s, transform 0.12s; }
+.toggle:active { transform: translateY(1px); }
+.toggle[aria-pressed="true"] { background: var(--green); border-color: var(--green); color: #fff; box-shadow: 0 2px 0 #0E4A31; }
+.tl-row { display: grid; grid-template-columns: 1fr 44px; gap: 6px; margin: 4px 0 14px; padding-bottom: 14px; border-bottom: 1px dashed var(--rule); align-items: center; }
+.tl-row .w, .tl-row select { grid-column: 1 / -1; }
+.tl-row input, .tl-row select { padding: 10px; font-size: 15px; }
+.iconbtn { appearance: none; border: 1.5px solid var(--rule); background: var(--card); border-radius: 10px; height: 44px; display: grid; place-items: center; cursor: pointer; }
+.iconbtn svg { width: 17px; height: 17px; }
+.tl-out { font-family: var(--mono); font-size: 12px; white-space: pre-wrap; background: var(--rule2); border-radius: 10px; padding: 10px 12px; margin-top: 10px; }
+.empty { border: 1.5px dashed var(--rule); border-radius: 14px; padding: 16px; text-align: center; color: var(--muted); font-size: 14px; }
+
+/* Meeting flip cards */
+.flip { perspective: 1200px; margin-top: 12px; }
+.flip .inner { position: relative; height: 236px; transition: transform 0.55s cubic-bezier(0.3, 0.7, 0.2, 1); transform-style: preserve-3d; }
+.flip.on .inner { transform: rotateY(180deg); }
+.face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: var(--r); padding: 20px; display: flex; flex-direction: column; justify-content: space-between; border: 1px solid var(--rule); background: var(--card); box-shadow: var(--shadow); cursor: pointer; }
+.face .q { font-family: var(--serif); font-size: 27px; line-height: 1.12; }
+.face.back { transform: rotateY(180deg); background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.face.back .q { font-size: 21px; }
+.face .hint2 { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+.face.back .hint2 { color: #AEB6C6; }
+.qnav { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 12px; }
+.qdots { display: flex; gap: 5px; }
+.qdots i { width: 7px; height: 7px; border-radius: 50%; background: var(--rule); }
+.qdots i.on { background: var(--ink); }
+
+/* Help */
+.kv { display: grid; gap: 4px; margin-top: 8px; }
+.kv h4 { margin: 14px 0 2px; font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+.tool-row { border-top: 1px dashed var(--rule); padding: 10px 0; font-size: 14.5px; }
+.tool-row b { display: block; }
+.tool-row span { color: var(--ink2); }
+
+/* Free: locked previews */
+.lock { display: flex; gap: 12px; align-items: center; padding: 12px 0; border-top: 1px dashed rgba(247, 244, 238, 0.2); }
+.lock:first-of-type { border-top: 0; }
+.lock .lk { width: 32px; height: 32px; border-radius: 9px; background: rgba(255, 228, 90, 0.14); display: grid; place-items: center; flex: 0 0 32px; }
+.lock .lk svg { width: 16px; height: 16px; }
+.lock b { display: block; font-size: 14.5px; }
+.lock span { font-size: 13px; color: #AEB6C6; }
+.price { font-family: var(--serif); font-size: 44px; line-height: 1; }
+
+/* Tabs */
+.tabs { position: fixed; left: 0; right: 0; bottom: 0; background: rgba(247, 244, 238, 0.94); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border-top: 1px solid var(--rule); padding: 6px 10px calc(6px + env(safe-area-inset-bottom)); display: flex; justify-content: center; z-index: 5; }
+.tabs .in { max-width: 460px; width: 100%; display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+.tab { appearance: none; border: 0; background: transparent; border-radius: 12px; padding: 7px 2px 6px; font-size: 11px; font-weight: 650; color: var(--muted); display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; transition: background 0.2s, color 0.2s; }
+.tab svg { width: 22px; height: 22px; }
+.tab[aria-current="page"] { color: var(--ink); background: var(--mark2); }
+
+/* Toast + modal */
+.toast { position: fixed; left: 50%; bottom: calc(92px + env(safe-area-inset-bottom)); transform: translate(-50%, 16px); opacity: 0; background: var(--ink); color: var(--paper); padding: 11px 15px; border-radius: 14px; font-size: 14.5px; display: flex; gap: 9px; align-items: center; transition: opacity 0.25s ease, transform 0.25s ease; pointer-events: none; width: max-content; max-width: 88vw; z-index: 20; box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5); }
+.toast.on { opacity: 1; transform: translate(-50%, 0); }
+.toast .av { width: 26px; height: 26px; border-radius: 50%; background: var(--mark); display: grid; place-items: center; flex: 0 0 26px; }
+.toast .av svg { width: 15px; height: 15px; }
+.modal { position: fixed; inset: 0; background: rgba(15, 23, 41, 0.55); display: flex; align-items: flex-end; justify-content: center; padding: 14px; z-index: 30; }
+.modal[hidden] { display: none; }
+.sheet { background: var(--card); border-radius: 18px; padding: 18px; width: 100%; max-width: 460px; animation: up 0.28s ease both; }
+.sheet textarea { height: 230px; font-size: 14px; margin-top: 10px; }
+@keyframes up { from { transform: translateY(20px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+.screen { animation: in 0.3s ease both; }
+@keyframes in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.foot { text-align: center; font-size: 12px; color: var(--muted); margin: 30px 0 0; line-height: 1.6; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+  .arc-draw { stroke-dashoffset: 0; }
+}
+</style>
+</head>
+<body>
+<div id="app" class="app"></div>
+<nav id="tabs" class="tabs" hidden aria-label="Sections"></nav>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<div id="modal" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="mtitle"></div>
+<script>
+const DATA = {"labels": {"prof": "Professor's name", "course": "Course", "assignment": "assignment", "student": "Your name", "student_id": "Student ID", "evidence_by": "day and time", "exhibit_lines": "your exhibits", "first_draft_date": "date", "appeal_to": "name or office", "decision_date": "date", "new_date": "day and time"}, "donts": [["Don't reply in anger or panic.", "Your first words will be read many times, maybe by a panel."], ["Don't admit to something you didn't do.", "Some students admit just to make it stop. An admission is very hard to undo."], ["Don't edit, rewrite or re-upload your work.", "The file as it is now is part of your evidence."], ["Don't delete anything.", "Keep every draft, note, chat and your browser history."], ["Don't test your work in “AI humanizer” tools.", "It proves nothing, and it can look like you are hiding something."], ["Don't drop the course or miss a meeting yet.", "Talk to your international student office first. It can affect your visa."]], "templates": {"first": {"title": "First reply", "when": "Send in the first 2 hours", "subject": "{course} – {assignment}: my reply", "body": "Dear {prof},\n\nThank you for your email about my {assignment}. I want to be clear: I wrote this work myself, and I take academic integrity seriously.\n\nI kept drafts and version history that show how I wrote it. I will send them to you by {evidence_by}.\n\nSo that I can reply fully, could you please send me:\n• the AI detection report, and the parts of my work that were flagged\n• the part of the academic integrity policy this concerns\n• the next steps and any deadlines\n\nI would be glad to meet and show you my drafts.\n\nKind regards,\n{student}\n{student_id}"}}};
+const MODE = "free";
+const KIT_URL = "https://dineshcraft02588.gumroad.com/l/paper-trail";
+const HOUR = 3600000;
+const KEY = MODE === 'kit' ? 'papertrail.kit.v1' : 'papertrail.free.v1';
+
+/* ---------- icons ---------- */
+const I = {
+  brand: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2.5 21.5c2.2-.6 3.4-2 3.8-4" stroke="#0F1729" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="0.1 3"/><path d="M8 2.75h8.2L20.25 6.8V18a1.25 1.25 0 0 1-1.25 1.25H8A1.25 1.25 0 0 1 6.75 18V4A1.25 1.25 0 0 1 8 2.75Z" fill="#FFE45A" stroke="#0F1729" stroke-width="1.5"/><path d="M16 2.9V7h4.1" stroke="#0F1729" stroke-width="1.5"/><path d="M9.6 11h7.4M9.6 14h5" stroke="#0F1729" stroke-width="1.5" stroke-linecap="round"/></svg>',
+  plane: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M21.5 3.5 2.8 10.6c-.7.3-.7 1.3 0 1.5l6.4 2.1 2.1 6.4c.2.7 1.2.8 1.5.1L21.5 3.5Z" fill="#fff" stroke="#0F1729" stroke-width="1.6" stroke-linejoin="round"/><path d="m9.2 14.2 6.3-6.3" stroke="#0F1729" stroke-width="1.6" stroke-linecap="round"/></svg>',
+  lock: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2.2" stroke="currentColor" stroke-width="1.8"/><path d="M8.2 10.5V8a3.8 3.8 0 0 1 7.6 0v2.5" stroke="currentColor" stroke-width="1.8"/></svg>',
+  check: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m5 12.5 4.3 4.3L19 7.2" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  copy: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="8.5" y="8.5" width="11" height="12" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M15.5 8.5V5.5a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h2" stroke="currentColor" stroke-width="1.8"/></svg>',
+  mail: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="5.5" width="18" height="13" rx="2.2" stroke="currentColor" stroke-width="1.8"/><path d="m4 7 8 6 8-6" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
+  plan: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.8"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+  proof: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 3.5h8l4 4V19a1.5 1.5 0 0 1-1.5 1.5h-10A1.5 1.5 0 0 1 5 19V5a1.5 1.5 0 0 1 1-1.5Z" stroke="currentColor" stroke-width="1.8"/><path d="m8.5 13.5 2.3 2.3 4.7-4.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  meet: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 5.5h16v10H9l-5 4v-14Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 9.5h8M8 12.5h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+  help: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3.2 4.5 6v5.6c0 4.4 3.1 7.9 7.5 9.2 4.4-1.3 7.5-4.8 7.5-9.2V6L12 3.2Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 8v4.5M12 15.6v.1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+  clock: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.8"/><path d="M12 7v5h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+  cal: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.2" stroke="currentColor" stroke-width="1.8"/><path d="M3.5 9.5h17M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+  none: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.8"/><path d="M8 12h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+  trash: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4.5 7h15M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
+  plus: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+  share: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 15V3.5M7.5 8 12 3.5 16.5 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 12.5V19a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 19v-6.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+  arrow: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  globe: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.8"/><path d="M3.5 12h17M12 3.5c2.4 2.3 3.6 5.1 3.6 8.5S14.4 18.2 12 20.5C9.6 18.2 8.4 15.4 8.4 12S9.6 5.8 12 3.5Z" stroke="currentColor" stroke-width="1.6"/></svg>',
+};
+
+/* ---------- state ---------- */
+function fresh() {
+  return {
+    screen: MODE === 'kit' ? 'onboard' : 'free-intro',
+    step: 0,
+    setup: { receivedMode: null, received: '', hasDeadline: null, deadline: '', country: '', student: '', student_id: '', prof: '', course: '', assignment: '', proofs: [], tools: [] },
+    done: {}, saved: {}, timeline: [], q: 0, flipped: false, open: null, helpCountry: '', stamped: {}, evidenceBy: '', built: false,
+  };
+}
+function load() { try { const raw = localStorage.getItem(KEY); return raw ? Object.assign(fresh(), JSON.parse(raw)) : null; } catch (e) { return null; } }
+function save() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) { /* private mode: keep working in memory */ } }
+let st = load() || fresh();
+const app = document.getElementById('app');
+
+/* ---------- helpers ---------- */
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const LOCALES = { US: 'en-US', UK: 'en-GB', CA: 'en-CA', AU: 'en-AU', OTHER: 'en-GB' };
+function loc() { return LOCALES[st.setup.country] || undefined; }
+function fmt(t, withTime = true) {
+  const o = withTime ? { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' } : { weekday: 'short', day: 'numeric', month: 'short' };
+  try { return new Intl.DateTimeFormat(loc(), o).format(new Date(t)); } catch (e) { return new Date(t).toLocaleString(); }
+}
+function fmtDate(d) { try { return new Intl.DateTimeFormat(loc(), { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(d + 'T12:00')); } catch (e) { return d; } }
+function toInput(t) { const d = new Date(t); const p = (n) => String(n).padStart(2, '0'); return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + 'T' + p(d.getHours()) + ':' + p(d.getMinutes()); }
+function guide(msg, label = 'Trail') { return '<div class="guide"><div class="av">' + I.plane + '</div><div class="bub"><b>' + esc(label) + '</b>' + msg + '</div></div>'; }
+function header() {
+  const r = MODE === 'kit' ? 'Proof Builder' : 'Free · First reply';
+  return '<header class="top"><div class="brand">' + I.brand + '<span>PAPER TRAIL</span></div><div class="top-r">' + r + '</div></header>';
+}
+function toast(msg, withGuide = false) {
+  const t = document.getElementById('toast');
+  t.innerHTML = (withGuide ? '<span class="av">' + I.plane + '</span>' : '') + '<span>' + msg + '</span>';
+  t.classList.add('on');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => t.classList.remove('on'), 2600);
+}
+
+/* ---------- the plan clock ---------- */
+function bounds() {
+  const s = st.setup;
+  const t0 = s.received ? +new Date(s.received) : Date.now();
+  let t4 = s.hasDeadline === 'yes' && s.deadline ? +new Date(s.deadline) : t0 + 48 * HOUR;
+  const W = t4 - t0;
+  if (W >= 48 * HOUR) return [t0, t0 + 2 * HOUR, t0 + 12 * HOUR, t0 + 24 * HOUR, t4];
+  // Shorter deadline: squeeze the same 4 phases into the time there is.
+  return [t0, t0 + W * 2 / 48, t0 + W * 12 / 48, t0 + W * 24 / 48, t4];
+}
+function setupError() {
+  const s = st.setup;
+  if (s.received && isNaN(+new Date(s.received))) return 'Please choose when you got the email.';
+  if (s.hasDeadline === 'yes') {
+    if (!s.deadline) return 'Please choose your deadline, or pick “No deadline given”.';
+    const t0 = s.received ? +new Date(s.received) : Date.now();
+    if (+new Date(s.deadline) <= t0) return 'Your deadline is before the email arrived. Please check both times.';
+  }
+  return '';
+}
+function phaseSteps(key) {
+  const s = st.setup;
+  let list = (DATA.checklist[key] || []).map((t, i) => ({ id: key + '-' + i, t }));
+  if (key === 'freeze' && s.tools.length && !s.tools.includes('none')) list.splice(4, 0, { id: 'freeze-tools', t: 'Read “Used a tool?” in Help before you reply' });
+  if (key === 'collect' && s.proofs.length) {
+    list = s.proofs.map((k) => ({ id: 'proof-' + k, t: 'Save: ' + (DATA.proofs.find((p) => p.key === k) || {}).name, proof: k }));
+    list.push({ id: 'collect-folder', t: 'Put everything in one folder' });
+  }
+  return list;
+}
+function phaseInfo() {
+  const b = bounds();
+  const now = Date.now();
+  return DATA.phases.map((p, i) => {
+    const steps = phaseSteps(p.key);
+    const done = steps.filter((x) => st.done[x.id]).length;
+    const start = b[i], end = b[i + 1];
+    let status = now < start ? 'next' : now < end ? 'now' : 'late';
+    if (steps.length && done === steps.length) status = 'done';
+    return Object.assign({}, p, { start, end, steps, done, status });
+  });
+}
+function ringSVG(b, now, animate, statuses) {
+  const cx = 100, cy = 100, R = 78, W = 13;
+  const T = b[4] - b[0];
+  const ang = (t) => Math.max(0, Math.min(1, (t - b[0]) / T)) * 360;
+  const pt = (deg, r) => { const a = (deg - 90) * Math.PI / 180; return [cx + r * Math.cos(a), cy + r * Math.sin(a)]; };
+  const arc = (d0, d1, r) => { const [x0, y0] = pt(d0, r), [x1, y1] = pt(d1, r); return 'M' + x0.toFixed(2) + ',' + y0.toFixed(2) + ' A' + r + ',' + r + ' 0 ' + (d1 - d0 > 180 ? 1 : 0) + ' 1 ' + x1.toFixed(2) + ',' + y1.toFixed(2); };
+  const info = statuses ? DATA.phases.map((p, i) => Object.assign({}, p, { status: statuses[i] })) : phaseInfo();
+  let s = '<svg viewBox="0 0 200 200" role="img" aria-label="Your 48-hour plan as a clock">';
+  for (let i = 0; i < 48; i++) {
+    const d = i * 7.5, long = i % 6 === 0;
+    const [x0, y0] = pt(d, 93), [x1, y1] = pt(d, long ? 99 : 96);
+    s += '<line x1="' + x0.toFixed(2) + '" y1="' + y0.toFixed(2) + '" x2="' + x1.toFixed(2) + '" y2="' + y1.toFixed(2) + '" stroke="#0F1729" stroke-opacity="' + (long ? 0.5 : 0.2) + '" stroke-width="' + (long ? 1.3 : 0.9) + '" stroke-linecap="round"/>';
+  }
+  s += '<circle cx="100" cy="100" r="' + R + '" fill="none" stroke="#F0EADF" stroke-width="' + W + '"/>';
+  info.forEach((p, i) => {
+    const gap = 1.6;
+    const d0 = ang(b[i]) + (i ? gap / 2 : 0), d1 = ang(b[i + 1]) - (i < 3 ? gap / 2 : 0);
+    if (d1 - d0 < 0.6) return;
+    // Done = green, now = highlighter yellow, overdue = soft red, still to come = ink, fading with distance.
+    const col = p.status === 'now' ? '#FFE45A' : p.status === 'done' ? '#1F7A53' : p.status === 'late' ? '#B93A26' : '#0F1729';
+    const op = p.status === 'next' ? [0.85, 0.85, 0.6, 0.38][i] : p.status === 'late' ? 0.75 : 1;
+    const path = arc(d0, d1, R);
+    const len = (Math.PI * 2 * R * (d1 - d0) / 360).toFixed(1);
+    if (p.status === 'now') s += '<path d="' + path + '" fill="none" stroke="#0F1729" stroke-width="' + (W + 3) + '" stroke-linecap="butt"' + (animate ? ' class="arc-draw" style="--len:' + len + '"' : '') + '/>';
+    s += '<path d="' + path + '" fill="none" stroke="' + col + '" stroke-opacity="' + op + '" stroke-width="' + W + '" stroke-linecap="butt"' + (animate ? ' class="arc-draw" style="--len:' + len + '"' : '') + '/>';
+    const [lx, ly] = pt((d0 + d1) / 2, R);
+    if (d1 - d0 > 24) s += '<text x="' + lx.toFixed(1) + '" y="' + (ly + 2.7).toFixed(1) + '" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7.5" font-weight="700" fill="' + (p.status === 'now' ? '#0F1729' : '#FFFFFF') + '">' + p.n + '</text>';
+  });
+  const dn = ang(now);
+  const [nx, ny] = pt(dn, R);
+  const [ix, iy] = pt(dn, 54);
+  if (now >= b[0] && now <= b[4]) {
+    s += '<line x1="' + ix.toFixed(2) + '" y1="' + iy.toFixed(2) + '" x2="' + nx.toFixed(2) + '" y2="' + ny.toFixed(2) + '" stroke="#0F1729" stroke-width="1.6" stroke-linecap="round"/>';
+    s += '<circle class="pulse" cx="' + nx.toFixed(2) + '" cy="' + ny.toFixed(2) + '" r="9" fill="#0F1729" opacity="0.4"/>';
+    s += '<circle cx="' + nx.toFixed(2) + '" cy="' + ny.toFixed(2) + '" r="5.6" fill="#0F1729" stroke="#FFE45A" stroke-width="2.4"/>';
+  }
+  return s + '</svg>';
+}
+function countdown(b) {
+  const now = Date.now();
+  const left = b[4] - now;
+  if (left <= 0) return { big: 'Now', label: 'your deadline has passed' };
+  const h = Math.floor(left / HOUR), m = Math.floor((left % HOUR) / 60000);
+  const label = st.setup.hasDeadline === 'yes' ? 'left until your deadline' : 'left in your 48 hours';
+  return { big: h + '<small>h</small> ' + String(m).padStart(2, '0') + '<small>m</small>', label };
+}
+
+/* ---------- filling the templates ---------- */
+function exhibits() {
+  const ps = st.setup.proofs.map((k) => DATA.proofs.find((p) => p.key === k)).filter(Boolean);
+  return [{ l: 'A', ex: 'My writing timeline (one page)', short: 'Writing timeline' }].concat(ps.map((p, i) => ({ l: String.fromCharCode(66 + i), ex: p.ex, short: p.short })));
+}
+function exhibitLines() { return exhibits().map((e) => '• Exhibit ' + e.l + ' – ' + e.ex).join('\n'); }
+function firstDraft() {
+  const d = st.timeline.map((r) => r.d).filter(Boolean).sort()[0];
+  return d ? fmtDate(d) : '';
+}
+function friendly(t, floor) {
+  // Round down to the hour; move small-hours promises to 10 PM the evening before, if there is time.
+  const d = new Date(t); d.setMinutes(0, 0, 0);
+  if (d.getHours() < 8) { const e = new Date(d); e.setDate(e.getDate() - 1); e.setHours(22); if (+e > (floor || 0)) return +e; }
+  return +d;
+}
+function vals() {
+  const s = st.setup;
+  const v = { prof: s.prof, course: s.course, assignment: s.assignment, student: s.student, student_id: s.student_id, appeal_to: '', decision_date: '', exhibit_lines: '', first_draft_date: firstDraft() };
+  if (MODE === 'kit') {
+    const b = bounds();
+    v.evidence_by = fmt(friendly(b[3], b[2] + HOUR));
+    v.exhibit_lines = exhibitLines();
+    v.new_date = fmt(Math.max(b[4], Date.now()) + 48 * HOUR);
+  } else {
+    v.evidence_by = st.evidenceBy ? fmt(+new Date(st.evidenceBy)) : '';
+  }
+  return v;
+}
+function fill(tpl, v, html) {
+  if (!String(v.student_id || '').trim()) tpl = tpl.replace(/\n\{student_id\}/g, '');
+  let out = '', last = 0;
+  const re = /\{(\w+)\}/g;
+  let m;
+  while ((m = re.exec(tpl))) {
+    const lit = tpl.slice(last, m.index);
+    out += html ? esc(lit) : lit;
+    const val = String(v[m[1]] || '').trim();
+    const lab = '[' + (DATA.labels[m[1]] || m[1]) + ']';
+    if (val) out += html ? '<span class="fv">' + esc(val) + '</span>' : val;
+    else out += html ? '<span class="ph">' + esc(lab) + '</span>' : lab;
+    last = re.lastIndex;
+  }
+  const tail = tpl.slice(last);
+  out += html ? esc(tail) : tail;
+  // Brackets written into the template itself (e.g. [Explain ...]) get the placeholder look too.
+  if (html) out = out.replace(/\[([^\]<]{2,170})\]/g, (all, inner) => all.indexOf('class=') > -1 ? all : '<span class="ph">[' + inner + ']</span>');
+  return out;
+}
+function tplCard(t, key, extra = '') {
+  const v = vals();
+  const subj = fill(t.subject, v, false), body = fill(t.body, v, false);
+  const mailto = 'mailto:?subject=' + encodeURIComponent(subj) + '&body=' + encodeURIComponent(body);
+  return '<article class="card tpl" id="t-' + key + '"><div class="ph2" style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start"><h3>' + esc(t.title) + '</h3><span class="chip">' + esc(t.when) + '</span></div>' +
+    '<div class="subj">Subject: ' + fill(t.subject, v, true) + '</div><div class="body">' + fill(t.body, v, true) + '</div>' + extra +
+    '<div class="row"><button class="btn primary" data-a="copy" data-k="' + key + '">' + I.copy + '<span>Copy email</span></button>' +
+    '<button class="btn ghost sm" data-a="copysubj" data-k="' + key + '">' + I.copy + '<span>Copy subject</span></button>' +
+    '<a class="btn ghost sm" href="' + mailto + '" target="_blank" rel="noopener">' + I.mail + '<span>Open in email app</span></a></div></article>';
+}
+const TPL = () => ({ first: DATA.templates.first, more: DATA.templates.more, evidence: DATA.templates.evidence, appeal: DATA.templates.appeal });
+
+/* ---------- clipboard with fallbacks (artifact frames can block the clipboard API) ---------- */
+async function copyText(txt, btn) {
+  let ok = false;
+  try { if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(txt); ok = true; } } catch (e) { ok = false; }
+  if (!ok) {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = txt; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.top = '-1000px';
+      document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, txt.length);
+      ok = document.execCommand('copy');
+      ta.remove();
+    } catch (e) { ok = false; }
+  }
+  if (ok && btn) {
+    const old = btn.innerHTML;
+    btn.classList.add('copied');
+    btn.innerHTML = I.check + '<span>Copied</span>';
+    setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = old; }, 1700);
+  } else if (!ok) {
+    openCopySheet(txt);
+  }
+}
+function openCopySheet(txt) {
+  const m = document.getElementById('modal');
+  m.innerHTML = '<div class="sheet"><h3 id="mtitle">Copy this text</h3><p class="small">Your browser blocked automatic copying. Press and hold inside the box, choose Select All, then Copy.</p><textarea readonly>' + esc(txt) + '</textarea><div class="row"><button class="btn primary" data-a="closemodal">Done</button></div></div>';
+  m.hidden = false;
+  const ta = m.querySelector('textarea');
+  setTimeout(() => { ta.focus(); ta.select(); }, 60);
+}
+
+/* ---------- screens: KIT ---------- */
+function vOnboard() {
+  const demo = [Date.now() - 5 * HOUR, Date.now() - 3 * HOUR, Date.now() + 7 * HOUR, Date.now() + 19 * HOUR, Date.now() + 43 * HOUR];
+  return '<section class="screen"><p class="kicker" style="margin-top:8px">The 48-hour defense kit</p>' +
+    '<h1>Breathe.<br><em>A flag is not a verdict.</em></h1>' +
+    '<p class="lead">An AI detector only <span class="mk">guesses</span>. Your drafts, notes and version history show how you really wrote your work. In the next 48 hours, we’ll turn them into a calm, clear reply.</p>' +
+    '<div class="ringwrap" style="width:220px;height:220px">' + ringSVG(demo, Date.now(), true, ['done', 'now', 'next', 'next']).replace('role="img"', 'role="img" aria-hidden="true"') + '<div class="c"><div class="cd">48<small>h</small></div><div class="cdl">4 phases</div></div></div>' +
+    guide('I’m Trail. I’ll keep it simple: one step at a time. First, 6 quick questions.') +
+    '<button class="btn primary big" data-a="start">Start my 48-hour plan ' + I.arrow + '</button>' +
+    '<p class="private">' + I.lock + ' Private. Everything stays on this phone.</p></section>';
+}
+const SETUP_STEPS = 6;
+function vSetup() {
+  const s = st.setup;
+  const n = st.step;
+  const prog = '<div class="prog" aria-hidden="true">' + Array.from({ length: SETUP_STEPS }, (_, i) => '<i class="' + (i <= n ? 'on' : '') + '"></i>').join('') + '</div>';
+  const opt = (field, value, label, sub, icon) => '<button class="opt" data-a="opt" data-f="' + field + '" data-v="' + value + '" aria-pressed="' + (s[field] === value) + '"><span class="ic">' + (I[icon] || '') + '</span><span>' + label + (sub ? '<span class="sub">' + sub + '</span>' : '') + '</span></button>';
+  let body = '', can = true;
+  if (n === 0) {
+    body = '<h2>When did you get the email?</h2><p class="lead">Your 48 hours start then.</p>' +
+      opt('receivedMode', 'now', 'Just now', 'In the last few minutes', 'clock') +
+      opt('receivedMode', 'earlier', 'Earlier', 'Today or a day before', 'cal') +
+      (s.receivedMode === 'earlier' ? '<div class="field"><label for="f-rec">Date and time it arrived</label><input id="f-rec" type="datetime-local" data-f="received" value="' + esc(s.received ? toInput(s.received) : '') + '"></div>' : '');
+    can = !!s.receivedMode && (s.receivedMode === 'now' || !!s.received);
+  } else if (n === 1) {
+    body = '<h2>When must you reply or meet?</h2><p class="lead">Check the email for a date. Many emails have one.</p>' +
+      opt('hasDeadline', 'yes', 'I have a date and time', 'For a reply or a meeting', 'cal') +
+      (s.hasDeadline === 'yes' ? '<div class="field"><label for="f-dl">Deadline</label><input id="f-dl" type="datetime-local" data-f="deadline" value="' + esc(s.deadline ? toInput(s.deadline) : '') + '"></div>' : '') +
+      opt('hasDeadline', 'no', 'No deadline given', 'We’ll plan for 48 hours. Your first reply will ask for the deadlines.', 'none');
+    can = s.hasDeadline === 'no' || (s.hasDeadline === 'yes' && !!s.deadline);
+  } else if (n === 2) {
+    const c = (v, l) => '<button class="chipbtn" data-a="opt" data-f="country" data-v="' + v + '" aria-pressed="' + (s.country === v) + '">' + l + '</button>';
+    body = '<h2>Where is your university?</h2><p class="lead">This changes the visa notes and where to find free help.</p><div class="chips">' +
+      c('US', 'United States') + c('UK', 'United Kingdom') + c('CA', 'Canada') + c('AU', 'Australia') + c('OTHER', 'Another country') + '</div>';
+    can = !!s.country;
+  } else if (n === 3) {
+    const f = (k, label, hint, ph) => '<div class="field"><label for="f-' + k + '">' + label + (hint ? ' <span class="hint">' + hint + '</span>' : '') + '</label><input id="f-' + k + '" type="text" data-f="' + k + '" value="' + esc(s[k]) + '" placeholder="' + esc(ph) + '" autocomplete="off"></div>';
+    body = '<h2>Details for your emails</h2><p class="lead">We put these into your emails for you. Leave any blank and fill it in later.</p>' +
+      f('student', 'Your name', '', 'e.g. Mei Lin') + f('student_id', 'Student ID', '(optional)', 'e.g. 20481133') +
+      f('prof', 'Who sent the email?', '', 'e.g. Professor Smith') + f('course', 'Course', '', 'e.g. HIST 101') + f('assignment', 'What was flagged?', '', 'e.g. history essay');
+  } else if (n === 4) {
+    body = '<h2>Which proof might you have?</h2><p class="lead">Pick everything you <em>might</em> have. You can change this later.</p><div class="chips">' +
+      DATA.proofs.map((p) => '<button class="chipbtn" data-a="multi" data-f="proofs" data-v="' + p.key + '" aria-pressed="' + s.proofs.includes(p.key) + '"><span class="dots" title="How strong">' + [1, 2, 3].map((i) => '<i class="' + (i <= p.strength ? 'on' : '') + '"></i>').join('') + '</span>' + esc(p.name) + '</button>').join('') +
+      '</div><p class="small" style="margin-top:12px">Dots show how strong each proof usually is. Version history is often the strongest.</p>';
+  } else if (n === 5) {
+    const t = (v, l) => '<button class="chipbtn" data-a="multi" data-f="tools" data-v="' + v + '" aria-pressed="' + s.tools.includes(v) + '">' + l + '</button>';
+    const used = s.tools.length && !s.tools.includes('none');
+    body = '<h2>Did you use any tool on this work?</h2><p class="lead">Be honest here. It is private, and it changes your plan.</p><div class="chips">' +
+      t('none', 'No tools') + t('grammarly', 'Grammarly') + t('translator', 'A translator') + t('ai', 'An AI chatbot') + t('other', 'Something else') + '</div>' +
+      (used ? '<div class="card tint" style="margin-top:16px"><h3>Thank you for being honest.</h3><p class="small" style="color:var(--ink2);margin:6px 0 0">Some schools count these tools as AI use, and the rules differ by course. Your plan now includes a step to read “Used a tool?” in Help before you reply.</p></div>' : '');
+    can = s.tools.length > 0;
+  }
+  const err = n === 1 ? setupError() : '';
+  return '<section class="screen">' + prog + '<p class="kicker">Question ' + (n + 1) + ' of ' + SETUP_STEPS + '</p>' + body +
+    (err && can ? '<p class="err">' + err + '</p>' : '') +
+    '<div class="navrow">' + (n > 0 ? '<button class="btn ghost" data-a="back">Back</button>' : '') +
+    (n < SETUP_STEPS - 1 ? '<button class="btn primary" data-a="next"' + (can && !err ? '' : ' disabled aria-disabled="true" style="opacity:.45"') + '>Next ' + I.arrow + '</button>'
+      : '<button class="btn primary" data-a="build"' + (can ? '' : ' disabled aria-disabled="true" style="opacity:.45"') + '>Build my plan ' + I.arrow + '</button>') +
+    '</div><p class="private">' + I.lock + ' Stays on this phone. Nothing is sent anywhere.</p></section>';
+}
+function vPlan() {
+  const b = bounds();
+  const info = phaseInfo();
+  const cur = info.find((p) => p.status === 'now') || info.find((p) => p.status === 'late') || info.find((p) => p.status === 'next');
+  const cd = countdown(b);
+  const allDone = info.every((p) => p.status === 'done');
+  const past = Date.now() > b[4];
+  const open = st.open || (cur ? cur.key : 'freeze');
+  let h = '<section class="screen"><p class="kicker" style="margin-top:4px">Your plan</p>';
+  h += '<div class="ringwrap" id="ring">' + ringSVG(b, Date.now(), st.justBuilt) + '<div class="c"><div class="cd">' + cd.big + '</div><div class="cdl">' + cd.label + '</div>' +
+    (cur && !allDone ? '<div class="cdp">Now: ' + cur.n + ' · ' + cur.name + '</div>' : allDone ? '<div class="cdp" style="background:var(--green2);border-color:var(--green);color:var(--green)">All done</div>' : '') + '</div></div>';
+  h += '<p class="small" style="text-align:center;margin:2px 0 6px">' + fmt(b[0]) + ' → ' + fmt(b[4]) + ' · <button class="link" data-a="edit" data-to="0">Change times</button></p>';
+  if (st.justBuilt) h += guide('Your plan is ready. Start with Phase ' + (cur ? cur.n + ', ' + cur.name : '01') + '. Tick each step when it’s done.');
+  if (allDone) h += guide('You did it. You have your proof, your case file and your words ready. Walk in calm — you know your work.');
+  if (past) h += '<div class="card warn"><h3>Your deadline has passed.</h3><p class="small" style="color:var(--ink2);margin:6px 0 10px">Don’t go silent. Send a short, polite email today and ask for a little more time.</p><button class="btn sm" data-a="tab" data-v="emails" data-jump="t-more">Open “Ask for more time” ' + I.arrow + '</button></div>';
+  if (st.setup.tools.length && !st.setup.tools.includes('none')) h += '<div class="card tint"><h3>You used a tool. Be open about it.</h3><p class="small" style="color:var(--ink2);margin:6px 0 10px">Read what to say before you send anything.</p><button class="btn sm" data-a="tab" data-v="help" data-jump="h-tools">Open “Used a tool?” ' + I.arrow + '</button></div>';
+  info.forEach((p) => {
+    const isOpen = open === p.key;
+    const label = { now: 'Now', done: 'Done', late: 'Overdue', next: 'Next' }[p.status];
+    const pct = p.steps.length ? Math.round(100 * p.done / p.steps.length) : 0;
+    h += '<article class="card phase ' + (p.status === 'now' ? 'is-now' : '') + '" id="ph-' + p.key + '">' +
+      '<button class="hd" data-a="phase" data-k="' + p.key + '" aria-expanded="' + isOpen + '"><span class="pnum">' + p.n + '</span><span class="pmeta"><span class="pname">' + p.name + '</span><span class="ptime" style="display:block">until ' + fmt(p.end) + '</span></span><span class="chip ' + p.status + (p.status === 'done' && st.stamped[p.key] === 'fresh' ? ' fresh' : '') + '">' + (p.status === 'done' ? '✓ ' : '') + label + '</span></button>' +
+      '<div class="pbar"><i style="width:' + pct + '%"></i></div>' +
+'';
+    if (isOpen) {
+      h += '<div class="bd"><p class="goal">' + esc(p.goal) + '</p>';
+      p.steps.forEach((x) => {
+        h += '<button class="step ' + (st.done[x.id] ? 'on' : '') + '" data-a="step" data-id="' + x.id + '" aria-pressed="' + !!st.done[x.id] + '"><span class="cb">' + I.check.replace('stroke="#fff"', 'stroke="#FFE45A"') + '</span><span class="st">' + esc(x.t) + '</span></button>';
+      });
+      if (p.key === 'freeze') h += '<div class="row"><button class="btn sm" data-a="tab" data-v="emails" data-jump="t-first">' + I.mail + ' Write my first reply</button></div>';
+      if (p.key === 'collect') h += '<div class="row"><button class="btn sm" data-a="tab" data-v="proof">' + I.proof + ' How to save each proof</button></div>';
+      if (p.key === 'build') h += '<div class="row"><button class="btn sm" data-a="tab" data-v="proof" data-jump="p-timeline">' + I.proof + ' Build my timeline</button><button class="btn sm" data-a="tab" data-v="emails" data-jump="t-evidence">' + I.mail + ' Evidence email</button></div>';
+      if (p.key === 'rehearse') h += '<div class="row"><button class="btn sm" data-a="tab" data-v="meeting">' + I.meet + ' Practise the questions</button></div>';
+      h += '</div>';
+    }
+    h += '</article>';
+  });
+  h += '<p class="foot">Paper Trail · General guidance, not legal advice.<br>Every school has its own rules: always check yours.</p></section>';
+  return h;
+}
+function vEmails() {
+  const t = TPL();
+  const b = bounds();
+  const short = (b[4] - b[0]) < 30 * HOUR || Date.now() > b[4];
+  let h = '<section class="screen"><p class="kicker" style="margin-top:4px">Your emails</p><h2>Calm words, <em>ready to send.</em></h2>' +
+    '<p class="lead">Your details are already filled in. Yellow parts still need you. <button class="link" data-a="edit" data-to="3">Edit my details</button></p>';
+  h += tplCard(t.first, 'first');
+  if (short) h += tplCard(t.more, 'more');
+  h += tplCard(t.evidence, 'evidence', '<details class="more"><summary>Tone check before you send</summary><ul class="ticks">' +
+    ['No anger. No blame.', 'Don’t say “everyone uses AI”.', 'No threats about lawyers.', 'Facts, dates and exhibits only.', 'Read it out loud once.'].map((x) => '<li>' + x + '</li>').join('') + '</ul></details>');
+  if (!short) h += '<details class="more card" style="padding:16px"><summary>Need more time? Ask politely</summary>' + tplCard(t.more, 'more') + '</details>';
+  h += '<div class="sec"><p class="kicker">If the decision goes against you</p></div>' + tplCard(t.appeal, 'appeal', '<p class="small" style="margin:10px 0 0">Some schools give only 5 working days to appeal, or even less. Find yours in the policy today, and ask your student union or adviser to read your appeal.</p>');
+  h += '</section>';
+  return h;
+}
+function vProof() {
+  const s = st.setup;
+  const list = s.proofs.length ? s.proofs.map((k) => DATA.proofs.find((p) => p.key === k)).filter(Boolean) : [];
+  const others = DATA.proofs.filter((p) => !s.proofs.includes(p.key));
+  let h = '<section class="screen"><p class="kicker" style="margin-top:4px">Your proof</p><h2>Your file <em>remembers</em> how you wrote it.</h2>' +
+    '<p class="lead">A real writing history looks messy: small edits, deleted lines, moved paragraphs. <span class="mk">That mess is your proof.</span></p>' +
+    '<div class="card tint"><h3>First: make one folder</h3><p class="small" style="color:var(--ink2);margin:6px 0 0">Name it <b>Paper Trail – ' + esc(s.course || 'your course') + '</b>. Put every screenshot and file in it. Start each file name with the date, like <b>2026-11-02 outline.jpg</b>.</p></div>';
+  if (!list.length) h += '<div class="empty">You haven’t picked any proof yet. Tap the types below that you might have.</div>';
+  list.forEach((p) => {
+    const on = !!st.saved[p.key];
+    h += '<article class="card proof" id="pr-' + p.key + '"><div class="ph2"><h3>' + esc(p.name) + '</h3><span class="str"><span class="dots">' + [1, 2, 3].map((i) => '<i class="' + (i <= p.strength ? 'on' : '') + '"></i>').join('') + '</span>' + ['', 'Helpful', 'Good', 'Strong'][p.strength] + '</span></div>' +
+      '<ol class="nums">' + p.steps.map((x) => '<li>' + esc(x) + '</li>').join('') + '</ol>' +
+      '<button class="toggle" data-a="saved" data-k="' + p.key + '" aria-pressed="' + on + '">' + (on ? I.check + ' Saved to my folder' : 'Mark as saved') + '</button></article>';
+  });
+  h += '<article class="card proof"><div class="ph2"><h3>' + esc(DATA.memory.name) + '</h3><span class="str">Always</span></div><ol class="nums">' + DATA.memory.steps.map((x) => '<li>' + esc(x) + '</li>').join('') + '</ol></article>';
+  if (others.length) h += '<div class="sec"><p class="kicker">Add more proof types</p></div><div class="chips">' + others.map((p) => '<button class="chipbtn" data-a="addproof" data-k="' + p.key + '">' + I.plus.replace('<svg', '<svg width="15" height="15"') + esc(p.name) + '</button>').join('') + '</div>';
+  // Timeline builder
+  h += '<div class="sec" id="p-timeline"><p class="kicker">Exhibit A</p><h2>Your writing timeline</h2><p class="small">One line per day you worked on it. Add the exhibit letter if you have proof for that day.</p></div><div class="card">';
+  if (!st.timeline.length) h += '<div class="empty" style="margin-bottom:10px">Start with the day you got the assignment.</div>';
+  const exs = exhibits().slice(1);
+  st.timeline.forEach((r, i) => {
+    h += '<div class="tl-row"><input type="date" aria-label="Date" data-tl="' + i + '" data-k="d" value="' + esc(r.d) + '"><button class="iconbtn" data-a="tldel" data-i="' + i + '" aria-label="Delete this day">' + I.trash + '</button>' +
+      '<input class="w" type="text" aria-label="What you did" data-tl="' + i + '" data-k="w" value="' + esc(r.w) + '" placeholder="What did you do? e.g. Wrote my outline">' +
+      '<select aria-label="Proof for this day" data-tl="' + i + '" data-k="x"><option value="">No proof for this day</option>' + exs.map((e) => '<option value="' + e.l + '"' + (r.x === e.l ? ' selected' : '') + '>Proof: Exhibit ' + e.l + ' – ' + esc(e.short) + '</option>').join('') + '</select></div>';
+  });
+  h += '<div class="row" style="margin-top:6px"><button class="btn sm" data-a="tladd">' + I.plus + ' Add a day</button>' + (st.timeline.length ? '<button class="btn primary sm" data-a="tlcopy">' + I.copy + ' Copy timeline</button>' : '') + '</div>';
+  if (st.timeline.length) h += '<div class="tl-out" id="tlout">' + esc(timelineText()) + '</div>';
+  h += '</div></section>';
+  return h;
+}
+function timelineText() {
+  const rows = st.timeline.slice().sort((a, b) => (a.d || '9').localeCompare(b.d || '9'));
+  return 'My writing timeline – ' + (st.setup.assignment || 'my work') + '\n\n' + rows.map((r) => (r.d ? fmtDate(r.d) : '[date]') + ' — ' + (r.w || '[what you did]') + (r.x ? '  (Exhibit ' + r.x + ')' : '')).join('\n');
+}
+function vMeeting() {
+  const v = vals();
+  const q = DATA.questions[st.q];
+  let h = '<section class="screen"><p class="kicker" style="margin-top:4px">The meeting</p><h2>You know your work. <em>Let them see it.</em></h2>' +
+    '<p class="lead">They mostly want to see that you understand your own work. Practise out loud. Twice is enough.</p>';
+  h += '<article class="card"><h3>Your opening words</h3><div class="tpl"><div class="body" style="margin-top:10px">' + fill(DATA.opening, v, true) + '</div></div><div class="row"><button class="btn primary sm" data-a="copyopen">' + I.copy + '<span>Copy</span></button></div>' +
+    '<h3 style="margin-top:18px">If English feels hard in the room</h3><div class="tpl"><div class="body" style="margin-top:10px">' + esc(DATA.language) + '</div></div><p class="small" style="margin:8px 0 0">It is fine to pause, check your notes, or ask them to repeat a question.</p></article>';
+  h += '<div class="sec"><p class="kicker">Practise · question ' + (st.q + 1) + ' of ' + DATA.questions.length + '</p></div>' +
+    '<div class="flip ' + (st.flipped ? 'on' : '') + '" data-a="flip" role="button" tabindex="0" aria-label="Flip card"><div class="inner"><div class="face"><div class="q">' + esc(q[0]) + '</div><div class="hint2">Say your answer out loud · tap for a tip</div></div><div class="face back"><div class="q">' + esc(q[1]) + '</div><div class="hint2">Tap to flip back</div></div></div></div>' +
+    '<div class="qnav"><button class="btn ghost sm" data-a="qprev"' + (st.q ? '' : ' disabled style="opacity:.4"') + '>Back</button><div class="qdots">' + DATA.questions.map((_, i) => '<i class="' + (i <= st.q ? 'on' : '') + '"></i>').join('') + '</div><button class="btn sm" data-a="qnext">' + (st.q < DATA.questions.length - 1 ? 'Next' : 'Start again') + '</button></div>';
+  h += '<article class="card" style="margin-top:20px"><h3>Practise with an AI “professor”</h3><p class="small" style="margin:6px 0 10px;color:var(--ink2)">Optional. Copy this into ChatGPT, Claude or Gemini, then paste your work at the end. It asks you hard questions, one at a time. Your answers in the real meeting must be your own words.</p><div class="tpl"><div class="body">' + fill(DATA.mock, {}, true) + '</div></div><div class="row"><button class="btn primary sm" data-a="copymock">' + I.copy + '<span>Copy prompt</span></button></div></article>';
+  h += '<article class="card"><h3>What to bring</h3><ul class="ticks"><li>Your case file, printed and on your laptop</li><li>Your laptop, with version history open and ready</li><li>Your notes and sources</li><li>A support person, if your school allows one</li></ul></article></section>';
+  return h;
+}
+function vHelp() {
+  const code = st.helpCountry || st.setup.country || 'US';
+  const c = DATA.countries[code] || DATA.countries.OTHER;
+  const ch = (v, l) => '<button class="chipbtn" data-a="country" data-v="' + v + '" aria-pressed="' + (code === v) + '">' + l + '</button>';
+  const list = (arr) => '<ul class="ticks">' + arr.map((x) => '<li>' + x + '</li>').join('') + '</ul>';
+  let h = '<section class="screen"><p class="kicker" style="margin-top:4px">Help</p><h2>Your visa, <em>and free help.</em></h2>' +
+    '<div class="chips" style="margin:12px 0">' + ch('US', 'US') + ch('UK', 'UK') + ch('CA', 'Canada') + ch('AU', 'Australia') + ch('OTHER', 'Other') + '</div>';
+  h += '<article class="card"><p class="kicker">' + esc(c.name) + '</p><div class="kv"><h4>Your visa</h4><ul class="ticks dot">' + c.visa.map((x) => '<li>' + x + '</li>').join('') + '</ul><h4>Free help</h4>' + list(c.help) + '<h4>Don’t</h4><ul class="ticks x">' + c.dont.map((x) => '<li>' + x + '</li>').join('') + '</ul></div>' + (c.note ? '<p class="small" style="margin:12px 0 0">' + c.note + '</p>' : '') + '</article>';
+  h += '<article class="card warn"><h3>When to get a lawyer anyway</h3><ul class="ticks alert">' + DATA.lawyer.map((x) => '<li>' + esc(x) + '</li>').join('') + '</ul><p class="small" style="margin:10px 0 0">Ask your student union first. Some universities offer free or low-cost legal advice to students.</p></article>';
+  const used = st.setup.tools.length && !st.setup.tools.includes('none');
+  h += '<article class="card ' + (used ? 'tint' : '') + '" id="h-tools"><h3>Used a tool? Honesty is your strongest defence.</h3><p class="small" style="color:var(--ink2);margin:6px 0 4px">Many international students use tools to help with English. Rules differ in every course, so check yours. Then say exactly what you used, and for what.</p>' +
+    DATA.tools.map((t) => '<div class="tool-row"><b>' + esc(t[0]) + '</b><span>' + esc(t[1]) + '</span></div>').join('') +
+    '<p class="small" style="margin:10px 0 0">If AI wrote the work, this kit is not the right tool. Speak honestly with your professor and your student adviser.</p></article>';
+  h += '<article class="card"><h3>After the decision</h3><ul class="ticks"><li><b>Cleared?</b> Ask for the decision in writing, and confirm nothing stays on your record. Keep it forever.</li><li><b>Not cleared?</b> Read the decision slowly. Find the appeal deadline today: some schools give only 5 working days. Use the appeal letter in Emails, and get your student union to read it.</li></ul></article>';
+  h += '<article class="card"><h3>Next time: protect yourself</h3><ul class="ticks">' + DATA.nextTime.map((x) => '<li>' + esc(x) + '</li>').join('') + '</ul></article>';
+  h += '<div class="card" style="text-align:center"><p class="small" style="margin:0 0 10px">Done with your case? Clear everything from this phone.</p><button class="btn ghost sm" data-a="reset">' + I.trash + (st.confirmReset ? ' Tap again to delete everything' : ' Delete my data') + '</button></div>';
+  h += '<p class="foot">Paper Trail · General guidance, not legal advice.</p></section>';
+  return h;
+}
+
+/* ---------- screens: FREE ---------- */
+function vFreeIntro() {
+  return '<section class="screen"><p class="kicker" style="margin-top:8px">Free tool · 2 minutes</p><h1>Got an AI-cheating email? <em>Reply calmly.</em></h1>' +
+    '<p class="lead">Your first reply matters most. Write a short, clear one, <span class="mk">before you say something you’ll regret.</span></p>' +
+    guide('I’m Trail. Answer 5 small questions and I’ll write your first reply for you.') +
+    '<button class="btn primary big" data-a="freeform">Write my first reply ' + I.arrow + '</button><p class="private">' + I.lock + ' Free and private. Nothing leaves this phone.</p>' +
+    '<article class="card" style="margin-top:22px"><h3>First, don’t do these 6 things</h3><ul class="ticks x">' + DATA.donts.map((d) => '<li><b>' + esc(d[0]) + '</b><span class="li-sub">' + esc(d[1]) + '</span></li>').join('') + '</ul></article></section>';
+}
+function vFreeForm() {
+  const s = st.setup;
+  if (!st.evidenceBy) st.evidenceBy = toInput(friendly(Date.now() + 24 * HOUR, Date.now() + 12 * HOUR));
+  const f = (k, label, hint, ph) => '<div class="field"><label for="f-' + k + '">' + label + (hint ? ' <span class="hint">' + hint + '</span>' : '') + '</label><input id="f-' + k + '" type="text" data-f="' + k + '" value="' + esc(s[k]) + '" placeholder="' + esc(ph) + '" autocomplete="off"></div>';
+  return '<section class="screen"><p class="kicker" style="margin-top:4px">Your details</p><h2>Who is this reply for?</h2><p class="lead">Leave anything blank and fill it in later.</p>' +
+    f('student', 'Your name', '', 'e.g. Mei Lin') + f('prof', 'Who sent the email?', '', 'e.g. Professor Smith') + f('course', 'Course', '', 'e.g. HIST 101') + f('assignment', 'What was flagged?', '', 'e.g. history essay') +
+    '<div class="field"><label for="f-eb">When can you send your evidence? <span class="hint">(24 hours is a good aim)</span></label><input id="f-eb" type="datetime-local" data-fe="1" value="' + esc(st.evidenceBy) + '"></div>' +
+    '<div class="navrow"><button class="btn ghost" data-a="freeback">Back</button><button class="btn primary" data-a="freemake">Write it ' + I.arrow + '</button></div><p class="private">' + I.lock + ' Stays on this phone.</p></section>';
+}
+function vFreeOut() {
+  let h = '<section class="screen"><p class="kicker" style="margin-top:4px">Your first reply</p><h2>Short, calm, <em>clear.</em></h2><p class="lead">Read it once, fix any yellow parts, then send it. <button class="link" data-a="freeform">Change details</button></p>';
+  h += tplCard(DATA.templates.first, 'first');
+  h += guide('Sent it? Good. Now the real work starts: collecting your proof before your evidence deadline.');
+  h += '<article class="card dark"><p class="kicker">The full kit</p><h2 style="margin-top:6px">Paper Trail: <em>the 48-hour defense kit</em></h2><p class="small" style="margin:4px 0 12px">For international students whose own work was flagged by an AI detector.</p>' +
+    [['The 48-hour plan', 'Hour by hour, in simple English'], ['Proof Builder app', 'Your plan with real clock times, every email ready'], ['Detector Facts Sheet', 'Published research to attach to your reply'], ['Meeting practice', '10 likely questions and your opening words'], ['Visa and free help', 'US, UK, Canada and Australia']].map((x) => '<div class="lock"><span class="lk">' + I.lock.replace('currentColor', '#FFE45A').replace('currentColor', '#FFE45A') + '</span><span><b>' + x[0] + '</b><span>' + x[1] + '</span></span></div>').join('') +
+    '<div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-top:14px"><div><div class="price">$19</div><div class="small">One payment. Yours to keep.</div></div><a class="btn mark" style="white-space:nowrap;flex:0 0 auto" href="' + esc(KIT_URL) + '" target="_blank" rel="noopener">Get the kit ' + I.arrow + '</a></div></article>';
+  h += '<article class="card"><h3>Know a friend who got the same email?</h3><p class="small" style="margin:6px 0 10px;color:var(--ink2)">This tool is free. Share it.</p><button class="btn sm" data-a="share">' + I.share + ' Share this free tool</button></article>';
+  h += '<p class="foot">Paper Trail · General guidance, not legal advice.</p></section>';
+  return h;
+}
+
+/* ---------- render ---------- */
+const TABS = [['plan', 'Plan', 'plan'], ['emails', 'Emails', 'mail'], ['proof', 'Proof', 'proof'], ['meeting', 'Meeting', 'meet'], ['help', 'Help', 'help']];
+function render(jump) {
+  const views = { onboard: vOnboard, setup: vSetup, plan: vPlan, emails: vEmails, proof: vProof, meeting: vMeeting, help: vHelp, 'free-intro': vFreeIntro, 'free-form': vFreeForm, 'free-out': vFreeOut };
+  const fn = views[st.screen] || (MODE === 'kit' ? vOnboard : vFreeIntro);
+  app.innerHTML = header() + fn();
+  const tabs = document.getElementById('tabs');
+  const showTabs = MODE === 'kit' && st.built && TABS.some((t) => t[0] === st.screen);
+  tabs.hidden = !showTabs;
+  app.classList.toggle('notabs', !showTabs);
+  if (showTabs) tabs.innerHTML = '<div class="in">' + TABS.map((t) => '<button class="tab" data-a="tab" data-v="' + t[0] + '"' + (st.screen === t[0] ? ' aria-current="page"' : '') + '>' + I[t[2]] + t[1] + '</button>').join('') + '</div>';
+  if (jump) { const el = document.getElementById(jump); if (el) setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60); }
+  st.justBuilt = false;
+  Object.keys(st.stamped).forEach((k) => { if (st.stamped[k] === 'fresh') st.stamped[k] = 'shown'; });
+}
+function go(screen, jump) { st.screen = screen; st.flipped = false; save(); render(jump); if (!jump) window.scrollTo({ top: 0, behavior: 'smooth' }); }
+
+/* ---------- actions ---------- */
+const A = {
+  start() { st.step = 0; go('setup'); },
+  opt(el) {
+    const f = el.dataset.f, v = el.dataset.v;
+    st.setup[f] = v;
+    if (f === 'receivedMode' && v === 'now') st.setup.received = new Date().toISOString();
+    if (f === 'receivedMode' && v === 'earlier' && !st.setup.received) st.setup.received = '';
+    if (f === 'hasDeadline' && v === 'no') st.setup.deadline = '';
+    save(); render();
+  },
+  multi(el) {
+    const f = el.dataset.f, v = el.dataset.v, arr = st.setup[f];
+    const i = arr.indexOf(v);
+    if (i > -1) arr.splice(i, 1);
+    else {
+      if (f === 'tools' && v === 'none') arr.length = 0;
+      if (f === 'tools' && v !== 'none') { const j = arr.indexOf('none'); if (j > -1) arr.splice(j, 1); }
+      arr.push(v);
+    }
+    save(); render();
+  },
+  next() { if (st.step < SETUP_STEPS - 1) { st.step++; save(); render(); window.scrollTo(0, 0); } },
+  back() { if (st.step > 0) { st.step--; save(); render(); window.scrollTo(0, 0); } },
+  build() {
+    if (setupError()) { st.step = 1; render(); return; }
+    st.built = true; st.justBuilt = true; st.open = null;
+    go('plan');
+    toast('Your plan is ready.', true);
+  },
+  edit(el) { st.step = +el.dataset.to || 0; go('setup'); },
+  tab(el) { go(el.dataset.v, el.dataset.jump); },
+  phase(el) { const k = el.dataset.k; st.open = st.open === k ? '__none' : k; save(); render(); },
+  step(el) {
+    const id = el.dataset.id;
+    const before = phaseInfo().map((p) => p.status);
+    st.done[id] = !st.done[id];
+    if (id.indexOf('proof-') === 0) st.saved[id.slice(6)] = st.done[id];
+    const after = phaseInfo();
+    after.forEach((p, i) => {
+      if (p.status === 'done' && before[i] !== 'done') {
+        st.stamped[p.key] = 'fresh';
+        const nxt = after[i + 1];
+        toast(nxt ? p.name + ' done. Next: ' + nxt.name + '.' : 'All 4 phases done. You’re ready.', true);
+        if (nxt) st.open = nxt.key;
+      }
+    });
+    save(); render();
+  },
+  saved(el) {
+    const k = el.dataset.k;
+    st.saved[k] = !st.saved[k];
+    st.done['proof-' + k] = st.saved[k];
+    save(); render();
+    if (st.saved[k]) toast('Saved. One more piece of your paper trail.');
+  },
+  addproof(el) { st.setup.proofs.push(el.dataset.k); save(); render(); toast('Added. Its steps are now in your plan.'); },
+  copy(el) { const t = TPL()[el.dataset.k]; const v = vals(); copyText('Subject: ' + fill(t.subject, v, false) + '\n\n' + fill(t.body, v, false), el); },
+  copysubj(el) { const t = TPL()[el.dataset.k]; copyText(fill(t.subject, vals(), false), el); },
+  copyopen(el) { copyText(fill(DATA.opening, vals(), false), el); },
+  copymock(el) { copyText(DATA.mock, el); },
+  tladd() { st.timeline.push({ d: '', w: '', x: '' }); save(); render('p-timeline'); },
+  tldel(el) { st.timeline.splice(+el.dataset.i, 1); save(); render('p-timeline'); },
+  tlcopy(el) { copyText(timelineText(), el); },
+  flip() { st.flipped = !st.flipped; const f = app.querySelector('.flip'); if (f) f.classList.toggle('on', st.flipped); },
+  qnext() { st.q = st.q < DATA.questions.length - 1 ? st.q + 1 : 0; st.flipped = false; save(); render(); },
+  qprev() { if (st.q > 0) { st.q--; st.flipped = false; save(); render(); } },
+  country(el) { st.helpCountry = el.dataset.v; save(); render(); },
+  reset() {
+    if (!st.confirmReset) { st.confirmReset = true; render(); setTimeout(() => { st.confirmReset = false; }, 5000); return; }
+    try { localStorage.removeItem(KEY); } catch (e) { /* ignore */ }
+    st = fresh(); render(); window.scrollTo(0, 0); toast('Everything was deleted from this phone.');
+  },
+  closemodal() { document.getElementById('modal').hidden = true; },
+  freeform() { go('free-form'); },
+  freeback() { go('free-intro'); },
+  freemake() { go('free-out'); toast('Your reply is ready.', true); },
+  share(el) {
+    const url = location.href;
+    if (navigator.share) { navigator.share({ title: 'Paper Trail: free first-reply tool', text: 'Got an AI-cheating email? Write a calm first reply in 2 minutes.', url }).catch(() => {}); }
+    else copyText(url, el);
+  },
+};
+document.addEventListener('click', (e) => {
+  const el = e.target.closest('[data-a]');
+  if (!el || el.disabled) return;
+  const fn = A[el.dataset.a];
+  if (fn) { fn(el, e); }
+});
+document.addEventListener('keydown', (e) => {
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.flip')) { e.preventDefault(); A.flip(); }
+  if (e.key === 'Escape') A.closemodal();
+});
+document.addEventListener('input', (e) => {
+  const t = e.target;
+  if (t.dataset.f) {
+    const f = t.dataset.f;
+    st.setup[f] = (t.type === 'datetime-local' && t.value) ? new Date(t.value).toISOString() : t.value;
+    save();
+    if (t.type === 'datetime-local') render();
+  } else if (t.dataset.fe) {
+    st.evidenceBy = t.value; save();
+  } else if (t.dataset.tl !== undefined) {
+    const r = st.timeline[+t.dataset.tl];
+    if (r) { r[t.dataset.k] = t.value; save(); const o = document.getElementById('tlout'); if (o) o.textContent = timelineText(); }
+  }
+});
+document.addEventListener('change', (e) => {
+  const t = e.target;
+  if (t.dataset.tl !== undefined) { const r = st.timeline[+t.dataset.tl]; if (r) { r[t.dataset.k] = t.value; save(); const o = document.getElementById('tlout'); if (o) o.textContent = timelineText(); } }
+});
+document.getElementById('modal').addEventListener('click', (e) => { if (e.target.id === 'modal') A.closemodal(); });
+
+// Keep the clock honest without disturbing what the student is doing.
+setInterval(() => {
+  if (st.screen !== 'plan') return;
+  const ring = document.getElementById('ring');
+  if (!ring) return;
+  const b = bounds(), cd = countdown(b);
+  ring.querySelector('svg').outerHTML = ringSVG(b, Date.now(), false);
+  const big = ring.querySelector('.cd'); if (big) big.innerHTML = cd.big;
+}, 30000);
+
+if (MODE === 'kit' && st.built && ['onboard', 'setup'].indexOf(st.screen) === -1) { /* resume where they left off */ }
+render();
+</script>
+</body>
+</html>

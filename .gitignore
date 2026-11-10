@@ -1,0 +1,12 @@
+# Built files (Cloudflare builds these itself from src/)
+dist/
+# Test pictures and caches
+tests/shots/
+__pycache__/
+*.pyc
+node_modules/
+.wrangler/
+.DS_Store
+# Never commit secrets
+.env
+.dev.vars

@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0B1020">
+<title>CP2000 Rescue · Free check</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@1&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* CP2000 Rescue. A calm night desk: dark ink, amber = needs you, green = done, red = urgent.
+   One phone-width column, one question per screen, nothing leaves the device. */
+:root {
+  --bg: #0B1020; --card: #141B2E; --card2: #1A2238;
+  --line: rgba(255, 255, 255, .09); --line2: rgba(255, 255, 255, .16);
+  --text: #F3F1EA; --text2: #C9D0DC; --muted: #8E97AA;
+  --amber: #FFB547; --amber2: rgba(255, 181, 71, .13);
+  --green: #2FE39A; --green2: rgba(47, 227, 154, .12);
+  --red: #FF6B5E; --red2: rgba(255, 107, 94, .13);
+  --ink: #0B1020;
+  --serif: 'Instrument Serif', Georgia, serif;
+  --sans: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --r: 18px;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg);
+  background-image:
+    radial-gradient(ellipse 90% 34% at 8% -4%, rgba(255, 181, 71, .17), rgba(255, 181, 71, 0) 70%),
+    radial-gradient(ellipse 80% 30% at 100% 104%, rgba(47, 227, 154, .11), rgba(47, 227, 154, 0) 70%);
+  background-attachment: fixed;
+  color: var(--text); font-family: var(--sans); font-size: 15.5px; line-height: 1.5;
+  -webkit-font-smoothing: antialiased; min-height: 100vh;
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+a { color: var(--green); }
+::selection { background: rgba(255, 181, 71, .35); }
+h1:focus, h2:focus { outline: none; }
+.app { max-width: 460px; margin: 0 auto; padding: 10px 18px 56px; }
+.screen { animation: rise .42s cubic-bezier(.2, .8, .2, 1) both; }
+@keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.center { text-align: center; justify-content: center; }
+
+/* Header */
+.top { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 2px 10px; }
+.brand { display: flex; gap: 9px; align-items: center; font-family: var(--mono); font-weight: 700; font-size: 11.5px; letter-spacing: .2em; white-space: nowrap; }
+.brand svg { width: 26px; height: 26px; flex: none; }
+.pill { display: inline-flex; align-items: center; gap: 7px; font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--text2); border: 1px solid var(--line2); border-radius: 999px; padding: 6px 10px; background: rgba(255, 255, 255, .03); white-space: nowrap; }
+.pill .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+.iconbtn { width: 38px; height: 38px; border-radius: 12px; border: 1px solid var(--line2); background: rgba(255, 255, 255, .03); display: grid; place-items: center; cursor: pointer; color: var(--text2); flex: none; transition: transform .12s; }
+.iconbtn:active { transform: scale(.94); }
+.iconbtn svg { width: 18px; height: 18px; }
+
+/* Progress */
+.prog { display: flex; gap: 6px; margin: 2px 0 4px; }
+.prog i { flex: 1; height: 5px; border-radius: 9px; background: rgba(255, 255, 255, .1); overflow: hidden; position: relative; }
+.prog i::after { content: ''; position: absolute; inset: 0; background: var(--amber); transform: scaleX(0); transform-origin: left; transition: transform .6s cubic-bezier(.2, .8, .2, 1); }
+.prog i.on::after { transform: scaleX(1); }
+.prog i.done::after { transform: scaleX(1); background: var(--green); }
+.steplabel { font-family: var(--mono); font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); margin: 8px 0 2px; }
+
+/* Type */
+h1 { font-weight: 800; font-size: 32px; line-height: 1.06; letter-spacing: -.025em; margin: 12px 0 12px; }
+h1 em, h2 em { font-family: var(--serif); font-style: italic; font-weight: 400; color: var(--green); letter-spacing: 0; }
+.amb { color: var(--amber); }
+h2 { font-weight: 750; font-size: 23px; line-height: 1.18; letter-spacing: -.015em; margin: 10px 0 8px; }
+h3 { font-weight: 700; font-size: 16.5px; line-height: 1.3; margin: 0 0 6px; }
+p { margin: 0 0 10px; color: var(--text2); }
+.lead { font-size: 16.5px; }
+.small { font-size: 13.5px; color: var(--muted); }
+.kicker { font-family: var(--mono); font-weight: 700; font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); margin: 24px 0 10px; }
+.kicker.green { color: var(--green); }
+.kicker.amber { color: var(--amber); }
+b, strong { color: var(--text); }
+
+/* Cards and chips */
+.card { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; margin: 12px 0; }
+.card.alert { background: linear-gradient(180deg, rgba(255, 107, 94, .15), rgba(255, 107, 94, .06)); border-color: rgba(255, 107, 94, .45); }
+.card.ok { background: linear-gradient(180deg, rgba(47, 227, 154, .12), rgba(47, 227, 154, .05)); border-color: rgba(47, 227, 154, .42); }
+.card.warn { background: var(--amber2); border-color: rgba(255, 181, 71, .42); }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; padding: 5px 9px; border-radius: 999px; border: 1px solid var(--line2); color: var(--text2); white-space: nowrap; }
+.chip.red { color: var(--red); border-color: rgba(255, 107, 94, .5); background: var(--red2); }
+.chip.green { color: var(--green); border-color: rgba(47, 227, 154, .5); background: var(--green2); }
+.chip.amber { color: var(--amber); border-color: rgba(255, 181, 71, .5); background: var(--amber2); }
+
+/* Buttons: tactile, with a pressed state */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 50px; padding: 12px 18px; border-radius: 14px; border: 1px solid var(--line2); background: var(--card2); color: var(--text); font-weight: 650; cursor: pointer; text-decoration: none; transition: transform .12s ease, background .2s ease, border-color .2s ease, box-shadow .2s, opacity .2s; -webkit-tap-highlight-color: transparent; }
+.btn:active { transform: scale(.97); }
+.btn svg { width: 18px; height: 18px; flex: none; }
+.btn.primary { background: var(--amber); color: var(--ink); border-color: var(--amber); box-shadow: 0 10px 24px -12px rgba(255, 181, 71, .7), inset 0 -2px 0 rgba(0, 0, 0, .18); }
+.btn.primary:hover { background: #FFC46E; }
+.btn.go { background: var(--green); color: var(--ink); border-color: var(--green); box-shadow: 0 10px 24px -12px rgba(47, 227, 154, .7), inset 0 -2px 0 rgba(0, 0, 0, .18); }
+.btn.ghost { background: transparent; }
+.btn.sm { min-height: 42px; padding: 8px 13px; font-size: 14px; border-radius: 12px; }
+.btn.block { width: 100%; }
+.btn[disabled] { opacity: .38; pointer-events: none; box-shadow: none; }
+.btn.copied { background: var(--green2); border-color: rgba(47, 227, 154, .6); color: var(--green); }
+.btn:focus-visible, .opt:focus-visible, .ftile:focus-visible, .chk:focus-visible, .switch:focus-visible, .iconbtn:focus-visible, .linkbtn:focus-visible, input:focus-visible { outline: 2.5px solid var(--amber); outline-offset: 2px; }
+.linkbtn { background: none; border: 0; padding: 6px 0; color: var(--green); font-weight: 600; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.navrow { display: flex; gap: 10px; align-items: center; justify-content: space-between; margin-top: 18px; }
+.navrow .btn.primary, .navrow .btn.go { flex: 1; }
+
+/* Guide character: Letty the letter, used sparingly */
+.guide { display: flex; gap: 12px; align-items: flex-start; margin: 14px 0; }
+.guide .av { flex: none; animation: bob 4.6s ease-in-out infinite; }
+.guide .bub { position: relative; background: var(--card2); border: 1px solid var(--line2); border-radius: 4px 16px 16px 16px; padding: 11px 14px; color: var(--text2); font-size: 14.5px; }
+.guide .bub b.who { display: block; font-family: var(--mono); font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--amber); margin-bottom: 3px; }
+@keyframes bob { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-4px) rotate(3deg); } }
+.letty .eyes { animation: blink 5.2s infinite; transform-origin: center; transform-box: fill-box; }
+@keyframes blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.12); } }
+.letty.happy { animation: hop .7s cubic-bezier(.3, 1.6, .5, 1) 1; }
+@keyframes hop { 0% { transform: translateY(0); } 40% { transform: translateY(-9px) rotate(-6deg); } 100% { transform: translateY(0); } }
+
+/* Intro list */
+.gets { display: grid; gap: 10px; margin: 16px 0 18px; }
+.get { display: flex; gap: 12px; align-items: center; padding: 12px 14px; border-radius: 16px; background: var(--card); border: 1px solid var(--line); }
+.get .gi { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: var(--amber2); color: var(--amber); flex: none; }
+.get .gi svg { width: 20px; height: 20px; }
+.get b { display: block; }
+.get span { display: block; font-size: 13.5px; color: var(--muted); }
+.privacy { display: flex; gap: 8px; align-items: center; justify-content: center; font-size: 13px; color: var(--muted); margin: 12px 0 2px; }
+.privacy svg { width: 15px; height: 15px; color: var(--green); flex: none; }
+
+/* Options (one choice) */
+.opts { display: grid; gap: 10px; margin: 14px 0; }
+.opt { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 14px; border-radius: 16px; border: 1px solid var(--line2); background: var(--card); cursor: pointer; transition: transform .12s, border-color .2s, background .2s; -webkit-tap-highlight-color: transparent; }
+.opt:active { transform: scale(.98); }
+@media (hover: hover) { .opt:hover, .ftile:hover { border-color: rgba(255, 181, 71, .55); } }
+.opt .code { width: 72px; height: 40px; padding: 0 6px; border-radius: 12px; display: grid; place-items: center; background: var(--card2); flex: none; font-family: var(--mono); font-weight: 700; font-size: 11.5px; color: var(--amber); }
+.opt .ot { flex: 1; }
+.opt .ot b { display: block; font-weight: 650; }
+.opt .ot span { display: block; font-size: 13.5px; color: var(--muted); margin-top: 1px; }
+.tick { width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid var(--line2); display: grid; place-items: center; flex: none; transition: background .2s, border-color .2s; }
+.tick svg { width: 14px; height: 14px; color: var(--ink); opacity: 0; }
+.opt[aria-pressed="true"] { border-color: var(--green); background: linear-gradient(180deg, rgba(47, 227, 154, .10), rgba(47, 227, 154, .04)); }
+.opt[aria-pressed="true"] .tick, .ftile[aria-pressed="true"] .tick { background: var(--green); border-color: var(--green); animation: pop .32s; }
+.opt[aria-pressed="true"] .tick svg, .ftile[aria-pressed="true"] .tick svg { opacity: 1; }
+@keyframes pop { 0% { transform: scale(.6); } 70% { transform: scale(1.15); } 100% { transform: scale(1); } }
+
+/* Form tiles (many choices) */
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0; }
+.ftile { position: relative; text-align: left; padding: 13px 12px 12px; border-radius: 16px; border: 1px solid var(--line2); background: var(--card); cursor: pointer; min-height: 96px; transition: transform .12s, border-color .2s, background .2s; -webkit-tap-highlight-color: transparent; }
+.ftile:active { transform: scale(.97); }
+.ftile b { display: block; font-family: var(--mono); font-size: 12.5px; letter-spacing: .02em; color: var(--amber); padding-right: 26px; }
+.ftile span { display: block; font-size: 13.5px; color: var(--text2); margin-top: 5px; line-height: 1.3; }
+.ftile .tick { position: absolute; top: 10px; right: 10px; width: 22px; height: 22px; }
+.ftile[aria-pressed="true"] { border-color: var(--green); background: linear-gradient(180deg, rgba(47, 227, 154, .10), rgba(47, 227, 154, .04)); }
+.ftile.wide { grid-column: span 2; min-height: 0; }
+
+/* Where to look: a tiny letter sketch */
+.sketch { display: flex; gap: 14px; align-items: center; padding: 12px 14px; border-radius: 16px; border: 1px dashed var(--line2); margin: 12px 0; }
+.sketch svg { width: 74px; height: 92px; flex: none; }
+.sketch p { margin: 0; font-size: 14px; }
+
+/* Deadline */
+.field { margin: 14px 0 6px; }
+.field label { display: block; font-weight: 650; margin-bottom: 7px; }
+.field input[type=date] { width: 100%; min-height: 54px; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--line2); background: var(--card2); color: var(--text); font-size: 17px; }
+.switch { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 0; cursor: pointer; background: none; border: 0; text-align: left; color: var(--text2); }
+.switch .tg { width: 48px; height: 28px; border-radius: 999px; background: rgba(255, 255, 255, .14); position: relative; transition: background .2s; flex: none; }
+.switch .tg::after { content: ''; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: var(--text); transition: transform .24s cubic-bezier(.2, .8, .2, 1); }
+.switch[aria-checked="true"] .tg { background: var(--green); }
+.switch[aria-checked="true"] .tg::after { transform: translateX(20px); }
+.seg { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border-radius: 14px; background: var(--card); border: 1px solid var(--line2); margin: 14px 0 4px; }
+.seg button { min-height: 42px; border: 0; border-radius: 10px; background: transparent; color: var(--text2); font-weight: 650; cursor: pointer; transition: background .2s, color .2s; }
+.seg button[aria-checked="true"] { background: var(--amber); color: var(--ink); }
+.seg button:focus-visible { outline: 2.5px solid var(--amber); outline-offset: 2px; }
+.dl { display: flex; gap: 16px; align-items: center; }
+.ring { width: 108px; height: 108px; flex: none; }
+.ring .arc { transition: stroke-dashoffset 1.1s cubic-bezier(.2, .8, .2, 1); }
+.dl .due { font-weight: 750; font-size: 19px; line-height: 1.25; color: var(--text); }
+.dl .st { font-size: 14px; margin-top: 4px; }
+.lv-ok { color: var(--green); } .lv-soon { color: var(--amber); } .lv-urgent, .lv-today, .lv-past { color: var(--red); }
+
+/* Plan */
+.item { animation: rise .5s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(var(--i, 0) * 90ms); }
+.item .ih { display: flex; gap: 8px; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.item h3 { margin-top: 2px; }
+.sub { font-family: var(--mono); font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin: 12px 0 2px; }
+.chk { display: flex; gap: 10px; align-items: flex-start; width: 100%; text-align: left; background: none; border: 0; padding: 8px 0; cursor: pointer; color: var(--text2); -webkit-tap-highlight-color: transparent; }
+.chk .bx { width: 22px; height: 22px; border-radius: 7px; border: 1.5px solid var(--line2); flex: none; display: grid; place-items: center; margin-top: 1px; transition: background .2s, border-color .2s; }
+.chk .bx svg { width: 13px; height: 13px; color: var(--ink); opacity: 0; }
+.chk[aria-checked="true"] .bx { background: var(--green); border-color: var(--green); animation: pop .32s; }
+.chk[aria-checked="true"] .bx svg { opacity: 1; }
+.chk[aria-checked="true"] .lbl { color: var(--muted); text-decoration: line-through; text-decoration-color: rgba(255, 255, 255, .3); }
+.tip { display: flex; gap: 8px; font-size: 13.5px; color: var(--muted); margin-top: 8px; }
+.tip svg { width: 15px; height: 15px; flex: none; margin-top: 3px; color: var(--amber); }
+.meter { height: 6px; border-radius: 9px; background: rgba(255, 255, 255, .1); overflow: hidden; margin-top: 10px; }
+.meter i { display: block; height: 100%; background: var(--green); border-radius: 9px; transition: width .5s cubic-bezier(.2, .8, .2, 1); }
+ol.steps { margin: 6px 0 0; padding: 0; list-style: none; counter-reset: s; }
+ol.steps li { counter-increment: s; display: flex; gap: 12px; padding: 9px 0; border-top: 1px solid var(--line); color: var(--text2); }
+ol.steps li:first-child { border-top: 0; }
+ol.steps li::before { content: counter(s); width: 26px; height: 26px; border-radius: 50%; background: var(--amber2); color: var(--amber); font-family: var(--mono); font-weight: 700; font-size: 12.5px; display: grid; place-items: center; flex: none; }
+/* When the list is also a card, keep the card's inner space so the number circles sit inside the border. */
+ol.steps.card { padding: 4px 14px; margin: 14px 0; }
+ol.steps.card li { padding: 11px 0; align-items: flex-start; }
+ul.dots { margin: 6px 0 0; padding-left: 18px; color: var(--text2); }
+ul.dots li { margin: 5px 0; }
+.kit { position: relative; overflow: hidden; }
+.kit::before { content: ''; position: absolute; inset: -40% -20% auto auto; width: 220px; height: 220px; background: radial-gradient(circle, rgba(255, 181, 71, .22), rgba(255, 181, 71, 0) 65%); animation: drift 9s ease-in-out infinite alternate; pointer-events: none; }
+@keyframes drift { from { transform: translate(0, 0); } to { transform: translate(-30px, 24px); } }
+
+/* Sheet (bottom drawer) */
+.sheet-wrap { position: fixed; inset: 0; background: rgba(5, 7, 13, .64); display: flex; align-items: flex-end; justify-content: center; z-index: 50; animation: fade .2s; }
+.sheet-wrap[hidden] { display: none; }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+.sheet { width: 100%; max-width: 480px; max-height: 86vh; overflow: auto; background: var(--card); border: 1px solid var(--line2); border-bottom: 0; border-radius: 24px 24px 0 0; padding: 10px 18px calc(22px + env(safe-area-inset-bottom)); animation: up .34s cubic-bezier(.2, .8, .2, 1); }
+.sheet .grab { width: 44px; height: 5px; border-radius: 9px; background: var(--line2); margin: 4px auto 10px; }
+.sheet h2 { margin-top: 4px; }
+.sheet textarea { width: 100%; min-height: 220px; border-radius: 12px; border: 1px solid var(--line2); background: var(--card2); padding: 12px; font-size: 13.5px; }
+@keyframes up { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* Toast */
+.toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom)); transform: translate(-50%, 24px); opacity: 0; pointer-events: none; display: flex; gap: 10px; align-items: center; background: var(--card2); border: 1px solid var(--line2); border-radius: 16px; padding: 10px 14px; box-shadow: 0 18px 40px -16px rgba(0, 0, 0, .7); transition: transform .3s cubic-bezier(.2, .8, .2, 1), opacity .3s; z-index: 60; max-width: 92vw; font-size: 14.5px; }
+.toast.on { transform: translate(-50%, 0); opacity: 1; }
+
+/* Footer */
+.foot { margin-top: 30px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--muted); }
+.foot p { color: var(--muted); font-size: 12.5px; }
+.foot a { color: var(--text2); }
+
+
+/* ===== Kit: progress milestones ===== */
+.miles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 2px 0 8px; }
+.mile { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 2px; border-radius: 12px; background: var(--card); border: 1px solid var(--line); font-family: var(--mono); font-size: 9.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); text-align: center; transition: background .3s, border-color .3s, color .3s; }
+.mile i { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; border: 1.5px solid var(--line2); font-style: normal; font-size: 10.5px; color: var(--text2); }
+.mile i svg { width: 12px; height: 12px; }
+.mile.done { border-color: rgba(47, 227, 154, .45); color: var(--green); background: var(--green2); }
+.mile.done i { background: var(--green); border-color: var(--green); color: var(--ink); animation: pop .32s; }
+/* ===== Kit: bottom tabs ===== */
+.app.tabs { padding-bottom: calc(100px + env(safe-area-inset-bottom)); }
+.tabbar { position: fixed; left: 50%; bottom: 0; transform: translateX(-50%); width: 100%; max-width: 480px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; padding: 8px 10px calc(8px + env(safe-area-inset-bottom)); background: rgba(11, 16, 32, .94); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border-top: 1px solid var(--line2); z-index: 40; }
+.tabbar button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 52px; border: 0; border-radius: 12px; background: transparent; color: var(--muted); font-size: 12px; font-weight: 650; cursor: pointer; position: relative; transition: background .2s, color .2s, transform .12s; -webkit-tap-highlight-color: transparent; }
+.tabbar button:active { transform: scale(.95); }
+.tabbar button svg { width: 20px; height: 20px; }
+.tabbar button[aria-current="page"] { color: var(--amber); background: var(--amber2); }
+.tabbar button:focus-visible { outline: 2.5px solid var(--amber); outline-offset: 2px; }
+.tabbar .badge { position: absolute; top: 5px; right: 22%; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 9px; background: var(--amber); color: var(--ink); font-size: 10.5px; font-weight: 800; display: grid; place-items: center; }
+/* ===== Kit: item accordion, inputs, statement ===== */
+.acc { padding: 0; overflow: hidden; }
+.acc > .ah { display: flex; flex-direction: column; align-items: stretch; gap: 8px; width: 100%; text-align: left; padding: 14px 14px; background: none; border: 0; cursor: pointer; color: var(--text); -webkit-tap-highlight-color: transparent; }
+.acc .ahtop { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.acc .ahtop .chev { margin-left: auto; }
+.acc .ah .t { flex: 1; min-width: 0; font-size: 14.5px; line-height: 1.3; }
+.acc .ah .chev { color: var(--muted); display: grid; transition: transform .25s; }
+.acc .ah .chev svg { width: 18px; height: 18px; }
+.acc.open .ah .chev { transform: rotate(180deg); }
+.acc .ab { padding: 0 14px 16px; animation: rise .35s both; }
+.acc.done { border-color: rgba(47, 227, 154, .42); }
+.seg.seg3 { grid-template-columns: 1fr 1fr 1fr; }
+.seg.seg3 button { font-size: 13px; line-height: 1.2; padding: 4px; }
+.inp { margin: 10px 0; }
+.inp label { display: block; font-size: 13.5px; font-weight: 650; color: var(--text2); margin-bottom: 5px; }
+.inp input, .inp textarea { width: 100%; min-height: 48px; padding: 11px 13px; border-radius: 12px; border: 1px solid var(--line2); background: var(--card2); color: var(--text); font-size: 16px; transition: border-color .2s; }
+.inp input:focus, .inp textarea:focus { border-color: var(--amber); outline: none; }
+.inp textarea { min-height: 96px; resize: vertical; line-height: 1.45; }
+.inp small { display: block; color: var(--muted); font-size: 12.5px; margin-top: 4px; }
+.stmt { background: #FBFAF6; color: #1B1F2A; border-radius: 12px; padding: 12px 14px; font-size: 14px; line-height: 1.55; margin: 6px 0 12px; }
+.ph { background: rgba(255, 181, 71, .38); color: #6B4300; border-radius: 4px; padding: 0 3px; font-weight: 600; }
+.fv { background: rgba(47, 227, 154, .22); border-radius: 4px; padding: 0 2px; }
+/* ===== Kit: the letter on paper ===== */
+.paper { background: #FBFAF6; color: #1B1F2A; border-radius: 16px; padding: 20px 18px; font-size: 13.5px; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; box-shadow: 0 24px 48px -24px rgba(0, 0, 0, .8); margin: 12px 0; animation: rise .5s both; }
+.paper .fv { background: transparent; padding: 0; }
+.paper b { color: #1B1F2A; }
+.sentcard { text-align: center; }
+.sentcard .letty { margin: 0 auto 4px; }
+.app.still .screen, .app.still .item, .app.still .acc .ab, .app.still .paper { animation: none; }
+@media print {
+  body { background: #fff !important; }
+  body * { visibility: hidden !important; }
+  #paper, #paper * { visibility: visible !important; }
+  #paper { position: absolute; left: 0; top: 0; width: 100%; box-shadow: none; border-radius: 0; font-size: 11.5pt; }
+  .ph { background: none; color: #000; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+<main class="app" id="app" aria-live="off"></main>
+<div class="sheet-wrap" id="sheet" hidden></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+const DATA = {"checked": "9 Nov 2026", "stepNames": ["Your letter", "Your deadline", "What didn’t match"], "intro": {"h1": "Got an IRS letter saying you owe more?", "em": "Let’s see where you stand.", "lead": "A 2-minute check: how many days you have, what probably didn’t match, and what proof to gather.", "guide": "Hi, I’m Letty. Take a breath: a CP2000 is a **proposal, not a bill**. But don’t ignore it: if you don’t reply by your date, a legal notice and then a bill follow. We’ll go one step at a time.", "gets": [{"t": "Your deadline", "d": "Your reply date and the days left"}, {"t": "What didn’t match", "d": "The likely cause for each form on your letter"}, {"t": "Your proof list", "d": "What to gather to back up your answer"}], "privacy": "No sign-up. Your answers stay on this phone."}, "scam": {"link": "Is this letter real?"}, "letterStep": {"title": "Which letter did you get?", "help": "The code is in the **top right corner of page 1**."}, "letters": [{"id": "cp2000", "code": "CP2000", "title": "CP2000", "sub": "Proposed changes to your return. Also pick this for CP2000A or CP2000B."}, {"id": "cp2501", "code": "CP2501", "title": "CP2501", "sub": "An earlier letter that asks you to explain a difference", "note": "A CP2501 asks for information before a CP2000 is sent. It isn’t a bill, but **you must respond**. The same checks and proof help, so keep going. Use the reply date printed on your letter."}, {"id": "cp3219a", "code": "CP3219A", "title": "CP3219A or CP2000D", "sub": "Notice of Deficiency, the “90-day letter”", "stop": {"title": "The Tax Court clock is running", "text": "A CP3219A is a legal notice. To dispute it in Tax Court, you must file a petition by the **last date printed on the notice**: usually 90 days from its date, or 150 if it’s addressed to you outside the US. That date **can’t be extended**. A CP2000D is a recomputed proposal sent after a CP3219A (IRS staff manual). The Tax Court date on your CP3219A still stands.", "points": ["You can still send the IRS your proof during this time, but talking to the IRS **does not stop** the Tax Court clock.", "If you don’t reply and don’t file a petition, the IRS makes the change official and sends a bill.", "Get help now: a tax professional, or a Low Income Taxpayer Clinic if you qualify."]}}, {"id": "cp2000ce", "code": "C / E", "title": "CP2000C or CP2000E", "sub": "A result after a reply, or an information notice", "stop": {"title": "This letter reports a result", "text": "In the IRS staff manual, a **CP2000C** reports a partly agreed result that the IRS is charging and closing, and a **CP2000E** is for your information after the Tax Court window closed. Read yours closely. If you think it’s wrong, get help."}}, {"id": "other", "code": "?", "title": "Something else", "sub": "A different code, or no code", "stop": {"title": "This check is made for CP2000 letters", "text": "Look up your letter’s code on IRS.gov under **Understanding your IRS notice or letter**. It covers many notices. Not there? Call **800-829-1040**."}}], "deadline": {"title": "When must the IRS have your reply?", "help": "The countdown starts from the date printed on the letter, **not** the day it arrived.", "modes": {"due": {"tab": "Reply-by date", "label": "Reply-by date on page 1", "where": "On page 1, find the date in a line like **“so we receive it by…”** or **“Proposed amount due by…”**."}, "notice": {"tab": "Notice date", "label": "Notice date (top-right box)", "where": "The **notice date** is in the box at the top right of page 1. We’ll count 30 days from it (60 if you live outside the US)."}}, "abroad": "I live outside the US (60 days)", "days": 30, "daysAbroad": 60, "maxAhead": 75, "ruleDue": "The IRS must **receive** your reply by this date. Mail takes days; upload or fax is faster.", "ruleNotice": "Worked out as {days} days from the notice date. If your letter prints a reply-by date, go by that. The IRS must **receive** your reply by then.", "missingTitle": "Add your date to see your deadline", "missing": "Find the reply-by date on page 1 of your letter, or the notice date in the top-right box.", "future": "That notice date is in the future. Check the date printed on your letter.", "far": "That date is more than 75 days away. Check the reply-by date on your letter.", "moreTimeLink": "Need more time? Here’s how to ask.", "skip": "I don’t have my letter with me", "levels": {"ok": {"title": "You have time.", "text": "Start this week, so your proof is ready early."}, "soon": {"title": "Start now.", "text": "Getting proof from a broker or employer can take days."}, "urgent": {"title": "Very close.", "text": "Send what you have, or call the number on your letter to ask for more time."}, "today": {"title": "Due today.", "text": "Upload or fax today, or call the number on your letter."}, "past": {"title": "The date has passed.", "text": "Call the number on your letter now, and reply as soon as you can."}}}, "formsStep": {"title": "Which forms does your letter list?", "help": "Your letter has a table of items: who reported it, the form type (like 1099-INT), what your return shows, and what others reported. **Tap every form type you see.**", "after": "Next, one short question about each.", "none": "Tap at least one."}, "forms": [{"id": "1099b", "code": "1099-B", "label": "Stock or fund sales", "q": {"text": "Did you put this sale on your tax return?", "help": "Look for Form 8949 or Schedule D in your return.", "opts": [{"label": "No, I left it off", "next": {"text": "On your 1099-B, is box 1e (cost or other basis) filled in?", "help": "Box 1e is what you paid. It decides a lot.", "opts": [{"label": "It’s blank", "cause": "b_zero_cost"}, {"label": "It shows an amount", "cause": "b_cost_on_form"}, {"label": "I don’t have my 1099-B", "cause": "b_need_form"}]}}, {"label": "It’s stock from my job", "sub": "RSU, ESPP or stock options", "cause": "b_equity"}, {"label": "Yes, it’s on my return", "cause": "b_reported"}, {"label": "Not sure", "cause": "b_unsure"}]}}, {"id": "1099da", "code": "1099-DA", "label": "Crypto sales", "q": {"text": "Did you put these crypto sales on your tax return?", "help": "Look for Form 8949 in your return.", "opts": [{"label": "No, I left them off", "cause": "da_left_off"}, {"label": "Yes, they’re on my return", "cause": "da_reported"}, {"label": "Not sure", "cause": "da_unsure"}]}}, {"id": "1099nec", "code": "1099-NEC / MISC", "label": "Freelance or side-gig pay", "q": {"text": "Is this pay already on your return?", "opts": [{"label": "Yes, inside my business income", "sub": "Schedule C, line 1", "cause": "nec_in_c"}, {"label": "It’s on my business’s own return", "sub": "A partnership or S corporation", "cause": "nec_business"}, {"label": "No, I left it off", "next": {"text": "Did you have business costs to earn this money?", "help": "For example: tools, software, mileage, supplies.", "opts": [{"label": "Yes, I had costs", "cause": "nec_missed_costs"}, {"label": "No real costs", "cause": "nec_missed"}]}}, {"label": "The amount or the name is wrong", "cause": "payer_error"}]}}, {"id": "1099k", "code": "1099-K", "label": "Payment apps and card sales", "q": {"text": "What were these payments?", "opts": [{"label": "Business sales I already reported", "cause": "k_in_c"}, {"label": "Business sales I left off", "next": {"text": "Did you have costs to make those sales?", "help": "For example: the goods you sold, shipping, platform fees.", "opts": [{"label": "Yes, I had costs", "cause": "k_missed_costs"}, {"label": "No real costs", "cause": "k_missed"}]}}, {"label": "My own used stuff, sold for less than I paid", "cause": "k_personal_loss"}, {"label": "Gifts, or friends paying me back", "cause": "k_personal_payments"}, {"label": "The same money is on another 1099 too", "cause": "k_duplicate"}, {"label": "Not sure", "cause": "k_unsure"}]}}, {"id": "w2", "code": "W-2", "label": "Wages from a job", "q": {"text": "Is this job’s W-2 on your return?", "opts": [{"label": "No, I left this job off", "cause": "w2_missed"}, {"label": "The W-2 was wrong", "sub": "I have, or asked for, a corrected one", "cause": "w2_corrected"}, {"label": "Yes, it’s on my return", "cause": "w2_reported"}, {"label": "I never worked there", "cause": "idtheft"}]}}, {"id": "1099int", "code": "1099-INT / DIV", "label": "Bank interest or dividends", "q": {"text": "Is this money yours?", "opts": [{"label": "Yes, and I left it off", "cause": "int_missed"}, {"label": "It’s a shared account", "sub": "Part of it belongs to someone else", "cause": "int_nominee"}, {"label": "It’s already on my return", "cause": "int_reported"}, {"label": "I don’t have this account", "cause": "unknown_payer"}]}}, {"id": "1099r", "code": "1099-R", "label": "Retirement or pension money", "q": {"text": "What happened to this money?", "opts": [{"label": "I moved it to another retirement account", "next": {"text": "How did you move it?", "opts": [{"label": "Directly, account to account", "sub": "Box 7 shows code G", "cause": "r_direct"}, {"label": "It was paid to me, and I put it back within 60 days", "cause": "r_60"}, {"label": "I put it back after 60 days", "cause": "r_late"}, {"label": "Not sure", "cause": "r_rollover_unsure"}]}}, {"label": "I took it out and kept it", "next": {"text": "Does the letter add a 10% tax for an early withdrawal?", "opts": [{"label": "Yes, but an exception applies to me", "cause": "r_exception"}, {"label": "Yes, and no exception applies", "cause": "r_taxable"}, {"label": "No", "cause": "r_taxable"}]}}, {"label": "It’s already on my return", "cause": "r_reported"}]}}, {"id": "1099g", "code": "1099-G", "label": "Unemployment or state refund", "q": {"text": "What is this payment?", "opts": [{"label": "A state or local tax refund", "next": {"text": "On your federal return for the year before your letter’s tax year, did you take the standard deduction?", "help": "That’s the year your state tax was paid.", "opts": [{"label": "Yes, the standard deduction", "cause": "g_std"}, {"label": "No, I itemized", "cause": "g_itemized"}, {"label": "Not sure", "cause": "g_refund_unsure"}]}}, {"label": "Unemployment I received", "cause": "g_unemp"}, {"label": "Unemployment I never applied for", "cause": "g_fraud"}]}}, {"id": "ssa", "code": "SSA-1099", "label": "Social Security benefits", "q": {"text": "Is the amount on your SSA-1099 right?", "opts": [{"label": "Yes, I left it off or got the math wrong", "cause": "ssa_math"}, {"label": "No, the SSA-1099 is wrong", "cause": "ssa_wrong"}, {"label": "It includes a lump sum for past years", "cause": "ssa_lump"}]}}, {"id": "1099s", "code": "1099-S", "label": "Home or land sale", "q": {"text": "Was it your main home for at least 2 of the 5 years before the sale?", "help": "You (or your spouse) owned it, and you lived in it, for 2 of those 5 years.", "opts": [{"label": "Yes", "cause": "s_excluded"}, {"label": "No, or it was land, a rental or a second home", "cause": "s_taxable"}, {"label": "Not sure", "cause": "s_unsure"}]}}, {"id": "ded", "code": "Deduction or credit", "label": "Mortgage interest, student loan, tuition, IRA or HSA", "wide": true, "q": {"text": "Which item does your letter change?", "opts": [{"label": "Mortgage interest", "sub": "Form 1098", "cause": "ded_mortgage"}, {"label": "Student loan interest", "sub": "Form 1098-E", "cause": "ded_student"}, {"label": "Education credit", "sub": "Form 1098-T", "cause": "ded_tuition"}, {"label": "IRA or HSA deduction", "sub": "Form 5498 or 5498-SA", "cause": "ded_ira_hsa"}]}}, {"id": "notmine", "code": "Not mine", "label": "Income I don’t recognize", "wide": true, "q": {"text": "Which fits best?", "opts": [{"label": "The payer made a mistake", "sub": "Wrong amount, or the wrong person", "cause": "payer_error"}, {"label": "Someone used my name or Social Security number", "cause": "idtheft"}, {"label": "Not sure", "cause": "unknown_payer"}]}}], "causes": {"b_zero_cost": {"title": "Sale left off, and the IRS used a cost of $0", "means": "Your broker reported the sale price but not what you paid. When box 1e is blank, the IRS uses a **$0 cost**, so the letter treats the whole sale price as profit. Show what you paid, so the tax is based on your real gain.", "answer": "some", "proof": ["Statements showing what you paid for each sale", "Form 8949 and Schedule D listing each sale with your real cost", "A short signed statement that answers this item"], "tip": "Your broker’s website usually keeps old statements and trade confirmations."}, "b_cost_on_form": {"title": "Sale left off, but the cost was reported", "means": "When the broker reports your cost, the IRS uses it, so the letter may already show your real gain. Compare the letter’s numbers with your 1099-B.", "answer": "check", "proof": ["Your 1099-B", "The letter’s table of changes"], "tip": "If the numbers match your records, agreeing may be right. Job stock (RSU, ESPP)? The reported cost can be too low."}, "b_need_form": {"title": "Sale left off: get your 1099-B first", "means": "Download your 1099-B from your broker. If box 1e (cost) is blank, the IRS used $0 as your cost. If it shows an amount, the letter should already use it.", "answer": "check", "proof": ["Your 1099-B from your broker", "Statements showing what you paid"]}, "b_equity": {"title": "Job stock: the cost on the form may be too low", "means": "With RSUs, ESPP or options, part of the stock’s value was already taxed as pay on your W-2. The broker’s cost often leaves that out, so the gain looks bigger than it is.", "answer": "some", "proof": ["Your W-2 for that year", "Your broker’s supplemental statement or vesting and purchase records", "Form 8949 with the cost corrected (adjustment code B)", "A short signed statement that answers this item"], "tip": "This one is easy to get wrong. For big amounts, consider a tax pro."}, "b_reported": {"title": "The sale is already on your return", "means": "The IRS compares the broker’s sale amounts with your Form 8949. Grouped sales, different totals, or sales on another form can look like a mismatch.", "answer": "disagree", "proof": ["Copies of your Form 8949 and Schedule D", "Your 1099-B", "A short signed statement showing where each sale appears"]}, "b_unsure": {"title": "Not sure yet: check two things", "means": "First, look for Form 8949 or Schedule D in your return. If the sale isn’t there, it was left off. Then check box 1e (cost) on your 1099-B.", "answer": "check", "proof": ["Your filed return (all pages)", "Your 1099-B"]}, "da_left_off": {"title": "Crypto sales left off your return", "means": "From 2025, crypto platforms report sales on **Form 1099-DA**. For 2025 sales they **don’t have to report what you paid**, so the letter’s amount can be far bigger than your real gain. Every sale must be reported, even at a loss.", "answer": "some", "proof": ["Each platform’s full transaction history", "Form 8949 listing each sale with your real cost (2025 has new digital-asset boxes)", "A short signed statement that answers this item"]}, "da_reported": {"title": "Crypto sales are already on your return", "means": "The IRS compares what platforms reported with your Form 8949. A missing platform, different totals, or sales on the wrong form can cause a mismatch.", "answer": "disagree", "proof": ["Copies of your Form 8949 and Schedule D", "Each platform’s 1099-DA", "A short signed statement matching each reported sale to your return"]}, "da_unsure": {"title": "Not sure yet: check your Form 8949", "means": "Look for Form 8949 in your return. If these sales aren’t on it, they were left off.", "answer": "check", "proof": ["Your filed return", "Each platform’s 1099-DA and transaction history"]}, "nec_in_c": {"title": "Already counted in your business income", "means": "1099-NEC pay belongs on Schedule C, line 1. If it’s inside a bigger total there, the IRS computer may not see it. Show where it went.", "answer": "disagree", "proof": ["A copy of your Schedule C", "A short table: each 1099 and where it’s counted in line 1", "A short signed statement that answers this item"], "tip": "If your 1099 total is bigger than line 1, explain the difference in your statement."}, "nec_business": {"title": "Reported on your business’s own return", "means": "If the money was reported on a partnership or S corporation return, say so. Give that business’s name and EIN, or the IRS may write to ask for them.", "answer": "disagree", "proof": ["The business’s name and EIN", "The page of the business return showing the income", "A short signed statement that answers this item"], "tip": "Business-return cases can get complex. Consider a tax pro.", "help": true}, "nec_missed_costs": {"title": "Missed income, but you had business costs", "means": "The letter adds the income and usually **self-employment tax**. You can list the costs you had to earn it. The IRS staff manual says the amount can be reduced by expenses you show.", "answer": "some", "proof": ["A list of that year’s business costs, with totals", "Receipts or bank statements for those costs", "A short signed statement that answers this item"]}, "nec_missed": {"title": "Income left off your return", "means": "If you simply missed it and had no costs, the letter is likely right. The change usually includes **self-employment tax**.", "answer": "agree", "proof": ["Your 1099-NEC or 1099-MISC", "Check the letter’s math against it"], "tip": "Check other years too. The IRS says to amend past returns that have the same mistake."}, "k_in_c": {"title": "Already counted in your business income", "means": "The letter uses the **gross** amount on the 1099-K. If those sales are already in your business income, show how the totals match.", "answer": "disagree", "proof": ["A copy of your Schedule C", "The platform’s yearly report", "A short table matching the 1099-K to your income records"]}, "k_missed_costs": {"title": "Business sales left off, with costs", "means": "Real business sales are taxable. But the letter starts from the gross amount, so list your costs, like the goods you sold and fees.", "answer": "some", "proof": ["The platform’s yearly report", "Receipts for the goods you sold and other costs", "A short signed statement that answers this item"]}, "k_missed": {"title": "Business sales left off", "means": "If these were real business sales and you had no costs, the letter is likely right. Check the amount.", "answer": "agree", "proof": ["The platform’s yearly report", "Check the letter’s math against it"]}, "k_personal_loss": {"title": "Personal items sold at a loss", "means": "Selling your own things for less than you paid isn’t profit. You can’t deduct the loss, but there’s no gain to tax. The IRS says to report it so it zeroes out.", "answer": "disagree", "proof": ["What you originally paid for each item (receipts or order history)", "The platform’s list of sales", "A short signed statement that answers this item"]}, "k_personal_payments": {"title": "Gifts or paybacks, not income", "means": "Gifts and money paid back for shared costs shouldn’t be on a 1099-K. Ask the platform for a corrected 1099-K showing **$0**.", "answer": "disagree", "proof": ["App records showing who paid you and why", "A corrected 1099-K, if the platform sends one", "A short signed statement that answers this item"]}, "k_duplicate": {"title": "The same money is on two forms", "means": "Card and payment-app payments shouldn’t also be on a 1099-NEC or 1099-MISC. Ask the issuer for a corrected form showing $0, and show you counted the money once.", "answer": "some", "proof": ["Both forms", "A corrected form, if you get one", "Your income records showing it was counted once"]}, "k_unsure": {"title": "Not sure yet: sort the payments", "means": "Download the platform’s yearly report. Sort the payments into business sales, personal items, and gifts or paybacks. Each kind is handled differently.", "answer": "check", "proof": ["The platform’s yearly report", "Your bank records"]}, "w2_missed": {"title": "A job left off your return", "means": "The letter adds the wages. It should also credit the tax that job withheld. Check both numbers.", "answer": "agree", "proof": ["The missing W-2", "Check that the letter’s payments line includes that job’s withholding"]}, "w2_corrected": {"title": "The employer’s form was wrong", "means": "When an employer fixes a W-2, it issues a **Form W-2c**. IRS staff are told to treat a corrected form as the most accurate.", "answer": "some", "proof": ["The corrected W-2c from your employer", "A short signed statement that answers this item"], "tip": "Don’t have it yet? Ask your employer for the W-2c."}, "w2_reported": {"title": "The wages are already on your return", "means": "Show where the wages appear on your return. If they’re in a combined total, list each W-2 that makes it up.", "answer": "disagree", "proof": ["A copy of page 1 of your return", "All your W-2s for that year", "A short signed statement that answers this item"]}, "int_missed": {"title": "Interest or dividends left off", "means": "If you simply missed it, the letter is likely right. Check the amount against your form.", "answer": "agree", "proof": ["Your 1099-INT or 1099-DIV"]}, "int_nominee": {"title": "Part of it belongs to someone else", "means": "On a shared account, each person’s share depends on state law. If part is someone else’s, show the full amount on Schedule B, then subtract their part as a **nominee distribution**.", "answer": "some", "proof": ["Proof of who owns the account and each share", "Schedule B using the nominee method", "A short signed statement that answers this item"], "tip": "The nominee rules also expect a 1099 for the real owner. If that’s new to you, ask a tax pro."}, "int_reported": {"title": "Already on your return", "means": "Show where it appears, for example on Schedule B or in a combined total.", "answer": "disagree", "proof": ["Your Schedule B or the page where it appears", "A short signed statement that answers this item"]}, "r_direct": {"title": "Direct rollover: usually $0 taxable", "means": "A direct rollover shows **code G** in box 7 and $0 taxable in box 2a. It still belongs on your return as a rollover, so leaving it off can look like taxable income. Moved into a Roth account? Part may be taxable.", "answer": "disagree", "proof": ["The 1099-R showing code G", "The new account’s statement or Form 5498", "A short signed statement that answers this item"]}, "r_60": {"title": "Rolled over within 60 days", "means": "Money you put into another retirement account within 60 days isn’t taxable, and the 10% early-withdrawal tax doesn’t apply to it. Only the money you put back counts. Moved into a Roth account? Part may be taxable.", "answer": "disagree", "proof": ["Form 5498 (box 2 shows rollovers) or the new account’s statement", "The dates you got the money and put it back", "A short signed statement that answers this item"]}, "r_late": {"title": "Put back after 60 days", "means": "Late rollovers are usually taxable. You may qualify for a waiver by **self-certifying** a reason the IRS accepts. The IRS may write to ask for more details.", "answer": "check", "proof": ["The date you got the money and the date you put it back", "Why it was late", "Your self-certification letter, if you used one"], "help": true}, "r_rollover_unsure": {"title": "Rollover: check the details", "means": "Look at box 7 on your 1099-R. Code G means a direct rollover. Otherwise, check when you put the money back.", "answer": "check", "proof": ["Your 1099-R", "The new account’s statements"]}, "r_exception": {"title": "An early-withdrawal exception applies", "means": "The IRS adds the 10% extra tax automatically. If an exception applies and your 1099-R code doesn’t show it, claim it on **Form 5329**.", "answer": "some", "proof": ["Form 5329", "Proof that the exception applies", "A short signed statement that answers this item"]}, "r_taxable": {"title": "Money you took out and kept", "means": "That’s usually taxable income. Early withdrawals can also get a 10% extra tax (IRS rule as of 2026) unless an exception applies. Check the letter’s math.", "answer": "agree", "proof": ["Your 1099-R", "Check the letter’s math against it"]}, "r_reported": {"title": "Already on your return", "means": "Show where it appears: lines 4a and 4b for IRAs, 5a and 5b for pensions. For IRA money you already paid tax on, Form 8606 shows the non-taxable part.", "answer": "disagree", "proof": ["Page 1 of your return (lines 4 and 5)", "Form 8606, if you have one", "A short signed statement that answers this item"]}, "g_std": {"title": "Your state refund isn’t taxable", "means": "If you took the standard deduction that year, a state or local tax refund is **not** income. Show that.", "answer": "disagree", "proof": ["That earlier federal return, showing the standard deduction", "A short signed statement that answers this item"]}, "g_itemized": {"title": "State refund after itemizing", "means": "If you itemized state taxes, the refund can be taxable, but only up to the tax benefit you got. Check the letter’s math.", "answer": "check", "proof": ["That earlier return’s Schedule A", "The state refund worksheet, if you used one"]}, "g_refund_unsure": {"title": "Check that earlier return", "means": "Standard deduction: the refund isn’t taxable. Itemized: part or all of it may be.", "answer": "check", "proof": ["The federal return for the year the state tax was paid"]}, "g_unemp": {"title": "Unemployment is taxable", "means": "Unemployment you received is income, so the letter is likely right. Check the amount against your 1099-G.", "answer": "agree", "proof": ["Your 1099-G"]}, "g_fraud": {"title": "Unemployment claimed in your name", "means": "Tell your state unemployment agency and ask for a **corrected 1099-G**. Don’t wait for it: reply by your date with Form 14039, a copy of your ID, and a list of what isn’t yours. Send the corrected form when you get it.", "answer": "disagree", "proof": ["A corrected 1099-G from the state", "Form 14039 (Identity Theft Affidavit) and a copy of your photo ID", "A signed statement listing the items that aren’t yours"], "help": true}, "ssa_math": {"title": "Taxable part recomputed", "means": "Up to **85%** of benefits can be taxable, depending on your other income (IRS rule as of 2026). The letter redoes the math from the gross amount. Other changes on the letter can make more of your benefits taxable.", "answer": "agree", "proof": ["Your SSA-1099", "Check the letter’s math against it"]}, "ssa_wrong": {"title": "The SSA-1099 itself is wrong", "means": "Get a corrected statement from Social Security, then send it with your reply.", "answer": "disagree", "proof": ["A corrected SSA-1099 from Social Security", "A short signed statement that answers this item"]}, "ssa_lump": {"title": "A lump sum for past years", "means": "A special **lump-sum election** may lower the taxable part. Ask for it in your reply. The IRS may write to you about it.", "answer": "some", "proof": ["Your SSA-1099 (it shows payments for earlier years)", "A short signed statement that answers this item"]}, "s_excluded": {"title": "Home sale: the gain may be excluded", "means": "You can usually exclude up to **$250,000** of gain (**$500,000** on a joint return), generally once every 2 years (IRS rules as of 2026). But a 1099-S means you must still report the sale, even when no tax is due.", "answer": "disagree", "proof": ["Form 8949 and Schedule D showing the sale and the exclusion", "Your purchase and sale papers (closing statements)", "A short signed statement that answers this item"], "tip": "If your gain was bigger than the limit, only the extra is taxed."}, "s_taxable": {"title": "Property sale: tax is on the gain", "means": "The letter starts from the sale price. Tax is on your gain, not the whole price, but the math can be complex (rentals have depreciation, for example). Consider a tax pro.", "answer": "some", "proof": ["Purchase and sale papers (closing statements)", "Records of improvements", "Form 8949 and Schedule D"], "help": true}, "s_unsure": {"title": "Check the home-sale rules", "means": "To exclude gain, you generally must have owned **and** lived in the home for 2 of the 5 years before the sale.", "answer": "check", "proof": ["The dates you owned the home and lived in it"]}, "ded_mortgage": {"title": "Mortgage interest doesn’t match", "means": "The IRS compares your deduction with your Form 1098s. If you paid interest not on a 1098, like a co-op or a shared loan, show proof.", "answer": "some", "proof": ["All your Forms 1098 for that year", "Statements showing the interest you paid", "A short signed statement that answers this item"]}, "ded_student": {"title": "Student loan interest doesn’t match", "means": "The deduction is capped at **$2,500** (IRS rule as of 2026). It can’t be taken if someone can claim you as a dependent, and it can shrink when the letter adds income.", "answer": "check", "proof": ["Your Form 1098-E", "Proof of your payments"]}, "ded_tuition": {"title": "Education credit doesn’t match", "means": "The IRS checks it against Form 1098-T. Expenses above the 1098-T amount need an explanation, and added income can lower the credit.", "answer": "check", "proof": ["Your Form 1098-T", "Receipts for other qualified expenses"]}, "ded_ira_hsa": {"title": "IRA or HSA deduction doesn’t match", "means": "The IRS checks these against Form 5498 (IRA) or 5498-SA (HSA). Employer HSA money and Roth IRA contributions can’t be deducted.", "answer": "check", "proof": ["Form 5498 or 5498-SA", "Account statements showing your contributions"]}, "payer_error": {"title": "The form itself is wrong", "means": "Ask the payer to correct it and send the fix to the IRS. Reply with a copy. The IRS only contacts the payer for you if you sign **Form 2624**.", "answer": "disagree", "proof": ["The corrected form from the payer", "A short signed statement that answers this item", "If the payer won’t fix it: Form 2624 (your consent for the IRS to contact them)"]}, "idtheft": {"title": "Income from someone using your identity", "means": "Reply right away. Tell the IRS which items aren’t yours, and send **Form 14039 with your reply**, not separately. Don’t amend your return to add this income.", "answer": "disagree", "proof": ["Form 14039, Identity Theft Affidavit (or a police report)", "A copy of your government photo ID", "A signed statement listing each item that isn’t yours"], "tip": "For wages from a job you never had, also contact Social Security. An IP PIN helps protect your tax account.", "help": true}, "unknown_payer": {"title": "You don’t recognize this payer", "means": "Call the payer named on your letter and ask what it was. If they made a mistake, ask for a corrected form. If you never dealt with them, it may be identity theft.", "answer": "check", "proof": ["Notes from your call with the payer", "A corrected form, if they send one"], "help": true}}, "answers": {"agree": {"label": "Usual answer: agree", "color": "green"}, "some": {"label": "Usual answer: disagree with part", "color": "amber"}, "disagree": {"label": "Usual answer: disagree", "color": "amber"}, "check": {"label": "Check first", "color": ""}}, "plan": {"h1": "Your plan.", "em": "One step at a time.", "guide": "Here’s what I found. Tick each proof item as you get it. I’ll keep your progress on this phone.", "toast": "Your plan is ready", "allProof": "All proof gathered. Nice work!", "answerNote": "“Usual answer” is a starting point based on IRS rules, not a decision. Your own facts decide.", "next": ["Gather the proof for each item. Send **copies**, never originals.", "On the Response form, tick the box that fits you. **Agree with all the changes?** Sign and date it. You then can’t take these changes to Tax Court. **Don’t agree with some or all?** Don’t sign the agreement. Send a **signed statement** that answers each item.", "Filed jointly? If you agree, **both spouses sign** the Response form. If you don’t, having both of you sign your statement is the safe choice.", "Send it so the IRS **receives** it by **{due}**: upload it (fastest), fax it to the number on your letter (your name and SSN on every page), or mail it in the envelope that came with it.", "Keep copies of everything, and save your upload or fax confirmation."], "payTip": "Agreeing? Pay now with IRS Direct Pay (free) or wait for the bill. Paying within 30 days stops more interest. Can’t pay it all? Include Form 9465 to ask for a payment plan. The letter may not show every penalty.", "helpTitle": "Get help if…", "helpIf": ["You got a **CP3219A** (90-day letter), or you want to go to Tax Court", "Someone used your identity", "The income was on a partnership or S corporation return", "Big stock or crypto amounts, or the same problem in several years", "You want to ask for penalty relief, or the tax was already charged"]}, "kit": {"kicker": "Coming soon", "kickerLive": "Ready when you are", "title": "The full CP2000 Rescue kit", "points": ["Writes your signed statement for each item, ready to print", "Walks you through the Response form, upload, fax or mail", "Explains the main letters that can come next, and what to do"], "soon": "Coming soon", "cta": "Get the full kit ($39)"}, "sheets": {"about": {"title": "About this check", "intro": "CP2000 Rescue helps you understand your CP2000 letter and reply on time. It’s a guide, **not tax advice**, and it isn’t connected to the IRS.", "points": ["Your answers stay in this browser on this phone. Nothing you type is sent anywhere.", "Facts were checked against IRS pages on 9 Nov 2026. Rules change, so your own letter always comes first.", "“Usual answer” labels are a starting point based on IRS rules. Your own facts decide.", "No result is promised. The IRS makes the decision."], "links": [{"t": "IRS: Understanding your CP2000", "u": "https://www.irs.gov/individuals/understanding-your-cp2000-series-notice"}]}, "scam": {"title": "Is this letter real?", "intro": "A real CP2000 comes by **US mail**. The IRS never sends it as an email.", "points": ["The IRS doesn’t start contact by email or social media, and only texts you if you agreed to it.", "Real checks are made out to the **United States Treasury**. The IRS never asks for gift cards.", "To check a letter, look in your IRS Online Account or call **800-829-1040**. Not every notice shows up online, so a missing one doesn’t prove it’s fake.", "An office in Austin, Texas doesn’t make it fake. Austin is a real CP2000 office.", "Got a fake by email? Forward it to **phishing@irs.gov**."], "links": [{"t": "IRS: Tax scams", "u": "https://www.irs.gov/help/tax-scams"}]}, "moretime": {"title": "Need more time?", "intro": "You can ask. Call the phone number in the box at the top right of page 1, or send a written request by mail or fax.", "points": ["Ask **before** your reply date if you can.", "IRS public pages don’t say how much extra time you’ll get. Its staff manual says callers usually get **30 more days** (**15** for a CP2501), and usually only once. Don’t count on more.", "Interest keeps adding up while you wait, if the letter is right.", "A CP3219A (90-day letter) can’t be extended."], "links": [{"t": "IRS: Understanding your CP2000", "u": "https://www.irs.gov/individuals/understanding-your-cp2000-series-notice"}]}, "help": {"title": "Free and paid help", "intro": "You don’t have to do this alone.", "points": ["**Low Income Taxpayer Clinics (LITCs):** free or a small fee. For people under income limits (in 2026, about **$39,900** for one person in most states; more for bigger households), usually for disputes under $50,000. They can help you answer IRS notices.", "**Taxpayer Advocate Service (TAS):** free, and independent inside the IRS. It may help when an IRS problem causes financial hardship, or when IRS processes failed. Call **877-777-4778**. TAS is limiting the cases it accepts right now.", "**Enrolled agents, CPAs and attorneys** can fully represent you before the IRS (Form 2848). To let someone talk to the IRS about just this letter, fill in the Authorization section on the Response form.", "**The IRS:** call the number on your letter with questions."], "links": [{"t": "Find a clinic (LITC)", "u": "https://www.taxpayeradvocate.irs.gov/about-us/low-income-taxpayer-clinics-litc/"}, {"t": "TAS: CP2000 help", "u": "https://www.taxpayeradvocate.irs.gov/notices/cp-2000/"}]}}, "footer": {"disclaimer": "**Not tax advice. Not affiliated with the IRS.** This check helps you understand your letter and reply on time. Your own letter and facts always come first."}, "sources": [{"t": "IRS Tax Topic 652", "u": "https://www.irs.gov/taxtopics/tc652"}, {"t": "IRS: Understanding your CP2000", "u": "https://www.irs.gov/individuals/understanding-your-cp2000-series-notice"}, {"t": "IRS Publication 5181", "u": "https://www.irs.gov/pub/irs-pdf/p5181.pdf"}, {"t": "Look up another IRS letter", "u": "https://www.irs.gov/individuals/understanding-your-irs-notice-or-letter"}]};
+const MODE = "free";
+const KIT_URL = "https://dineshcraft02588.gumroad.com/l/cp2000-rescue";
+const KEY = 'cp2000rescue.' + MODE + '.v1';
+
+/* ---------- icons ---------- */
+const sv = (p, w) => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="' + (w || 2) + '" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + p + '</svg>';
+const I = {
+  check: sv('<path d="M5 12.5l4.2 4.2L19 7"/>', 3),
+  arrow: sv('<path d="M5 12h14M13 6l6 6-6 6"/>'),
+  back: sv('<path d="M19 12H5M11 6l-6 6 6 6"/>'),
+  clock: sv('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'),
+  search: sv('<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>'),
+  doc: sv('<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/>'),
+  shield: sv('<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/>'),
+  info: sv('<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>'),
+  copy: sv('<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/>'),
+  mail: sv('<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5l8.5 6.5 8.5-6.5"/>'),
+  reset: sv('<path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v5h5"/>'),
+  close: sv('<path d="M6 6l12 12M18 6L6 18"/>'),
+  bulb: sv('<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/>'),
+  edit: sv('<path d="M4 20h4l10-10-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>'),
+  ext: sv('<path d="M14 4h6v6M20 4l-9 9"/><path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/>'),
+};
+function brand() {
+  return '<svg viewBox="0 0 100 100" aria-hidden="true"><rect x="8" y="22" width="76" height="54" rx="9" fill="none" stroke="#FFB547" stroke-width="7"/>' +
+    '<path d="M12 28l34 26 34-26" fill="none" stroke="#FFB547" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/>' +
+    '<circle cx="74" cy="72" r="20" fill="#2FE39A" stroke="#0B1020" stroke-width="5"/><path d="M65 72l6.5 6.5 12-13" fill="none" stroke="#0B1020" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+}
+/* Letty: a friendly letter. Calm by default, hops once when a plan is ready. */
+function letty(size, mood) {
+  return '<svg class="letty ' + (mood || '') + '" width="' + size + '" height="' + size + '" viewBox="0 0 64 64" aria-hidden="true">' +
+    '<rect x="6" y="15" width="52" height="38" rx="8" fill="#1F2840" stroke="#FFB547" stroke-width="3.5"/>' +
+    '<path d="M9.5 19L32 35.5 54.5 19" fill="none" stroke="#FFB547" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>' +
+    '<g class="eyes"><ellipse cx="24.5" cy="41.5" rx="2.6" ry="3.2" fill="#F3F1EA"/><ellipse cx="39.5" cy="41.5" rx="2.6" ry="3.2" fill="#F3F1EA"/></g>' +
+    '<path d="M28.5 47.5q3.5 2.6 7 0" fill="none" stroke="#F3F1EA" stroke-width="2.2" stroke-linecap="round"/>' +
+    (mood === 'happy' ? '<circle cx="53" cy="15" r="9" fill="#2FE39A" stroke="#0B1020" stroke-width="2.5"/><path d="M48.6 15.2l3 3 5.8-6.4" fill="none" stroke="#0B1020" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>' : '') +
+    '</svg>';
+}
+/* Where the date is printed: a simple sketch of page 1, not a copy of the real notice. */
+function sketch(mode) {
+  const box = mode === 'notice';
+  return '<svg viewBox="0 0 74 92" aria-hidden="true"><rect x="1.5" y="1.5" width="71" height="89" rx="6" fill="#F3F1EA" stroke="#C9D0DC" stroke-width="2"/>' +
+    '<rect x="8" y="9" width="26" height="4" rx="2" fill="#B8BFCC"/><rect x="8" y="17" width="20" height="4" rx="2" fill="#B8BFCC"/>' +
+    '<rect x="40" y="7" width="27" height="22" rx="3" fill="none" stroke="' + (box ? '#FFB547' : '#C9D0DC') + '" stroke-width="' + (box ? 2.5 : 1.5) + '"/><rect x="44" y="12" width="19" height="3.5" rx="1.7" fill="' + (box ? '#E08E14' : '#D3D8E1') + '"/><rect x="44" y="19" width="15" height="3.5" rx="1.7" fill="#D3D8E1"/>' +
+    '<rect x="8" y="38" width="58" height="3.5" rx="1.7" fill="#D3D8E1"/><rect x="8" y="46" width="52" height="3.5" rx="1.7" fill="#D3D8E1"/>' +
+    (box ? '' : '<rect x="5" y="52" width="64" height="10" rx="3" fill="none" stroke="#FFB547" stroke-width="2.5"/>') +
+    '<rect x="8" y="55.3" width="56" height="3.5" rx="1.7" fill="' + (box ? '#D3D8E1' : '#E08E14') + '"/><rect x="8" y="68" width="40" height="3.5" rx="1.7" fill="#D3D8E1"/>' +
+    '<rect x="8" y="77" width="30" height="8" rx="2.5" fill="#D3D8E1"/></svg>';
+}
+
+/* ---------- state ---------- */
+function fresh() {
+  return { screen: 'intro', letter: '', dateMode: 'due', dueDate: '', noticeDate: '', abroad: false, forms: [], paths: {}, qi: 0, ticks: {}, skipDate: false,
+    /* kit */ me: { name: '', spouse: '', street: '', city: '', phone: '', taxyear: '', noticedate: '', aur: '' }, joint: false, items: {}, open: '', penalty: { on: false, reason: '' }, plan9465: false, sendMethod: 'upload', sendTicks: {}, sent: null };
+}
+function load() {
+  try {
+    const raw = localStorage.getItem(KEY); if (!raw) return null;
+    const f = fresh(); const o = Object.assign(f, JSON.parse(raw));
+    o.me = Object.assign(fresh().me, o.me || {}); o.penalty = Object.assign(fresh().penalty, o.penalty || {});
+    o.forms = (o.forms || []).filter((id) => DATA.forms.some((f) => f.id === id));
+    return o;
+  } catch (e) { return null; }
+}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) { /* private mode: keep working in memory */ } }
+let st = load() || fresh();
+const app = document.getElementById('app');
+
+/* ---------- helpers ---------- */
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const md = (s) => esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+const formById = (id) => DATA.forms.find((f) => f.id === id);
+const letterById = (id) => DATA.letters.find((l) => l.id === id);
+function guide(msg, mood) { return '<div class="guide"><div class="av">' + letty(46, mood) + '</div><div class="bub"><b class="who">Letty</b>' + msg + '</div></div>'; }
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.innerHTML = letty(28) + '<span>' + msg + '</span>';
+  t.classList.add('on');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => t.classList.remove('on'), 2600);
+}
+
+/* ---------- dates (all local, whole days) ---------- */
+function parseDate(s) { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || ''); if (!m) return null; const d = new Date(+m[1], +m[2] - 1, +m[3]); return isNaN(d.getTime()) ? null : d; }
+function today() { const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), n.getDate()); }
+function addDays(d, n) { const x = new Date(d.getTime()); x.setDate(x.getDate() + n); return x; }
+function iso(d) { const p = (n) => String(n).padStart(2, '0'); return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()); }
+function fmt(d) { try { return new Intl.DateTimeFormat('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }).format(d); } catch (e) { return d.toDateString(); } }
+/* Two ways in: the reply-by date printed on page 1 (best), or the notice date + 30/60 days (backup). */
+function deadline() {
+  const t = today();
+  let due, days = DATA.deadline.days;
+  if (st.dateMode === 'notice') {
+    const nd = parseDate(st.noticeDate); if (!nd) return null;
+    if (nd > t) return { error: 'future' };
+    days = st.abroad ? DATA.deadline.daysAbroad : DATA.deadline.days;
+    due = addDays(nd, days);
+  } else {
+    due = parseDate(st.dueDate); if (!due) return null;
+    if ((due - t) / 86400000 > DATA.deadline.maxAhead) return { error: 'far' };
+  }
+  const left = Math.round((due - t) / 86400000);
+  let level = 'ok';
+  if (left < 0) level = 'past'; else if (left === 0) level = 'today'; else if (left <= 6) level = 'urgent'; else if (left <= 14) level = 'soon';
+  return { due, left, days, level, mode: st.dateMode };
+}
+const dateValue = () => (st.dateMode === 'notice' ? st.noticeDate : st.dueDate);
+function ring(dl) {
+  const r = 44, c = 2 * Math.PI * r;
+  const frac = Math.max(0, Math.min(1, dl.left / dl.days));
+  const col = dl.level === 'ok' ? '#2FE39A' : dl.level === 'soon' ? '#FFB547' : '#FF6B5E';
+  const big = dl.left < 0 ? '!' : String(dl.left);
+  const small = dl.left < 0 ? 'PASSED' : dl.left === 1 ? 'DAY LEFT' : 'DAYS LEFT';
+  return '<svg class="ring" viewBox="0 0 112 112" aria-hidden="true"><circle cx="56" cy="56" r="' + r + '" fill="none" stroke="rgba(255,255,255,.10)" stroke-width="10"/>' +
+    '<circle class="arc" cx="56" cy="56" r="' + r + '" fill="none" stroke="' + col + '" stroke-width="10" stroke-linecap="round" stroke-dasharray="' + c.toFixed(1) + '" stroke-dashoffset="' + c.toFixed(1) + '" data-off="' + (c * (1 - frac)).toFixed(1) + '" transform="rotate(-90 56 56)"/>' +
+    '<text x="56" y="61" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-weight="800" font-size="' + (big.length > 2 ? 30 : 36) + '" fill="#F3F1EA">' + big + '</text>' +
+    '<text x="56" y="80" text-anchor="middle" font-family="JetBrains Mono, monospace" font-weight="700" font-size="9" letter-spacing="1.5" fill="#8E97AA">' + small + '</text></svg>';
+}
+function animateArcs() { requestAnimationFrame(() => requestAnimationFrame(() => document.querySelectorAll('.arc[data-off]').forEach((a) => { a.style.strokeDashoffset = a.dataset.off; }))); }
+function deadlineCard(inPlan) {
+  const dl = deadline();
+  if (!dl) {
+    return '<div class="card warn"><h3>' + esc(DATA.deadline.missingTitle) + '</h3><p>' + md(DATA.deadline.missing) + '</p>' +
+      (inPlan ? '<button class="btn sm" data-act="editDate">' + I.edit + '<span>Add the date</span></button>' : '') + '</div>';
+  }
+  if (dl.error) return '<div class="card alert"><p style="margin:0">' + md(DATA.deadline[dl.error]) + '</p></div>';
+  const L = DATA.deadline.levels[dl.level];
+  return '<div class="card ' + (dl.level === 'ok' ? 'ok' : dl.level === 'soon' ? 'warn' : 'alert') + '"><div class="dl">' + ring(dl) +
+    '<div><div class="small">Reply by</div><div class="due">' + fmt(dl.due) + '</div><div class="st lv-' + dl.level + '"><b class="lv-' + dl.level + '">' + esc(L.title) + '</b> ' + md(L.text) + '</div></div></div>' +
+    '<p class="small" style="margin:10px 0 0">' + md((dl.mode === 'notice' ? DATA.deadline.ruleNotice : DATA.deadline.ruleDue).replace('{days}', dl.days)) + '</p>' +
+    (inPlan ? '<div class="row"><button class="btn sm" data-act="editDate">' + I.edit + '<span>Change date</span></button><button class="btn sm ghost" data-act="sheet" data-k="moretime">' + I.clock + '<span>Need more time?</span></button></div>' : '') +
+    '</div>';
+}
+
+/* ---------- question tree ---------- */
+function resolve(fid) {
+  const f = formById(fid); if (!f) return { done: true, cause: null };
+  let node = f.q; const path = st.paths[fid] || [];
+  for (let k = 0; k < path.length; k++) {
+    const o = node.opts[path[k]]; if (!o) return { done: false, node };
+    if (o.next) node = o.next; else return { done: true, cause: o.cause };
+  }
+  return { done: false, node };
+}
+function firstOpen() { for (let i = 0; i < st.forms.length; i++) if (!resolve(st.forms[i]).done) return i; return -1; }
+function items() {
+  return st.forms.map((fid) => { const r = resolve(fid); return { f: formById(fid), c: r.done ? DATA.causes[r.cause] : null, cid: r.cause }; }).filter((x) => x.f && x.c);
+}
+
+/* ---------- layout pieces ---------- */
+const STEPS = ['letter', 'date', 'forms'];
+function hdr(stepNo) {
+  let h = '<header class="top"><div class="brand">' + brand() + '<span>CP2000 RESCUE</span></div>' +
+    '<div class="row" style="margin:0"><span class="pill"><span class="dot"></span>' + (MODE === 'kit' ? 'Full kit' : 'Free check') + '</span>' +
+    '<button class="iconbtn" data-act="sheet" data-k="about" aria-label="About this tool">' + I.info + '</button></div></header>';
+  if (stepNo) {
+    h += '<div class="prog" aria-hidden="true">' + STEPS.map((s, i) => '<i class="' + (i + 1 < stepNo ? 'done' : i + 1 === stepNo ? 'on' : '') + '"></i>').join('') + '</div>' +
+      '<div class="steplabel">Step ' + stepNo + ' of 3 · ' + esc(DATA.stepNames[stepNo - 1]) + '</div>';
+  }
+  return h;
+}
+function foot() {
+  return '<footer class="foot"><p>' + md(DATA.footer.disclaimer) + '</p><p>Sources: ' + DATA.sources.map((s) => '<a href="' + esc(s.u) + '" target="_blank" rel="noopener">' + esc(s.t) + '</a>').join(' · ') + '</p><p>Facts checked ' + esc(DATA.checked) + '.</p></footer>';
+}
+function backBtn(act) { return '<button class="btn ghost sm" data-act="' + act + '" aria-label="Back">' + I.back + '<span>Back</span></button>'; }
+
+/* ---------- screens ---------- */
+function sIntro() {
+  const started = !!(st.letter || st.noticeDate || st.forms.length);
+  return hdr(0) + '<section class="screen">' +
+    '<h1>' + md(DATA.intro.h1) + '<br><em>' + esc(DATA.intro.em) + '</em></h1>' +
+    '<p class="lead">' + md(DATA.intro.lead) + '</p>' +
+    guide(md(DATA.intro.guide)) +
+    '<div class="gets">' + DATA.intro.gets.map((g, i) => '<div class="get"><span class="gi">' + [I.clock, I.search, I.doc][i] + '</span><span><b>' + esc(g.t) + '</b><span>' + esc(g.d) + '</span></span></div>').join('') + '</div>' +
+    '<button class="btn primary block" data-act="start">' + (started ? 'Continue my check' : 'Start my free check') + I.arrow + '</button>' +
+    (started ? '<div class="row center"><button class="linkbtn" data-act="restart">Start over</button></div>' : '') +
+    '<div class="privacy">' + I.shield + '<span>' + esc(DATA.intro.privacy) + '</span></div>' +
+    '<div class="row center"><button class="linkbtn" data-act="sheet" data-k="scam">' + esc(DATA.scam.link) + '</button></div>' +
+    '</section>' + foot();
+}
+function sLetter() {
+  const sel = letterById(st.letter);
+  return hdr(1) + '<section class="screen"><h2>' + md(DATA.letterStep.title) + '</h2><p>' + md(DATA.letterStep.help) + '</p>' +
+    '<div class="opts" role="group" aria-label="Letter code">' + DATA.letters.map((l) => '<button class="opt" data-act="letter" data-id="' + l.id + '" aria-pressed="' + (st.letter === l.id) + '"><span class="code">' + esc(l.code) + '</span><span class="ot"><b>' + esc(l.title) + '</b><span>' + esc(l.sub) + '</span></span><span class="tick">' + I.check + '</span></button>').join('') + '</div>' +
+    (sel && sel.stop ? '<div class="card alert" id="stop"><h3>' + esc(sel.stop.title) + '</h3><p>' + md(sel.stop.text) + '</p>' + (sel.stop.points ? '<ul class="dots">' + sel.stop.points.map((x) => '<li>' + md(x) + '</li>').join('') + '</ul>' : '') + '<div class="row"><button class="btn sm" data-act="sheet" data-k="help">' + I.info + '<span>Where to get help</span></button></div></div>' : '') +
+    (sel && sel.note ? '<div class="card warn"><p style="margin:0">' + md(sel.note) + '</p></div>' : '') +
+    '<div class="navrow">' + backBtn('toIntro') + (sel && !sel.stop ? '<button class="btn primary" data-act="toDate">Next' + I.arrow + '</button>' : '') + '</div></section>';
+}
+function sDate() {
+  const dl = deadline();
+  return hdr(2) + '<section class="screen"><h2>' + md(DATA.deadline.title) + '</h2><p>' + md(DATA.deadline.help) + '</p>' +
+    '<div class="seg" role="radiogroup" aria-label="Which date do you have?">' + ['due', 'notice'].map((m) => '<button role="radio" aria-checked="' + (st.dateMode === m) + '" data-act="dmode" data-m="' + m + '">' + esc(DATA.deadline.modes[m].tab) + '</button>').join('') + '</div>' +
+    '<div class="sketch">' + sketch(st.dateMode) + '<p>' + md(DATA.deadline.modes[st.dateMode].where) + '</p></div>' +
+    '<div class="field"><label for="dt">' + esc(DATA.deadline.modes[st.dateMode].label) + '</label><input id="dt" type="date" value="' + esc(dateValue()) + '"' + (st.dateMode === 'notice' ? ' max="' + iso(today()) + '"' : '') + '></div>' +
+    (st.dateMode === 'notice' ? '<button class="switch" role="switch" aria-checked="' + st.abroad + '" data-act="abroad"><span class="tg"></span><span>' + esc(DATA.deadline.abroad) + '</span></button>' : '') +
+    '<div id="dl" aria-live="polite">' + (dateValue() ? deadlineCard(false) : '') + '</div>' +
+    '<button class="linkbtn" data-act="sheet" data-k="moretime">' + esc(DATA.deadline.moreTimeLink) + '</button>' +
+    '<div class="navrow">' + backBtn('toLetter') + '<button class="btn primary" id="dnext" data-act="toForms"' + (dl && !dl.error ? '' : ' disabled') + '>Next' + I.arrow + '</button></div>' +
+    '<div class="row center"><button class="linkbtn" data-act="skipDate">' + esc(DATA.deadline.skip) + '</button></div></section>';
+}
+function sForms() {
+  return hdr(3) + '<section class="screen"><h2>' + md(DATA.formsStep.title) + '</h2><p>' + md(DATA.formsStep.help) + '</p>' +
+    '<div class="grid2" role="group" aria-label="Form types on your letter">' + DATA.forms.map((f) => '<button class="ftile' + (f.wide ? ' wide' : '') + '" data-act="form" data-id="' + f.id + '" aria-pressed="' + (st.forms.indexOf(f.id) > -1) + '"><b>' + esc(f.code) + '</b><span>' + esc(f.label) + '</span><span class="tick">' + I.check + '</span></button>').join('') + '</div>' +
+    '<p class="small" id="fcount">' + countText() + '</p>' +
+    '<div class="navrow">' + backBtn('toDateBack') + '<button class="btn primary" id="fnext" data-act="toQ"' + (st.forms.length ? '' : ' disabled') + '>Next' + I.arrow + '</button></div></section>';
+}
+function countText() { const n = st.forms.length; return n ? n + ' selected. ' + esc(DATA.formsStep.after) : esc(DATA.formsStep.none); }
+function sQ() {
+  const fid = st.forms[st.qi]; const f = formById(fid); const r = resolve(fid);
+  const node = r.node;
+  const depth = (st.paths[fid] || []).length;
+  return hdr(3) + '<section class="screen" aria-labelledby="qh"><div class="row" style="margin:6px 0 0"><span class="chip amber">' + esc(f.code) + '</span><span class="small">Item ' + (st.qi + 1) + ' of ' + st.forms.length + (depth ? ' · follow-up' : '') + '</span></div>' +
+    '<h2 id="qh">' + md(node.text) + '</h2>' + (node.help ? '<p>' + md(node.help) + '</p>' : '') +
+    '<div class="opts" role="group" aria-labelledby="qh">' + node.opts.map((o, i) => '<button class="opt" data-act="ans" data-i="' + i + '" aria-pressed="false"><span class="ot"><b>' + esc(o.label) + '</b>' + (o.sub ? '<span>' + esc(o.sub) + '</span>' : '') + '</span><span class="tick">' + I.check + '</span></button>').join('') + '</div>' +
+    '<div class="navrow">' + backBtn('qBack') + '</div></section>';
+}
+function answerChip(a) { const A = DATA.answers[a] || DATA.answers.check; return '<span class="chip ' + A.color + '">' + esc(A.label) + '</span>'; }
+function proofKey(fid, j) { return fid + ':' + j; }
+function sPlan() {
+  const list = items();
+  const dl = deadline();
+  const total = list.reduce((n, x) => n + x.c.proof.length, 0);
+  const ticked = list.reduce((n, x) => n + x.c.proof.filter((p, j) => st.ticks[proofKey(x.f.id, j)]).length, 0);
+  const needHelp = list.some((x) => x.c.help) || (dl && !dl.error && dl.level === 'past');
+  const kitBtn = KIT_URL ? '<div class="row"><a class="btn go block" href="' + esc(KIT_URL) + '" target="_blank" rel="noopener">' + esc(DATA.kit.cta) + I.ext + '</a></div>' : '';
+  return hdr(0) + miles() + '<section class="screen"><h1>' + esc(DATA.plan.h1) + '<br><em>' + esc(DATA.plan.em) + '</em></h1>' +
+    guide(md(DATA.plan.guide), 'happy') +
+    '<div class="kicker amber">Your deadline</div>' + deadlineCard(true) +
+    '<div class="kicker amber">What probably didn’t match</div><p class="small">' + md(DATA.plan.answerNote) + '</p>' +
+    list.map((x, i) => '<div class="card item" style="--i:' + i + '"><div class="ih"><span class="chip amber">' + esc(x.f.code) + '</span>' + answerChip(x.c.answer) + '</div>' +
+      '<h3>' + esc(x.c.title) + '</h3><p>' + md(x.c.means) + '</p>' +
+      '<div class="sub">Proof to gather</div>' + x.c.proof.map((p, j) => { const k = proofKey(x.f.id, j); return '<button class="chk" role="checkbox" aria-checked="' + !!st.ticks[k] + '" data-act="tick" data-k="' + k + '"><span class="bx">' + I.check + '</span><span class="lbl">' + md(p) + '</span></button>'; }).join('') +
+      (x.c.tip ? '<div class="tip">' + I.bulb + '<span>' + md(x.c.tip) + '</span></div>' : '') +
+      '<div class="row"><button class="linkbtn" data-act="redo" data-id="' + x.f.id + '">Change my answer</button></div></div>').join('') +
+    (total ? '<p class="small" id="pcount">' + ticked + ' of ' + total + ' proof items ready</p><div class="meter"><i id="pmeter" style="width:' + Math.round(100 * ticked / total) + '%"></i></div>' : '') +
+    '<div class="row"><button class="btn sm" data-act="editForms">' + I.edit + '<span>Add or remove a form</span></button></div>' +
+    (MODE === 'kit' ? '<button class="btn go block" style="margin-top:14px" data-act="toReply">' + I.edit + '<span>' + esc(DATA.kit.planCta) + '</span>' + I.arrow + '</button>' : '') +
+    '<div class="kicker amber">Your next steps</div><div class="card"><ol class="steps">' + DATA.plan.next.map((s) => '<li><span>' + md(s.replace('{due}', dl && !dl.error ? fmt(dl.due) : 'your reply date')) + '</span></li>').join('') + '</ol><div class="tip">' + I.bulb + '<span>' + md(DATA.plan.payTip) + '</span></div></div>' +
+    '<div class="card ' + (needHelp ? 'alert' : '') + '"><h3>' + esc(DATA.plan.helpTitle) + '</h3><ul class="dots">' + DATA.plan.helpIf.map((s) => '<li>' + md(s) + '</li>').join('') + '</ul><div class="row"><button class="btn sm" data-act="sheet" data-k="help">' + I.info + '<span>Free and paid help</span></button></div></div>' +
+    (MODE === 'free' ? '<div class="card kit"><div class="kicker green" style="margin-top:0">' + esc(KIT_URL ? DATA.kit.kickerLive : DATA.kit.kicker) + '</div><h3>' + esc(DATA.kit.title) + '</h3><ul class="dots">' + DATA.kit.points.map((s) => '<li>' + md(s) + '</li>').join('') + '</ul>' + kitBtn + '</div>' : '') +
+    '<div class="row"><button class="btn sm" data-act="copy">' + I.copy + '<span>Copy my plan</span></button><a class="btn sm" data-act="email" href="mailto:">' + I.mail + '<span>Email it to me</span></a><button class="btn sm ghost" data-act="restart">' + I.reset + '<span>Start over</span></button></div>' +
+    '</section>' + foot();
+}
+
+/* ---------- plan as plain text (copy / email) ---------- */
+function planText() {
+  const dl = deadline(); const L = [];
+  L.push('MY CP2000 PLAN (CP2000 Rescue, free check)');
+  if (dl && !dl.error) L.push('Reply by: ' + fmt(dl.due) + (dl.left >= 0 ? ' (' + dl.left + ' days left)' : ' (date has passed)'));
+  else L.push('Reply by: check the date on your letter');
+  L.push('');
+  items().forEach((x, i) => {
+    L.push((i + 1) + ') ' + x.f.code + ': ' + x.c.title);
+    L.push('   Usual answer: ' + (DATA.answers[x.c.answer] || DATA.answers.check).label);
+    L.push('   Proof to gather:');
+    x.c.proof.forEach((p, j) => L.push('   [' + (st.ticks[proofKey(x.f.id, j)] ? 'x' : ' ') + '] ' + p.replace(/\*\*/g, '')));
+    L.push('');
+  });
+  L.push('NEXT STEPS');
+  DATA.plan.next.forEach((s, i) => L.push((i + 1) + '. ' + s.replace(/\*\*/g, '').replace('{due}', dl && !dl.error ? fmt(dl.due) : 'your reply date')));
+  L.push('');
+  L.push(DATA.footer.disclaimer.replace(/\*\*/g, ''));
+  return L.join('\n');
+}
+async function copyText(txt, btn) {
+  let ok = false;
+  try { if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(txt); ok = true; } } catch (e) { ok = false; }
+  if (!ok) {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = txt; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.top = '-1000px';
+      document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, txt.length);
+      ok = document.execCommand('copy'); ta.remove();
+    } catch (e) { ok = false; }
+  }
+  if (ok && btn) {
+    const old = btn.innerHTML; btn.classList.add('copied'); btn.innerHTML = I.check + '<span>Copied</span>';
+    setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = old; }, 1700);
+  } else if (!ok) openSheetHTML('<h2>Copy your plan</h2><p class="small">Your browser blocked automatic copying. Press and hold inside the box, choose Select all, then Copy.</p><textarea readonly>' + esc(txt) + '</textarea>');
+}
+
+/* ---------- sheets ---------- */
+let lastFocus = null;
+function openSheetHTML(inner) {
+  const w = document.getElementById('sheet');
+  lastFocus = document.activeElement;
+  w.innerHTML = '<div class="sheet" role="dialog" aria-modal="true" aria-label="Details"><div class="grab"></div><div class="row" style="justify-content:flex-end;margin:0"><button class="iconbtn" data-act="closeSheet" aria-label="Close">' + I.close + '</button></div>' + inner + '<div class="row"><button class="btn block" data-act="closeSheet">Close</button></div></div>';
+  w.hidden = false;
+  const b = w.querySelector('[data-act="closeSheet"]'); if (b) b.focus();
+}
+function closeSheet() { const w = document.getElementById('sheet'); w.hidden = true; w.innerHTML = ''; if (lastFocus && lastFocus.focus) lastFocus.focus(); }
+function sheetHTML(k) {
+  const S = DATA.sheets[k]; if (!S) return '';
+  return '<h2>' + esc(S.title) + '</h2>' + (S.intro ? '<p>' + md(S.intro) + '</p>' : '') +
+    (S.points ? '<ul class="dots">' + S.points.map((x) => '<li>' + md(x) + '</li>').join('') + '</ul>' : '') +
+    (S.after ? '<p style="margin-top:10px">' + md(S.after) + '</p>' : '') +
+    (S.links ? '<div class="row">' + S.links.map((l) => '<a class="btn sm" href="' + esc(l.u) + '" target="_blank" rel="noopener">' + esc(l.t) + I.ext + '</a>').join('') + '</div>' : '');
+}
+
+/* ================= KIT MODE (paid) ================= */
+const K = () => DATA.kit;
+I.chev = sv('<path d="M6 9l6 6 6-6"/>');
+I.print = sv('<path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/>');
+I.send = sv('<path d="M21 3L10 14"/><path d="M21 3l-7 18-4-7-7-4z"/>');
+I.coin = sv('<circle cx="12" cy="12" r="9"/><path d="M14.5 9.5c-.5-1-1.5-1.5-2.5-1.5-1.5 0-2.5.9-2.5 2s1 1.6 2.5 2 2.5.9 2.5 2-1 2-2.5 2c-1 0-2-.5-2.5-1.5M12 6.5v11"/>');
+
+function itemState(fid) {
+  if (!st.items[fid]) st.items[fid] = { dec: '', vals: {}, done: false };
+  if (!st.items[fid].vals) st.items[fid].vals = {};
+  return st.items[fid];
+}
+function decOf(x) {
+  const it = itemState(x.f.id);
+  if (!it.dec && ['agree', 'some', 'disagree'].indexOf(x.c.answer) > -1) it.dec = x.c.answer;
+  return it.dec;
+}
+/* The statement draft for an item: "agree" is one line; a usual-agree cause that the buyer disputes gets the open template. */
+function stmtObj(x) {
+  const d = decOf(x); if (!d) return null;
+  if (d === 'agree') return { fields: [], stmt: K().reply.agreeLine };
+  let S = x.c.answer === 'agree' ? DATA.stmtGeneric : (DATA.stmts[x.cid] || DATA.stmtGeneric);
+  if (S.generic && d === 'some') S = DATA.stmtGenericSome;
+  return S;
+}
+/* The words that go in the letter for one item: the buyer's own wording if they edited it, else the filled draft */
+function stmtText(x, html) {
+  const it = itemState(x.f.id), s = stmtObj(x);
+  if (!s) return null;
+  if (typeof it.custom === 'string') return html ? esc(it.custom) : it.custom;
+  const v = itemVals(x);
+  return fill(s.stmt, v, html);
+}
+function fieldsFor(x) { const s = stmtObj(x); return ['payer', 'amount', 'form'].concat(s ? s.fields : []); }
+function toNum(v) { const n = parseFloat(String(v == null ? '' : v).replace(/[$,\s]/g, '')); return isFinite(n) ? n : null; }
+function money(v) { const n = toNum(v); if (n === null) return String(v == null ? '' : v).trim(); return '$' + n.toLocaleString('en-US', { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 }); }
+function fmtLong(d) { try { return new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).format(d); } catch (e) { return d.toDateString(); } }
+function dateText(s) { const d = parseDate(s); return d ? fmtLong(d) : ''; }
+function itemVals(x) {
+  const it = itemState(x.f.id); const v = {};
+  Object.keys(it.vals).forEach((k) => {
+    const F = DATA.fields[k]; const raw = it.vals[k];
+    v[k] = !raw ? '' : F && F.type === 'money' ? money(raw) : F && F.type === 'date' ? dateText(raw) : String(raw).trim();
+  });
+  if (!v.form) v.form = DATA.formNames[x.f.id] || x.f.code;
+  v.taxyear = String(st.me.taxyear || '').trim();
+  v.prevyear = /^\d{4}$/.test(v.taxyear) ? String(+v.taxyear - 1) : '';
+  const a = toNum(it.vals.amount), b = toNum(it.vals.basis);
+  v.gainline = (a !== null && b !== null) ? (a - b >= 0 ? 'My actual gain is ' + money(a - b) + '.' : 'I actually had a loss of ' + money(b - a) + '.') : '';
+  return v;
+}
+const OPTIONAL = { gainline: 1 };
+const LABELS = { taxyear: 'tax year', prevyear: 'the year before the tax year', noticedate: 'notice date', name: 'your full name', spouse: 'spouse’s full name', street: 'street address', city: 'city, state and ZIP', phone: 'phone number', aur: 'AUR control number', reason: 'your reason', n: 'number' };
+function labelFor(k) { const F = DATA.fields[k]; return F ? F.label.toLowerCase() : (LABELS[k] || k); }
+/* Fill {keys}. Missing values become [labels] (amber on screen). Literal [brackets] in a template are blanks too. */
+function fill(tpl, v, html) {
+  let out = '', last = 0, m;
+  const re = /\{(\w+)\}/g;
+  const lit = (t) => (html ? esc(t).replace(/\[([^\]]{2,200})\]/g, '<span class="ph">[$1]</span>') : t);
+  while ((m = re.exec(tpl))) {
+    out += lit(tpl.slice(last, m.index));
+    const val = String(v[m[1]] == null ? '' : v[m[1]]).trim();
+    if (val) out += html ? '<span class="fv">' + esc(val) + '</span>' : val;
+    else if (!OPTIONAL[m[1]]) { const lab = '[' + labelFor(m[1]) + ']'; out += html ? '<span class="ph">' + esc(lab) + '</span>' : lab; }
+    last = re.lastIndex;
+  }
+  out += lit(tpl.slice(last));
+  return out.replace(/ {2,}/g, ' ').replace(/ \./g, '.');
+}
+const SKIP_ENCLOSE = ['Check ', 'A short signed statement', 'The letter’s', 'Notes from', 'The dates you', 'The date you', 'Why it was late', 'A signed statement listing'];
+function firstPerson(t) {
+  return t.replace(/\bwhat you\b/g, 'what I').replace(/\bpaid you\b/g, 'paid me').replace(/\bif you get\b/g, 'if I get').replace(/\byou paid\b/g, 'I paid')
+    .replace(/\bYour\b/g, 'My').replace(/\byour\b/g, 'my').replace(/\byou\b/g, 'I');
+}
+function encloseLine(p) {
+  let t = p.replace(/\*\*/g, '');
+  if (SKIP_ENCLOSE.some((s) => t.indexOf(s) === 0)) return '';
+  t = t.replace(/^If [^:]+:\s*/, '').replace(/,? if (the|you|they|it)\b[^;]*$/i, '');
+  t = firstPerson(t);
+  return t.charAt(0).toUpperCase() + t.slice(1);
+}
+function enclosures(allAgree) {
+  const L = K().letter;
+  const out = (allAgree ? L.alwaysAgree : L.alwaysDisagree).slice();
+  if (!allAgree) items().forEach((x) => {
+    if (decOf(x) === 'agree') return;
+    x.c.proof.forEach((p, j) => {
+      if (!st.ticks[proofKey(x.f.id, j)]) return;
+      const t = encloseLine(p);
+      if (t && out.indexOf(t) < 0) out.push(t);
+    });
+  });
+  if (st.plan9465) out.push('Form 9465, Installment Agreement Request');
+  return out;
+}
+function allAgree() { const l = items(); return l.length > 0 && l.every((x) => decOf(x) === 'agree'); }
+function letterText(html) {
+  const L = K().letter, R = K().reply, me = st.me;
+  const e = (t) => (html ? esc(t) : t);
+  const meV = { name: me.name, spouse: me.spouse, street: me.street, city: me.city, phone: me.phone, taxyear: me.taxyear, noticedate: dateText(me.noticedate), aur: me.aur, notice: me.notice || defaultNotice() };
+  const f = (t, v) => fill(t, v || meV, html);
+  const agreeAll = allAgree();
+  const out = [];
+  out.push(f(st.joint ? '{name} and {spouse}' : '{name}'), f('{street}'), f('{city}'), e(L.ssn), '', e(fmtLong(today())), '');
+  L.toLines.forEach((t) => out.push(f(t)));
+  out.push('', f(L.re + (String(me.aur || '').trim() ? L.reAur : '')), '', e(L.greeting), '', f(agreeAll ? L.openAgree : L.open), '');
+  if (!agreeAll) items().forEach((x, i) => {
+    const v = itemVals(x); v.n = String(i + 1);
+    const t = stmtText(x, html);
+    const head = f(L.itemHead, v);
+    out.push(html ? '<b>' + head + '</b>' : head, t !== null ? t : f('[' + R.pickFirst + ']', {}), '');
+  });
+  if (st.penalty.on) out.push(f(R.penalty.para, { reason: st.penalty.reason }), '');
+  if (st.plan9465) out.push(e(R.plan9465.para), '');
+  out.push(e(L.enclosed));
+  enclosures(agreeAll).forEach((t, i) => out.push(e((i + 1) + '. ' + t)));
+  out.push('', f(L.close), '', e(L.sincerely), '', e(L.sign), f('{name}'));
+  if (st.joint) out.push('', e(L.sign), f('{spouse}'));
+  return out.join('\n');
+}
+function defaultNotice() { return st.letter === 'cp2501' ? 'CP2501' : 'CP2000'; }
+const countBlanks = (txt) => (txt.match(/\[[^\]]{2,200}\]/g) || []).length;
+
+/* Progress milestones: Checked, Proof, Letter, Sent */
+function miles() {
+  if (MODE !== 'kit') return '';
+  const list = items();
+  const total = list.reduce((n, x) => n + x.c.proof.length, 0);
+  const ticked = list.reduce((n, x) => n + x.c.proof.filter((p, j) => st.ticks[proofKey(x.f.id, j)]).length, 0);
+  const s = [list.length > 0 && firstOpen() < 0, total > 0 && ticked === total, list.length > 0 && list.every((x) => itemState(x.f.id).done), !!st.sent];
+  const sub = ['', total ? ticked + '/' + total : '', '', ''];
+  return '<div class="miles" aria-label="Your progress">' + K().milestones.map((t, i) => '<div class="mile' + (s[i] ? ' done' : '') + '"><i>' + (s[i] ? I.check : String(i + 1)) + '</i><span>' + esc(t) + (sub[i] && !s[i] ? ' ' + sub[i] : '') + '</span></div>').join('') + '</div>';
+}
+const TAB_OF = { plan: 'plan', reply: 'reply', letterdoc: 'reply', send: 'send', after: 'after' };
+function tabbar() {
+  if (MODE !== 'kit' || !TAB_OF[st.screen] || !items().length) return '';
+  const icons = { plan: I.doc, reply: I.edit, send: I.send, after: I.clock };
+  const left = items().filter((x) => !itemState(x.f.id).done).length;
+  return '<nav class="tabbar" aria-label="Kit sections">' + K().tabs.map((t) => '<button data-act="tab" data-t="' + t.id + '"' + (TAB_OF[st.screen] === t.id ? ' aria-current="page"' : '') + '>' + icons[t.id] + '<span>' + esc(t.t) + '</span>' + (t.id === 'reply' && left ? '<span class="badge">' + left + '</span>' : '') + '</button>').join('') + '</nav>';
+}
+
+/* ---------- kit screens ---------- */
+function sKitIntro() {
+  const T = K().intro;
+  const started = !!(st.letter || dateValue() || st.forms.length);
+  return hdr(0) + '<section class="screen"><h1>' + esc(T.h1) + '<br><em>' + esc(T.em) + '</em></h1><p class="lead">' + md(T.lead) + '</p>' + guide(md(T.guide)) +
+    '<ol class="steps card">' + T.steps.map((x) => '<li><span><b>' + esc(x.t) + '</b> · ' + esc(x.d) + '</span></li>').join('') + '</ol>' +
+    '<button class="btn primary block" data-act="start">' + (started ? 'Continue' : 'Start') + I.arrow + '</button>' +
+    (started ? '<div class="row center"><button class="linkbtn" data-act="restart">Start over</button></div>' : '') +
+    '<div class="privacy">' + I.shield + '<span>' + esc(T.privacy) + '</span></div>' +
+    '<div class="row center"><button class="linkbtn" data-act="sheet" data-k="scam">' + esc(DATA.scam.link) + '</button></div></section>' + foot();
+}
+function inp(bind, label, type, val, hint) {
+  const id = 'f-' + bind.replace(/[^a-z0-9]/gi, '-');
+  const extra = type === 'money' ? ' inputmode="decimal" placeholder="$0"' : '';
+  return '<div class="inp"><label for="' + id + '">' + esc(label) + '</label><input id="' + id + '" type="' + (type === 'date' ? 'date' : 'text') + '" data-bind="' + bind + '" value="' + esc(val || '') + '"' + extra + ' autocomplete="off">' + (hint ? '<small>' + esc(hint) + '</small>' : '') + '</div>';
+}
+function meCard() {
+  const R = K().reply.me;
+  return '<div class="card"><h3>' + esc(R.title) + '</h3><p class="small">' + esc(R.note) + '</p>' +
+    '<button class="switch" role="switch" aria-checked="' + st.joint + '" data-act="joint"><span class="tg"></span><span>' + esc(R.joint) + '</span></button>' +
+    R.fields.filter((F) => !F.joint || st.joint).map((F) => inp('me.' + F.k, F.label, F.type, st.me[F.k], F.hint)).join('') + '</div>';
+}
+function itemCard(x, i) {
+  const fid = x.f.id, it = itemState(fid), d = decOf(x), open = st.open === fid, R = K().reply;
+  const status = it.done ? '<span class="chip green">Done</span>' : d ? '<span class="chip">' + esc(R.decisions[d]) + '</span>' : '<span class="chip amber">To do</span>';
+  let body = '';
+  if (open) {
+    body = '<div class="ab"><div class="seg seg3" role="radiogroup" aria-label="Your answer for this item">' + ['agree', 'some', 'disagree'].map((k) => '<button role="radio" aria-checked="' + (d === k) + '" data-act="dec" data-id="' + fid + '" data-d="' + k + '">' + esc(R.decisions[k]) + '</button>').join('') + '</div>' +
+      '<p class="small" style="margin-top:8px">' + md(x.c.means) + '</p>' +
+      (d ? fieldsFor(x).map((k) => { const F = DATA.fields[k]; return inp('item.' + fid + '.' + k, F.label, F.type, k === 'form' ? (it.vals.form || DATA.formNames[fid] || x.f.code) : it.vals[k], F.hint); }).join('') +
+        '<div class="sub">Your statement for this item</div>' +
+        (typeof it.custom === 'string'
+          ? '<div class="inp"><label for="f-custom-' + fid + '">Your own wording</label><textarea id="f-custom-' + fid + '" data-bind="custom.' + fid + '">' + esc(it.custom) + '</textarea></div><button class="linkbtn" data-act="draftBack" data-id="' + fid + '">Go back to the draft</button>'
+          : '<div class="stmt" id="stmt-' + fid + '">' + stmtText(x, true) + '</div><button class="linkbtn" data-act="editWording" data-id="' + fid + '">Edit the wording</button>') +
+        '<button class="btn ' + (it.done ? '' : 'go ') + 'block" data-act="itemDone" data-id="' + fid + '">' + I.check + '<span>' + (it.done ? 'Done · tap to reopen' : esc(R.itemDone)) + '</span></button>'
+        : '<p class="small">' + esc(R.pickFirst) + '</p>') + '</div>';
+  }
+  return '<div class="card acc' + (open ? ' open' : '') + (it.done ? ' done' : '') + '"><button class="ah" data-act="openItem" data-id="' + fid + '" aria-expanded="' + open + '"><span class="ahtop"><span class="chip amber">' + esc(x.f.code) + '</span>' + status + '<span class="chev">' + I.chev + '</span></span><span class="t"><b>' + esc(x.c.title) + '</b></span></button>' + body + '</div>';
+}
+function penaltyCard() {
+  const P = K().reply.penalty;
+  return '<div class="card"><h3>' + esc(P.title) + '</h3><p class="small">' + md(P.text) + '</p>' +
+    '<button class="switch" role="switch" aria-checked="' + st.penalty.on + '" data-act="penOn"><span class="tg"></span><span>' + esc(P.toggle) + '</span></button>' +
+    (st.penalty.on ? '<div class="inp"><label for="f-pen">' + esc(P.field.label) + '</label><textarea id="f-pen" data-bind="pen.reason">' + esc(st.penalty.reason) + '</textarea><small>' + esc(P.field.hint) + '</small></div>' : '') +
+    '<button class="linkbtn" data-act="sheet" data-k="penalty">About the 20% penalty</button></div>';
+}
+function planCard() {
+  if (!items().some((x) => ['agree', 'some'].indexOf(decOf(x)) > -1)) return '';
+  const P = K().reply.plan9465;
+  return '<div class="card"><button class="switch" role="switch" aria-checked="' + st.plan9465 + '" data-act="p9465"><span class="tg"></span><span>' + esc(P.toggle) + '</span></button><button class="linkbtn" data-act="sheet" data-k="pay">Ways to pay</button></div>';
+}
+function sReply() {
+  const R = K().reply;
+  return hdr(0) + miles() + '<section class="screen"><h1>' + esc(R.h1) + '<br><em>' + esc(R.em) + '</em></h1>' + guide(md(R.guide)) +
+    meCard() + '<div class="kicker amber">Your items</div>' + items().map((x, i) => itemCard(x, i)).join('') + penaltyCard() + planCard() +
+    '<button class="btn primary block" data-act="toLetter">' + esc(R.toLetter) + I.arrow + '</button></section>' + foot();
+}
+function sLetterDoc() {
+  const L = K().letter, F = K().formCheck;
+  const n = countBlanks(letterText(false));
+  return hdr(0) + miles() + '<section class="screen"><h1>' + esc(L.h1) + '<br><em>' + esc(L.em) + '</em></h1>' +
+    (allAgree() ? '<div class="card ok"><p style="margin:0">' + md(L.allAgree) + '</p></div>' : '') +
+    '<p class="small" id="blanks">' + esc((n ? L.blanks : L.noBlanks).replace('{n} blanks', n + (n === 1 ? ' blank' : ' blanks'))) + '</p>' +
+    '<div class="paper" id="paper">' + letterText(true) + '</div>' +
+    (allAgree() ? '' : '<p class="small">' + esc(L.encloseNote) + '</p>') +
+    '<div class="row"><button class="btn sm" data-act="copyLetter">' + I.copy + '<span>' + esc(L.copyBtn) + '</span></button><button class="btn sm" data-act="printLetter">' + I.print + '<span>' + esc(L.printBtn) + '</span></button><a class="btn sm" data-act="emailLetter" href="mailto:">' + I.mail + '<span>' + esc(L.emailBtn) + '</span></a></div>' +
+    '<div class="card"><h3>' + esc(F.title) + '</h3><ul class="dots">' + F.points.map((p) => '<li>' + md(p) + '</li>').join('') + '</ul><div class="tip">' + I.bulb + '<span>' + md(F.amend) + '</span></div></div>' +
+    '<div class="navrow">' + backBtn('toReplyBack') + '<button class="btn primary" data-act="tab" data-t="send">Next: send it' + I.arrow + '</button></div></section>' + foot();
+}
+function sSend() {
+  const S = K().send, M = S.methods[st.sendMethod] || S.methods.upload;
+  const sent = st.sent ? '<div class="card ok sentcard"><div class="center" style="display:flex">' + letty(60, 'happy') + '</div><h2>' + esc(S.sentTitle) + '</h2><p>' + md(S.sentText.replace('{method}', (S.methods[st.sent.method] || M).tab.toLowerCase()).replace('{date}', fmt(parseDate(st.sent.date) || today()))) + '</p><div class="row center"><button class="btn sm go" data-act="tab" data-t="after">What happens next' + I.arrow + '</button><button class="linkbtn" data-act="unsent">' + esc(S.undo) + '</button></div></div>' : '';
+  return hdr(0) + miles() + '<section class="screen"><h1>' + esc(S.h1) + '<br><em>' + esc(S.em) + '</em></h1>' + sent + guide(md(S.guide)) + deadlineCard(true) +
+    '<div class="seg seg3" role="radiogroup" aria-label="How to send">' + Object.keys(S.methods).map((m) => '<button role="radio" aria-checked="' + (st.sendMethod === m) + '" data-act="smethod" data-m="' + m + '">' + esc(S.methods[m].tab) + '</button>').join('') + '</div>' +
+    '<div class="card"><h3>' + esc(M.title) + '</h3><p class="small">' + md(M.note) + '</p>' +
+    M.steps.map((s, j) => { const k = st.sendMethod + ':' + j; return '<button class="chk" role="checkbox" aria-checked="' + !!st.sendTicks[k] + '" data-act="sendTick" data-k="' + k + '"><span class="bx">' + I.check + '</span><span class="lbl">' + md(s) + '</span></button>'; }).join('') +
+    (M.warn ? '<div class="tip">' + I.info + '<span>' + md(M.warn) + '</span></div>' : '') +
+    (M.links.length ? '<div class="row">' + M.links.map((l) => '<a class="btn sm" href="' + esc(l.u) + '" target="_blank" rel="noopener">' + esc(l.t) + I.ext + '</a>').join('') + '</div>' : '') + '</div>' +
+    (st.sent ? '' : '<button class="btn go block" data-act="sent">' + I.send + '<span>' + esc(S.sentBtn) + '</span></button>') +
+    '</section>' + foot();
+}
+function sAfter() {
+  const T = K().after;
+  return hdr(0) + miles() + '<section class="screen"><h1>' + esc(T.h1) + '<br><em>' + esc(T.em) + '</em></h1>' + guide(md(T.guide)) +
+    T.letters.map((l, i) => '<div class="card item" style="--i:' + i + '"><div class="ih"><span class="chip amber">' + esc(l.code) + '</span></div><h3>' + esc(l.title) + '</h3><p style="margin:0">' + md(l.text) + '</p></div>').join('') +
+    '<div class="card"><ul class="dots">' + T.points.map((p) => '<li>' + md(p) + '</li>').join('') + '</ul></div>' +
+    '<div class="row"><button class="btn sm" data-act="sheet" data-k="pay">' + I.coin + '<span>Paying</span></button><button class="btn sm" data-act="sheet" data-k="penalty">' + I.info + '<span>The 20% penalty</span></button><button class="btn sm" data-act="sheet" data-k="help">' + I.shield + '<span>Free and paid help</span></button></div></section>' + foot();
+}
+/* Re-render in place (no entrance animation, keep the scroll position) for toggles inside a screen */
+function rerender() { const y = window.scrollY; app.classList.add('still'); render(); window.scrollTo(0, y); }
+const KA = {
+  toReply: () => {
+    if (!st.me.noticedate && st.dateMode === 'notice' && st.noticeDate) st.me.noticedate = st.noticeDate;
+    if (!st.me.notice) st.me.notice = defaultNotice();
+    if (!st.open) { const nx = items().find((x) => !itemState(x.f.id).done); st.open = nx ? nx.f.id : ''; }
+    go('reply');
+  },
+  toReplyBack: () => go('reply'),
+  openItem: (el) => { st.open = st.open === el.dataset.id ? '' : el.dataset.id; save(); rerender(); },
+  dec: (el) => { const it = itemState(el.dataset.id); it.dec = el.dataset.d; it.done = false; delete it.custom; save(); rerender(); },
+  itemDone: (el) => {
+    const it = itemState(el.dataset.id); it.done = !it.done;
+    if (it.done) { const nx = items().find((x) => !itemState(x.f.id).done); st.open = nx ? nx.f.id : ''; }
+    save(); rerender();
+    if (it.done) toast(items().every((x) => itemState(x.f.id).done) ? esc(K().reply.readyToast) : 'Item done');
+  },
+  joint: () => { st.joint = !st.joint; save(); rerender(); },
+  penOn: () => { st.penalty.on = !st.penalty.on; save(); rerender(); },
+  p9465: () => { st.plan9465 = !st.plan9465; save(); rerender(); },
+  toLetter: () => go('letterdoc'),
+  editWording: (el) => { const x = items().find((y) => y.f.id === el.dataset.id); const it = itemState(el.dataset.id); it.custom = x ? stmtText(x, false) : ''; save(); rerender(); const t = document.getElementById('f-custom-' + el.dataset.id); if (t) t.focus(); },
+  draftBack: (el) => { delete itemState(el.dataset.id).custom; save(); rerender(); },
+  copyLetter: (el) => copyText(letterText(false), el),
+  printLetter: () => { try { window.print(); } catch (e) { toast('Printing is blocked here. Use Copy instead.'); } },
+  tab: (el) => { if (el.dataset.t === 'reply') KA.toReply(); else go(el.dataset.t); },
+  smethod: (el) => { st.sendMethod = el.dataset.m; save(); rerender(); },
+  sendTick: (el) => { const k = el.dataset.k; st.sendTicks[k] = !st.sendTicks[k]; if (!st.sendTicks[k]) delete st.sendTicks[k]; save(); el.setAttribute('aria-checked', String(!!st.sendTicks[k])); },
+  sent: () => { st.sent = { method: st.sendMethod, date: iso(today()) }; save(); rerender(); setTimeout(() => toast(esc(K().send.toast)), 350); },
+  unsent: () => { st.sent = null; save(); rerender(); },
+};
+document.addEventListener('input', (e) => {
+  const b = e.target && e.target.dataset ? e.target.dataset.bind : ''; if (!b) return;
+  const p = b.split('.'), v = e.target.value;
+  if (p[0] === 'me') st.me[p[1]] = v;
+  else if (p[0] === 'pen') st.penalty.reason = v;
+  else if (p[0] === 'custom') itemState(p[1]).custom = v;
+  else if (p[0] === 'item') {
+    itemState(p[1]).vals[p[2]] = v;
+    const x = items().find((y) => y.f.id === p[1]); const el = document.getElementById('stmt-' + p[1]);
+    if (x && el && stmtObj(x)) el.innerHTML = stmtText(x, true);
+  }
+  save();
+});
+
+/* ---------- render + navigation ---------- */
+const SCREENS = { intro: MODE === 'kit' ? sKitIntro : sIntro, letter: sLetter, date: sDate, forms: sForms, q: sQ, plan: sPlan, reply: sReply, letterdoc: sLetterDoc, send: sSend, after: sAfter };
+function render() {
+  if (st.screen === 'q') { const i = firstOpen(); if (i < 0) st.screen = 'plan'; else if (resolve(st.forms[st.qi] || '').done) st.qi = i; }
+  if (st.screen === 'plan' && !items().length) st.screen = st.forms.length ? 'q' : 'forms';
+  if (st.screen === 'q' && firstOpen() < 0) st.screen = 'plan';
+  if (TAB_OF[st.screen] && st.screen !== 'plan' && !items().length) st.screen = 'intro';
+  const tb = tabbar();
+  app.innerHTML = (SCREENS[st.screen] || SCREENS.intro)() + tb;
+  app.classList.toggle('tabs', !!tb);
+  animateArcs();
+  const dt = document.getElementById('dt');
+  if (dt) dt.addEventListener('input', onDate);
+}
+function go(screen) { st.screen = screen; save(); app.classList.remove('still'); render(); try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) { window.scrollTo(0, 0); } const h = app.querySelector('h1, h2'); if (h) { h.setAttribute('tabindex', '-1'); h.focus({ preventScroll: true }); } }
+function onDate(e) {
+  if (st.dateMode === 'notice') st.noticeDate = e.target.value || ''; else st.dueDate = e.target.value || '';
+  st.skipDate = false; save();
+  const dl = deadline();
+  document.getElementById('dl').innerHTML = dateValue() ? deadlineCard(false) : '';
+  document.getElementById('dnext').disabled = !(dl && !dl.error);
+  animateArcs();
+}
+
+const A = {
+  start: () => {
+    const L = letterById(st.letter);
+    if (!L || L.stop) return go('letter');
+    if (!dateValue() && !st.skipDate) return go('date');
+    if (!st.forms.length) return go('forms');
+    const i = firstOpen(); if (i >= 0) { st.qi = i; return go('q'); }
+    go('plan');
+  },
+  toIntro: () => go('intro'),
+  letter: (el) => {
+    st.letter = el.dataset.id; save();
+    el.closest('.opts').querySelectorAll('.opt').forEach((b) => b.setAttribute('aria-pressed', String(b === el)));
+    const L = letterById(st.letter);
+    if (L.stop || L.note) { render(); const s = document.getElementById('stop') || app.querySelector('.card.warn'); if (s) s.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+    else setTimeout(() => go('date'), 260);
+  },
+  toLetter: () => go('letter'),
+  toDate: () => go('date'),
+  abroad: (el) => {
+    st.abroad = !st.abroad; save(); el.setAttribute('aria-checked', String(st.abroad));
+    if (st.noticeDate) { document.getElementById('dl').innerHTML = deadlineCard(false); animateArcs(); }
+  },
+  dmode: (el) => { if (st.dateMode === el.dataset.m) return; st.dateMode = el.dataset.m; save(); render(); const i = document.getElementById('dt'); if (i) i.focus(); },
+  skipDate: () => { st.skipDate = true; st.noticeDate = ''; st.dueDate = ''; save(); go('forms'); },
+  toForms: () => go('forms'),
+  toDateBack: () => go('date'),
+  form: (el) => {
+    const id = el.dataset.id; const i = st.forms.indexOf(id);
+    if (i > -1) { st.forms.splice(i, 1); delete st.paths[id]; } else st.forms.push(id);
+    save();
+    el.setAttribute('aria-pressed', String(i < 0));
+    document.getElementById('fcount').innerHTML = countText();
+    document.getElementById('fnext').disabled = !st.forms.length;
+  },
+  toQ: () => { const i = firstOpen(); if (i < 0) { go('plan'); return; } st.qi = i; go('q'); },
+  ans: (el) => {
+    el.setAttribute('aria-pressed', 'true');
+    app.querySelectorAll('[data-act="ans"]').forEach((b) => { b.disabled = true; });
+    const fid = st.forms[st.qi];
+    setTimeout(() => {
+      (st.paths[fid] = st.paths[fid] || []).push(+el.dataset.i);
+      const r = resolve(fid);
+      if (r.done) {
+        const n = firstOpen();
+        if (n < 0) { go('plan'); setTimeout(() => toast(esc(DATA.plan.toast)), 500); return; }
+        st.qi = n;
+      }
+      go('q');
+    }, 240);
+  },
+  qBack: () => {
+    const fid = st.forms[st.qi]; const p = st.paths[fid] || [];
+    if (p.length) { p.pop(); save(); go('q'); return; }
+    for (let j = st.qi - 1; j >= 0; j--) { const pp = st.paths[st.forms[j]] || []; if (pp.length) { pp.pop(); st.qi = j; save(); go('q'); return; } }
+    go('forms');
+  },
+  redo: (el) => { const id = el.dataset.id; st.paths[id] = []; st.qi = st.forms.indexOf(id); go('q'); },
+  editForms: () => go('forms'),
+  editDate: () => go('date'),
+  tick: (el) => {
+    const k = el.dataset.k; st.ticks[k] = !st.ticks[k]; if (!st.ticks[k]) delete st.ticks[k]; save();
+    el.setAttribute('aria-checked', String(!!st.ticks[k]));
+    const list = items();
+    const total = list.reduce((n, x) => n + x.c.proof.length, 0);
+    const ticked = list.reduce((n, x) => n + x.c.proof.filter((p, j) => st.ticks[proofKey(x.f.id, j)]).length, 0);
+    const pc = document.getElementById('pcount'); if (pc) pc.textContent = ticked + ' of ' + total + ' proof items ready';
+    const pm = document.getElementById('pmeter'); if (pm) pm.style.width = Math.round(100 * ticked / total) + '%';
+    if (st.ticks[k] && ticked === total) toast(esc(DATA.plan.allProof));
+  },
+  copy: (el) => copyText(planText(), el),
+  restart: () => openSheetHTML('<h2>Start over?</h2><p>This clears your answers on this phone.</p><div class="row"><button class="btn primary" data-act="confirmRestart">Yes, start over</button></div>'),
+  confirmRestart: () => { try { localStorage.removeItem(KEY); } catch (e) { /* ignore */ } st = fresh(); closeSheet(); go('intro'); },
+  sheet: (el) => openSheetHTML(sheetHTML(el.dataset.k)),
+  closeSheet: () => closeSheet(),
+};
+Object.assign(A, KA);
+document.addEventListener('click', (e) => {
+  const el = e.target.closest('[data-act]');
+  if (!el || el.disabled) return;
+  if (el.dataset.act === 'emailLetter') { el.href = 'mailto:?subject=' + encodeURIComponent('My CP2000 reply letter') + '&body=' + encodeURIComponent(letterText(false)); return; }
+  if (el.dataset.act === 'email') { el.href = 'mailto:?subject=' + encodeURIComponent('My CP2000 plan') + '&body=' + encodeURIComponent(planText()); return; }
+  const f = A[el.dataset.act]; if (!f) return;
+  e.preventDefault(); f(el, e);
+});
+document.getElementById('sheet').addEventListener('click', (e) => { if (e.target.id === 'sheet') closeSheet(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !document.getElementById('sheet').hidden) closeSheet(); });
+render();
+</script>
+</body>
+</html>
