@@ -153,3 +153,11 @@ Tip for dinesh: in My Shop, give each product tags in the words people use ("tea
 | Check | Speak Ahead Academy's page says Zoom classes, a practice app and help in Manipuri; dinesh to confirm these are right before it goes live |
 | Tests | `shop_test.py` (new), `admin_e2e.py` (32), `admin_links_e2e.py` (42), `admin_cats_e2e.py` (24), rules agree on 109 cases, all older tests pass. My Shop browser tests now wait for the local server to finish building |
 
+
+## 🚀 LIVE — 10 Nov 2026, 21:15
+v1.6 to v1.9 are live: Ask Pip, categories, picture cards, Ad label, details form, Leads tab, product pages (`/shop/`). Checked on the live site: Speak Ahead page and sitemap (12 pages).
+
+### Next
+- dinesh: add the full Speak Ahead details (one-on-one practice, tongue twisters…) and his logo in My Shop
+- Part F of SETUP.md (Leads database), needed before any product asks for details
+- Search Console: send the sitemap again so Google finds the new product pages
