@@ -107,12 +107,12 @@
     {
       "id": "irs-letter-check",
       "type": "tool",
-      "free": true,
       "kicker": "Free · Money & taxes · USA",
       "title": "Free IRS letter check",
       "hook": "Got an IRS letter? See where you stand, free.",
       "text": "Answer a few quick questions and see your reply date, the days left, the likely cause and what to gather. Your answers stay on your phone.",
       "details": "## Not sure what your IRS letter means?\nThis free check helps you understand a CP2000 notice in about 2 minutes.\n\n## You will see\n- Your reply date and how many days you have left\n- The likely reason for the mismatch, for each form on your letter\n- A list of what to gather for your reply\n\n## Free and private\nNo sign-up. Your answers stay on your phone.\n\n## Good to know\nThis is not tax advice. If you want a full step-by-step plan for your reply, see the CP2000 Rescue Kit on this site.",
+      "free": true,
       "cta": "Check my letter",
       "image": "shelf/irs-letter-check.jpg",
       "imageAlt": "Free IRS letter check cover: Got an IRS letter? See where you stand.",
@@ -133,7 +133,12 @@
       "categories": [
         "money"
       ],
-      "featured": true
+      "featured": true,
+      "ask": [
+        "name",
+        "phone",
+        "email"
+      ]
     },
     {
       "id": "cp2000-kit",
