@@ -1031,6 +1031,20 @@
   try { localStorage.setItem(KEY + ':probe', '1'); localStorage.removeItem(KEY + ':probe'); } catch (e) { storageOk = false; }
   S.seen = L.unlocked(L.totalMin(S)).map(function (i) { return i.id; });
   resolveOnLoad();
+  // One-tap timer links from the study guides, e.g. /?focus=50&break=10 (never changes a running session).
+  var presetMsg = '';
+  (function applyLinkPreset() {
+    var q;
+    try { q = new URLSearchParams(location.search); } catch (e) { return; }
+    if (!q.has('focus')) return;
+    try { history.replaceState(null, '', location.pathname); } catch (e) { /* the link stays visible; harmless */ }
+    var f = parseInt(q.get('focus'), 10), b = parseInt(q.get('break'), 10);
+    if (!(f >= 1 && f <= 180) || S.session) return;
+    S.settings.focusMin = f;
+    if (b >= 1 && b <= 60) S.settings.breakMin = b; else b = 0;
+    save();
+    presetMsg = 'Timer set: ' + f + ' min focus' + (b ? ' + ' + b + ' min break' : '') + '. Tap Grow when you\u2019re ready! \uD83C\uDF31';
+  })();
   renderAll();
   layoutWorld();
   requestAnimationFrame(loop);
@@ -1051,6 +1065,7 @@
     }, 1400);
   })();
   if (!S.onboarded) setTimeout(function () { showOnboard(0); }, 500);
+  else if (presetMsg) setTimeout(function () { toast(presetMsg); }, 700);
   if (CFG.pwa && 'serviceWorker' in navigator && location.protocol === 'https:') {
     window.addEventListener('load', function () { navigator.serviceWorker.register('/sw.js').catch(function () { /* offline mode unavailable */ }); });
   }

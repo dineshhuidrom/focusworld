@@ -173,6 +173,11 @@ canvas#world { position: fixed; inset: 0; display: block; width: 100vw; height: 
 .faq details p { margin: 0; padding: 0 16px 14px; color: var(--muted); font-size: 14.5px; line-height: 1.5; }
 .faq details[open] p { animation: faqIn .3s var(--ease); }
 @keyframes faqIn { from { opacity: 0; transform: translateY(-4px); } }
+.guide-links { list-style: none; margin: 0 0 12px; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.guide-links a { display: flex; align-items: center; min-height: 46px; padding: 0 14px; border-radius: 14px; background: rgba(255, 255, 255, .06);
+  border: 1px solid var(--line); color: var(--text); font-weight: 700; font-size: 14.5px; text-decoration: none; }
+.guide-links a:hover { background: rgba(255, 255, 255, .1); }
+.guide-links a:active { transform: scale(.98); }
 .icon-btn.close { background: rgba(255, 255, 255, .08); font-size: 16px; }
 kbd { font: inherit; font-size: 12px; padding: 1px 6px; border-radius: 6px; border: 1px solid var(--line); background: rgba(255, 255, 255, .06); }
 @media (min-width: 900px) {

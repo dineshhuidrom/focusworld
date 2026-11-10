@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>{{TITLE}}</title>
+<meta name="description" content="{{DESCRIPTION}}">
+<meta name="theme-color" content="#16204a">
+<meta name="color-scheme" content="dark">
+<link rel="canonical" href="{{URL}}">
+<meta property="og:type" content="article">
+<meta property="og:title" content="{{TITLE}}">
+<meta property="og:description" content="{{DESCRIPTION}}">
+<meta property="og:url" content="{{URL}}">
+<meta property="og:image" content="{{IMAGE_URL}}">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.ico" sizes="48x48">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+{{JSONLD}}
+<style>{{CSS}}</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="/"><img src="/favicon.svg" alt="" width="28" height="28">{{APP_NAME}}</a>
+  <a class="top-cta" href="/">Open the timer</a>
+</header>
+<main class="page">
+  <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> <span aria-hidden="true">›</span> <a href="/guides/">Study guides</a></nav>
+  <figure class="hero"><img src="{{IMAGE}}" alt="{{IMAGE_ALT}}" width="1200" height="520"></figure>
+  <p class="kicker">{{KICKER}}</p>
+  <h1>{{H1}}</h1>
+  <p class="meta">Updated {{UPDATED_HUMAN}} · {{READ_MIN}} min read</p>
+  <div class="answer"><b>Quick answer</b><p>{{ANSWER}}</p></div>
+  {{TIMER_BOX}}
+  <article class="body">
+{{BODY}}
+  </article>
+  {{FAQ}}
+  <section class="cta-end">
+    <h2>Make your study time feel rewarding</h2>
+    <p>{{APP_NAME}} is a free focus timer. Every minute you focus grows your own little world. Calm sounds, lofi music, no sign-up, no ads.</p>
+    <a class="btn" href="{{END_LINK}}">{{END_LABEL}}</a>
+  </section>
+  {{RELATED}}
+</main>
+<footer class="foot">
+  <a href="/">{{APP_NAME}}</a> · <a href="/guides/">All study guides</a>
+  <p>Free focus timer. No sign-up. No ads.</p>
+</footer>
+</body>
+</html>

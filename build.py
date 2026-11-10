@@ -18,6 +18,8 @@ import shutil
 import sys
 import asyncio
 import urllib.parse
+import html as htmllib
+import datetime
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 SRC = os.path.join(ROOT, "src")
@@ -239,6 +241,14 @@ def build_html(site_url, pwa, analytics, shelf, social):
         svg = read(os.path.join("static", "favicon.svg")).strip()
         favicon = '<link rel="icon" href="data:image/svg+xml,%s">' % urllib.parse.quote(svg, safe=" =:/'")
     html = html.replace("{{FAVICON}}", favicon)
+    # Study guide links in "About & help" (live site only; the one-file preview cannot open other pages).
+    guide_links = ""
+    if pwa:
+        gl = load_guides()
+        if gl:
+            guide_links = ('<h3>Study guides</h3><ul class="guide-links">%s<li><a href="/guides/">All study guides &rarr;</a></li></ul>'
+                           % "".join('<li><a href="/guides/%s/">%s</a></li>' % (g["slug"], _e(g["h1"])) for g in gl))
+    html = html.replace("{{GUIDE_LINKS}}", guide_links)
     for key, val in (("{{CSS}}", css), ("{{JS}}", js), ("{{CONFIG}}", config_js),
                      ("{{HEAD_EXTRA}}", "\n".join(head)), ("{{APP_NAME}}", APP_NAME)):
         html = html.replace(key, val)
@@ -398,6 +408,132 @@ def build_admin():
     return html
 
 
+# ---------- study guides (src/guides/<slug>.html -> /guides/<slug>/) ----------
+GUIDE_FIELDS = ("title", "description", "h1", "kicker", "updated", "scene", "imageAlt", "answer")
+
+
+def load_guides():
+    """Each guide file starts with <!--meta {json} --> and then its article HTML (written by us, trusted)."""
+    gdir = os.path.join(SRC, "guides")
+    out = []
+    for name in sorted(os.listdir(gdir)):
+        if not name.endswith(".html") or name.startswith("_"):
+            continue
+        slug = name[:-5]
+        text = open(os.path.join(gdir, name), encoding="utf-8").read()
+        m = re.match(r"\s*<!--meta\s*(\{.*?\})\s*-->\s*(.*)$", text, re.S)
+        if not m:
+            raise SystemExit("guide %s: missing <!--meta {...} --> at the top" % name)
+        meta = json.loads(m.group(1))
+        for k in GUIDE_FIELDS:
+            if not isinstance(meta.get(k), str) or not meta[k].strip():
+                raise SystemExit("guide %s: missing %s" % (name, k))
+        if not re.fullmatch(r"[a-z0-9]+(-[a-z0-9]+)*", slug):
+            raise SystemExit("guide %s: file name must be a-z, 0-9 and dashes" % name)
+        if len(meta["title"]) > 70 or len(meta["description"]) > 170:
+            raise SystemExit("guide %s: title max 70 and description max 170 characters (Google cuts longer ones)" % name)
+        datetime.date.fromisoformat(meta["updated"])
+        body = m.group(2).strip()
+        if "</script" in body.lower() or "<script" in body.lower():
+            raise SystemExit("guide %s: no scripts inside the article" % name)
+        img = os.path.join(SRC, "static", "guides", "img", slug + ".jpg")
+        if not os.path.isfile(img):
+            raise SystemExit("guide %s: picture missing - run: python3 tools/make_guide_heroes.py" % name)
+        words = len(re.sub(r"<[^>]+>", " ", body).split())
+        meta.update({"slug": slug, "image": slug, "body": body, "read_min": max(2, round(words / 200))})
+        out.append(meta)
+    return out
+
+
+def _e(s):
+    return htmllib.escape(s, quote=True)
+
+
+def _human_date(iso):
+    d = datetime.date.fromisoformat(iso)
+    return "%d %s %d" % (d.day, d.strftime("%b"), d.year)
+
+
+def _timer_link(t):
+    return "/?focus=%d" % t["focus"] + ("&break=%d" % t["break"] if t.get("break") else "")
+
+
+def _guide_cards(guides):
+    cards = []
+    for g in guides:
+        cards.append('<a class="card" href="/guides/%s/"><img src="/guides/img/%s.jpg" alt="" width="1200" height="520" loading="lazy">'
+                     '<span><b>%s</b><small>%s min read</small></span></a>' % (g["slug"], g["slug"], _e(g["h1"]), g["read_min"]))
+    return '<div class="cards">%s</div>' % "".join(cards)
+
+
+def render_guide(g, guides, site_url, is_index=False):
+    by = {x["slug"]: x for x in guides}
+    url = "%s/guides/%s/" % (site_url, g["slug"]) if not is_index else site_url + "/guides/"
+    image_url = "%s/guides/img/%s.jpg" % (site_url, g["image"])
+    timer = g.get("timer")
+    if timer:
+        f, b = int(timer["focus"]), int(timer.get("break") or 0)
+        if not (1 <= f <= 180 and 0 <= b <= 60):
+            raise SystemExit("guide %s: timer out of range" % g["slug"])
+        label = "%d/%d" % (f, b) if b else "%d-minute" % f
+        timer_box = ('<div class="timer-box"><span class="clock">%d:00%s</span><p>Opens %s with %d minutes of focus%s already set.</p>'
+                     '<a class="btn" href="%s">Start a %s timer</a></div>'
+                     % (f, "<small>+ %d min break</small>" % b if b else "", APP_NAME, f,
+                        " and a %d-minute break" % b if b else "", _e(_timer_link(timer)), label))
+        end_link, end_label = _timer_link(timer), "Start a free %s timer" % label
+    else:
+        timer_box, end_link, end_label = "", "/", "Open " + APP_NAME
+    faq = ""
+    if g.get("faq"):
+        faq = '<section class="faq"><h2>Questions people ask</h2>%s</section>' % "".join(
+            "<details><summary>%s</summary><p>%s</p></details>" % (_e(q["q"]), _e(q["a"])) for q in g["faq"])
+    related = [by[s] for s in g.get("related", []) if s in by and s != g["slug"]]
+    related_html = '<section class="related"><h2>More study guides</h2>%s</section>' % _guide_cards(related) if related else ""
+    ld = {"@context": "https://schema.org", "@graph": [
+        {"@type": "Article", "headline": g["h1"], "description": g["description"], "image": image_url,
+         "datePublished": g.get("published", g["updated"]), "dateModified": g["updated"], "mainEntityOfPage": url,
+         "author": {"@type": "Organization", "name": APP_NAME, "url": site_url + "/"},
+         "publisher": {"@type": "Organization", "name": APP_NAME, "logo": {"@type": "ImageObject", "url": site_url + "/icons/icon-512.png"}}},
+        {"@type": "BreadcrumbList", "itemListElement": [
+            {"@type": "ListItem", "position": 1, "name": "Home", "item": site_url + "/"},
+            {"@type": "ListItem", "position": 2, "name": "Study guides", "item": site_url + "/guides/"},
+            {"@type": "ListItem", "position": 3, "name": g["h1"], "item": url}]}]}
+    if is_index:
+        ld = {"@context": "https://schema.org", "@graph": [
+            {"@type": "CollectionPage", "name": g["h1"], "description": g["description"], "url": url,
+             "hasPart": [{"@type": "Article", "headline": x["h1"], "url": "%s/guides/%s/" % (site_url, x["slug"])} for x in guides]},
+            {"@type": "BreadcrumbList", "itemListElement": [
+                {"@type": "ListItem", "position": 1, "name": "Home", "item": site_url + "/"},
+                {"@type": "ListItem", "position": 2, "name": "Study guides", "item": url}]}]}
+    page = read(os.path.join("guides", "_template.html"))
+    fill = {
+        "{{TITLE}}": _e(g["title"]), "{{DESCRIPTION}}": _e(g["description"]), "{{URL}}": _e(url), "{{IMAGE_URL}}": _e(image_url),
+        "{{JSONLD}}": '<script type="application/ld+json">%s</script>' % json.dumps(ld).replace("</", "<\\/"),
+        "{{CSS}}": read(os.path.join("guides", "guide.css")), "{{APP_NAME}}": APP_NAME,
+        "{{IMAGE}}": "/guides/img/%s.jpg" % g["image"], "{{IMAGE_ALT}}": _e(g["imageAlt"]), "{{KICKER}}": _e(g["kicker"]),
+        "{{H1}}": _e(g["h1"]), "{{UPDATED_HUMAN}}": _human_date(g["updated"]), "{{READ_MIN}}": str(g["read_min"]),
+        "{{ANSWER}}": _e(g["answer"]), "{{TIMER_BOX}}": timer_box, "{{FAQ}}": faq, "{{RELATED}}": related_html,
+        "{{END_LINK}}": _e(end_link), "{{END_LABEL}}": _e(end_label),
+    }
+    for k, v in fill.items():
+        page = page.replace(k, v)
+    page = page.replace("{{BODY}}", g["body"])
+    left = re.findall(r"\{\{[A-Z_]+\}\}", page)
+    if left:
+        raise SystemExit("guide %s: unfilled keys %s" % (g["slug"], left[:3]))
+    return page
+
+
+def render_guides_index(guides, site_url):
+    g = {"slug": "", "title": "Study guides: focus, breaks and study methods | " + APP_NAME,
+         "description": "Short, practical guides to studying with focus: study methods like 50/10 and Pomodoro, how long to study before a break, and more.",
+         "h1": "Study guides", "kicker": "Learn to focus", "updated": max(x["updated"] for x in guides),
+         "imageAlt": "A little island world made in " + APP_NAME, "read_min": 1,
+         "answer": "Short, simple guides to help you study with focus. Each one comes with a free timer that is already set up for you.",
+         "body": '<p class="list-intro">Pick a guide. Each one links to a free timer with the right times already set.</p>' + _guide_cards(guides)}
+    return render_guide(dict(g, image=guides[0]["slug"]), guides, site_url, is_index=True)
+
+
 def copy_shelf(dest, items, site):
     """Product cover pictures, plus (live site only) our own free tool pages under /tools/<id>/."""
     out = os.path.join(dest, "shelf")
@@ -444,6 +580,15 @@ def main():
         if not os.path.isfile(os.path.join(static, need)):
             raise SystemExit("Missing src/static/%s - run: python3 build.py --icons" % need)
     shutil.copytree(static, out, dirs_exist_ok=True)
+    guides = load_guides()
+    for g in guides:
+        gdir = os.path.join(out, "guides", g["slug"])
+        os.makedirs(gdir, exist_ok=True)
+        with open(os.path.join(gdir, "index.html"), "w", encoding="utf-8") as f:
+            f.write(render_guide(g, guides, site_url))
+    if guides:
+        with open(os.path.join(out, "guides", "index.html"), "w", encoding="utf-8") as f:
+            f.write(render_guides_index(guides, site_url))
     os.makedirs(os.path.join(out, "admin"))
     with open(os.path.join(out, "admin", "index.html"), "w", encoding="utf-8") as f:
         f.write(build_admin())
@@ -475,6 +620,7 @@ def main():
         f.write(robots)
     if site_url:
         pages = ["/"] + ["/tools/%s/" % it["id"] for it in items if it.get("local") and not it.get("hidden")]
+        pages += (["/guides/"] + ["/guides/%s/" % g["slug"] for g in guides]) if guides else []
         with open(os.path.join(out, "sitemap.xml"), "w") as f:
             f.write('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
                     + "".join("<url><loc>%s%s</loc></url>" % (site_url, p) for p in pages) + "</urlset>\n")

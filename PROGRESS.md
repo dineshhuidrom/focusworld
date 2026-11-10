@@ -106,7 +106,7 @@ Focus World is live at https://focusworld-bj0.pages.dev. dinesh adds products hi
 
 ### Next (search)
 1. 11 Nov: Search Console → URL inspection → `https://focusworld-bj0.pages.dev/` → Request indexing (today said "quota exceeded").
-2. Guide pages that answer what students search (Claude writes them).
+2. Guide pages (5 approved 10 Nov): ✅ 1. The 50/10 study method (live) · 2. How long to study before a break · 3. The 52/17 rule · 4. Pomodoro timer with lofi music · 5. Pomodoro vs 50/10 vs 52/17. Files: `src/guides/<name>.html`; pictures: `python3 tools/make_guide_heroes.py`. Guide links like `/?focus=50&break=10` open the timer pre-set.
 3. Bing Webmaster Tools: import from Google Search Console.
 4. Share the link on Instagram, YouTube Shorts, study communities.
 
