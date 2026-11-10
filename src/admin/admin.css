@@ -257,3 +257,33 @@ a { color: var(--accent); }
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
   .sky span { animation: none; }
 }
+
+/* ---------- categories (Ask Pip recommends products by these) ---------- */
+.cat-pick { display: flex; flex-wrap: wrap; gap: 8px; }
+.cat-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 42px; padding: 0 14px 0 10px; border-radius: 999px; border: 1.5px solid var(--line);
+  background: rgba(8, 12, 32, .25); color: var(--muted); font-weight: 700; font-size: 14px; transition: transform .15s var(--ease), border-color .2s, background .2s, color .2s; }
+.cat-chip b { font-size: 18px; transition: transform .25s var(--ease); }
+.cat-chip[aria-pressed="true"] { border-color: var(--accent); background: rgba(255, 198, 109, .14); color: var(--text); }
+.cat-chip[aria-pressed="true"] b { transform: scale(1.12) rotate(-6deg); }
+.cat-chip[aria-disabled="true"] { opacity: .55; }
+.cat-chip:active { transform: scale(.95); }
+.cat-chip.pop { animation: pop .3s var(--ease); }
+#catHint { margin: 10px 2px 0; }
+.row .meta i.cats { background: rgba(255, 198, 109, .12); letter-spacing: .08em; }
+.row.cat { grid-template-columns: 52px 1fr auto; }
+.row.cat .thumb { font-size: 26px; }
+.row.cat .tools { grid-column: auto; }
+.cat-head { display: grid; grid-template-columns: 92px 1fr; gap: 10px; }
+.emoji-field input { text-align: center; font-size: 24px; padding: 6px; }
+.emoji-pick { display: grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); gap: 6px; }
+.emoji-pick button { min-height: 44px; border-radius: 12px; border: 1.5px solid transparent; background: rgba(8, 12, 32, .25); font-size: 22px;
+  transition: transform .15s var(--ease), border-color .2s, background .2s; }
+.emoji-pick button[aria-pressed="true"] { border-color: var(--accent); background: rgba(255, 198, 109, .14); }
+.emoji-pick button:active { transform: scale(.9); }
+.try-result { margin: 2px 2px 0; min-height: 1.4em; font-weight: 700; font-size: 14.5px; }
+.try-result.good { color: var(--mint); animation: pop .25s var(--ease); }
+.try-result.warn { color: var(--accent); }
+@media (max-width: 420px) {
+  .tabs button { font-size: 13.5px; padding: 0 2px; }
+  .tabs em { margin-left: 2px; padding: 1px 5px; min-width: 0; }
+}

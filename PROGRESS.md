@@ -122,3 +122,13 @@ Focus World is live at https://focusworld-bj0.pages.dev. dinesh adds products hi
 | Tests | `node tests/test_helper.js` (95 typed messages plus product and safety checks), `python3 tests/ask_test.py` (browser, phone 320/360/390 px and laptop) |
 
 Tip for dinesh: in My Shop, give each product tags in the words people use ("teacher says I used AI", "scary tax letter"), so Pip can find it.
+
+## 10 Nov 2026 — v1.7 Categories (dinesh: "when I upload a product I select a category, and the bot recommends products by category")
+| What | How |
+|---|---|
+| Categories | 12 starter categories in `src/catalog.json` (Study & exams, English speaking, School & college problems, Jobs & careers, Money & taxes, Business & selling, YouTube & content, Apps & tech, Focus & habits, Calm & sleep, Other languages, Creative skills). Each has a name, emoji and **words people type** |
+| My Shop | New **Categories** tab: see how many products use each, edit words, add your own category (name + emoji + words), **Test it with Pip** box, delete (also removes it from products). Product editor step 6 **Problems it solves**: pick up to 3 |
+| Ask Pip | Typed words → best category → its products. Study tips keep their answer and show 1 product from the matching category. Real-life problems (AI accusation, IRS) show up to 2. App how-to questions show none. "Something else is wrong" shows category buttons. A category with no products gets an honest "nothing yet" |
+| Already set | Paper Trail + First Reply → School & college problems; CP2000 kit + IRS check → Money & taxes (change any time in My Shop) |
+| Rules | Same rules in `lib/catalog-rules.mjs` and `build.py`, checked by `tests/test_rules.mjs` (83 cases agree) |
+| Tests | `test_helper.js` (19), `ask_test.py`, `admin_cats_e2e.py` (24), all older tests still pass |

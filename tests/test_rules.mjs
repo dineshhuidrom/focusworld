@@ -63,7 +63,39 @@ const cases = {
   socialExtra: Object.assign({}, base, { social: [{ platform: 'x', url: 'https://a.co', img: 'x' }] }),
   socialNotList: Object.assign({}, base, { social: {} }),
   tooManyItems: { items: Array.from({ length: 61 }, (_, i) => Object.assign({}, good, { id: 'p' + i })) },
-  helpNumber: Object.assign({}, base, { _help: 5 })
+  helpNumber: Object.assign({}, base, { _help: 5 }),
+  // categories (Ask Pip recommends products by category)
+  catsOk: withItem({ categories: ['school', 'study', 'english'] }),
+  catsTooMany: withItem({ categories: ['school', 'study', 'english', 'jobs'] }),
+  catsUnknown: withItem({ categories: ['cooking'] }),
+  catsInherited: withItem({ categories: ['constructor'] }),
+  catsTwice: withItem({ categories: ['school', 'school'] }),
+  catsNotList: withItem({ categories: 'school' }),
+  catsNull: withItem({ categories: null }),
+  catsEmptyOk: withItem({ categories: [] }),
+  itemIdConstructor: withItem({ id: 'constructor' }),
+  catListNotList: Object.assign({}, base, { categories: {} }),
+  catListNone: (() => { const c = JSON.parse(JSON.stringify(base)); delete c.categories; c.items.forEach((i) => delete i.categories); return c; })(),
+  catListMissingButUsed: (() => { const c = JSON.parse(JSON.stringify(base)); delete c.categories; return c; })(),
+  catNew: Object.assign({}, base, { categories: base.categories.concat([{ id: 'cooking', name: 'Cooking', emoji: '🍳', words: ['cook', 'recipe'] }]) }),
+  catNoEmojiOk: Object.assign({}, base, { categories: base.categories.concat([{ id: 'cooking', name: 'Cooking', words: ['cook'] }]) }),
+  catBadId: Object.assign({}, base, { categories: base.categories.concat([{ id: 'Cook Ing', name: 'Cooking', words: ['cook'] }]) }),
+  catDupId: Object.assign({}, base, { categories: base.categories.concat([{ id: 'study', name: 'Again', words: ['x'] }]) }),
+  catLongId: Object.assign({}, base, { categories: base.categories.concat([{ id: 'a'.repeat(33), name: 'Long', words: ['x'] }]) }),
+  catNoName: Object.assign({}, base, { categories: base.categories.concat([{ id: 'x1', name: ' ', words: ['x'] }]) }),
+  catPaddedName: Object.assign({}, base, { categories: base.categories.concat([{ id: 'x1', name: 'Cook ', words: ['x'] }]) }),
+  catLongName: Object.assign({}, base, { categories: base.categories.concat([{ id: 'x1', name: 'x'.repeat(31), words: ['x'] }]) }),
+  catEmojiLong: Object.assign({}, base, { categories: base.categories.concat([{ id: 'x1', name: 'X', emoji: '😀😀😀😀😀', words: ['x'] }]) }),
+  catEmojiOk: Object.assign({}, base, { categories: base.categories.concat([{ id: 'x1', name: 'X', emoji: '😀😀😀😀', words: ['x'] }]) }),
+  catEmojiCtrl: Object.assign({}, base, { categories: base.categories.concat([{ id: 'x1', name: 'X', emoji: '\u0007', words: ['x'] }]) }),
+  catNoWords: Object.assign({}, base, { categories: base.categories.concat([{ id: 'x1', name: 'X', words: [] }]) }),
+  catWordsNotList: Object.assign({}, base, { categories: base.categories.concat([{ id: 'x1', name: 'X', words: 'a,b' }]) }),
+  catWordEmpty: Object.assign({}, base, { categories: base.categories.concat([{ id: 'x1', name: 'X', words: ['ok', ''] }]) }),
+  catWordLong: Object.assign({}, base, { categories: base.categories.concat([{ id: 'x1', name: 'X', words: ['x'.repeat(41)] }]) }),
+  catTooManyWords: Object.assign({}, base, { categories: base.categories.concat([{ id: 'x1', name: 'X', words: Array.from({ length: 61 }, (_, i) => 'w' + i) }]) }),
+  catExtraField: Object.assign({}, base, { categories: base.categories.concat([{ id: 'x1', name: 'X', words: ['x'], color: 'red' }]) }),
+  catNotObject: Object.assign({}, base, { categories: base.categories.concat(['study']) }),
+  catTooMany: Object.assign({}, base, { categories: Array.from({ length: 41 }, (_, i) => ({ id: 'c' + i, name: 'C' + i, words: ['w'] })).concat(base.categories) })
 };
 // remove undefined keys (JSON has no undefined)
 const fixtures = JSON.parse(JSON.stringify(cases));
@@ -84,7 +116,8 @@ for (const name of Object.keys(fixtures)) {
   passed++;
 }
 // a few expectations, so "both wrong the same way" is caught too
-const okNames = ['real', 'empty', 'freeNoPrice', 'portUrl', 'emojiTitleOk', 'tabOkInside', 'hiddenOk', 'socialOk', 'nullKicker'];
+const okNames = ['real', 'empty', 'freeNoPrice', 'portUrl', 'emojiTitleOk', 'tabOkInside', 'hiddenOk', 'socialOk', 'nullKicker',
+  'catsOk', 'catsEmptyOk', 'itemIdConstructor', 'catListNone', 'catNew', 'catNoEmojiOk', 'catEmojiOk'];
 okNames.forEach((n) => assert.deepEqual(pyOut[n], [], n + ' should be fine'));
 Object.keys(fixtures).filter((n) => okNames.indexOf(n) < 0).forEach((n) => assert.ok(pyOut[n].length > 0, n + ' should be refused'));
 

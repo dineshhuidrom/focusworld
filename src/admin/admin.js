@@ -34,6 +34,9 @@
     pinterest: ['📌', 'Pinterest', /(^|\.)pinterest\.[a-z.]+$/],
     website: ['🌐', 'Website', null]
   };
+  // Quick picks for a category's emoji (any emoji can also be typed).
+  const EMOJIS = ['📚', '🗣️', '🎓', '💼', '💰', '🏪', '🎬', '💻', '⏱️', '🧘', '🌐', '🎨', '🧠', '💡', '❤️', '🏋️',
+    '🍳', '✈️', '🏠', '👶', '🐾', '🎮', '📈', '🌱'];
 
   // ---------- state ----------
   const S = {
@@ -208,6 +211,7 @@
     const ids = (list) => list.filter((it) => old[it.id] && now[it.id]).map((it) => it.id).join(',');
     if (ids(before.items) !== ids(S.catalog.items)) out.push('New order');
     if (JSON.stringify(before.social || []) !== JSON.stringify(S.catalog.social || [])) out.push('Follow links');
+    if (JSON.stringify(before.categories || []) !== JSON.stringify(S.catalog.categories || [])) out.push('Categories');
     return out;
   }
   function changedIds() {
@@ -277,12 +281,14 @@
     S.baseSha = data.sha;
     S.catalog = clone(data.catalog);
     if (!Array.isArray(S.catalog.social)) S.catalog.social = [];
+    if (!Array.isArray(S.catalog.categories)) S.catalog.categories = [];
     S.uploads = {}; S.previews = {};
     try { S.pending = JSON.parse(localStorage.getItem(PENDING_KEY) || 'null'); } catch (e) { S.pending = null; }
     const d = (opts && opts.fresh) ? null : readDraft();
     if (d) {
       if (d.baseSha === S.baseSha) {
         S.catalog = d.catalog; S.uploads = d.uploads || {}; S.previews = d.previews || {};
+        if (!Array.isArray(S.catalog.categories)) S.catalog.categories = [];
         const n = changes().length;
         if (n) toast('Welcome back! Your ' + (n === 1 ? 'unpublished change is' : n + ' unpublished changes are') + ' still here ✨', 3500);
       } else {
@@ -291,7 +297,10 @@
           text: 'You have changes on this phone that were never published, but the shop on GitHub is newer. Keep your changes (they will replace the newer shop when you publish), or start from the newest shop?',
           yes: 'Keep my changes', no: 'Use the newest'
         });
-        if (keep) { S.catalog = d.catalog; S.uploads = d.uploads || {}; S.previews = d.previews || {}; }
+        if (keep) {
+          S.catalog = d.catalog; S.uploads = d.uploads || {}; S.previews = d.previews || {};
+          if (!Array.isArray(S.catalog.categories)) S.catalog.categories = [];
+        }
         else { try { localStorage.removeItem(DRAFT_KEY); } catch (e) { /* fine */ } }
       }
     }
@@ -329,6 +338,7 @@
     const items = S.catalog.items, ch = changedIds();
     $('countProducts').textContent = items.length;
     $('countLinks').textContent = S.catalog.social.length;
+    $('countCats').textContent = S.catalog.categories.length;
     const list = $('productList');
     list.textContent = '';
     items.forEach((it, i) => {
@@ -345,6 +355,12 @@
       const add = (t, c) => { const x = document.createElement('i'); x.textContent = t; if (c) x.className = c; meta.appendChild(x); };
       add((KIND[it.type] ? KIND[it.type].icon + ' ' + KIND[it.type].name : it.type));
       add(it.free ? 'Free' : it.price, it.free ? 'free' : '');
+      const cs = (it.categories || []).map(catById).filter(Boolean);
+      if (cs.length) {
+        add(cs.map((c) => c.emoji || '🏷️').join(' '), 'cats');
+        meta.lastChild.title = cs.map((c) => c.name).join(', ');
+        meta.lastChild.setAttribute('aria-label', 'Categories: ' + meta.lastChild.title);
+      }
       if (it.hidden) add('Hidden');
       if (ch[it.id] === 'new') add('New', 'new'); else if (ch[it.id] === 'edited') add('Edited', 'new');
       info.appendChild(b); info.appendChild(meta);
@@ -386,8 +402,31 @@
       ll.appendChild(row);
     });
     $('linksEmpty').hidden = S.catalog.social.length > 0;
+    const cl = $('catList');
+    cl.textContent = '';
+    S.catalog.categories.forEach((c, i) => {
+      const n = S.catalog.items.filter((it) => (it.categories || []).indexOf(c.id) >= 0).length;
+      const row = document.createElement('div'); row.className = 'row link cat';
+      const th = document.createElement('button'); th.type = 'button'; th.className = 'thumb'; th.textContent = c.emoji || '🏷️';
+      th.setAttribute('aria-label', 'Edit ' + c.name);
+      th.addEventListener('click', () => openCat(i, th));
+      const info = document.createElement('div'); info.className = 'info';
+      const b = document.createElement('b'); b.textContent = c.name;
+      const meta = document.createElement('div'); meta.className = 'meta';
+      const pi = document.createElement('i'); pi.textContent = n === 1 ? '1 product' : n + ' products'; if (n) pi.className = 'free';
+      const wi = document.createElement('i'); wi.textContent = c.words.length + ' words';
+      meta.appendChild(pi); meta.appendChild(wi);
+      info.appendChild(b); info.appendChild(meta);
+      const tools = document.createElement('div'); tools.className = 'tools';
+      const ed = toolBtn('Edit', 'Edit "' + c.name + '"', null, () => openCat(i, ed)); ed.className = 'edit';
+      tools.appendChild(ed);
+      row.appendChild(th); row.appendChild(info); row.appendChild(tools);
+      cl.appendChild(row);
+    });
+    $('catsEmpty').hidden = S.catalog.categories.length > 0;
     refreshStatus();
   }
+  function catById(id) { return (S.catalog.categories || []).find((c) => c.id === id) || null; }
   function focusRow(j, dir) {
     const rows = $('productList').querySelectorAll('.row');
     const b = rows[j] && rows[j].querySelector('[data-dir="' + dir + '"]');
@@ -395,16 +434,23 @@
   }
 
   // tabs
+  const TABS = [['products', 'tabProducts', 'paneProducts'], ['links', 'tabLinks', 'paneLinks'], ['cats', 'tabCats', 'paneCats']];
   function selectTab(which) {
-    const prod = which === 'products';
-    $('tabProducts').setAttribute('aria-selected', String(prod));
-    $('tabLinks').setAttribute('aria-selected', String(!prod));
-    $('paneProducts').hidden = !prod; $('paneLinks').hidden = prod;
+    TABS.forEach((t) => {
+      const on = t[0] === which;
+      $(t[1]).setAttribute('aria-selected', String(on)); $(t[1]).tabIndex = on ? 0 : -1; $(t[2]).hidden = !on;
+    });
   }
-  $('tabProducts').addEventListener('click', () => selectTab('products'));
-  $('tabLinks').addEventListener('click', () => selectTab('links'));
-  $('tabProducts').addEventListener('keydown', (e) => { if (e.key === 'ArrowRight') { selectTab('links'); $('tabLinks').focus(); } });
-  $('tabLinks').addEventListener('keydown', (e) => { if (e.key === 'ArrowLeft') { selectTab('products'); $('tabProducts').focus(); } });
+  TABS.forEach((t, i) => {
+    $(t[1]).addEventListener('click', () => selectTab(t[0]));
+    $(t[1]).addEventListener('keydown', (e) => {
+      const d = { ArrowRight: 1, ArrowLeft: -1 }[e.key];
+      if (!d) return;
+      const n = TABS[(i + d + TABS.length) % TABS.length];
+      selectTab(n[0]); $(n[1]).focus();
+    });
+  });
+  selectTab('products');
 
   // menu
   function toggleMenu(open) {
@@ -427,6 +473,7 @@
   $('undoAll').addEventListener('click', async () => {
     if (!(await ask({ emoji: '↩️', title: 'Undo all changes?', text: 'Your shop goes back to how it is live right now.', yes: 'Undo all', no: 'Keep them' }))) return;
     S.catalog = JSON.parse(S.published); if (!Array.isArray(S.catalog.social)) S.catalog.social = [];
+    if (!Array.isArray(S.catalog.categories)) S.catalog.categories = [];
     commit(); toast('Back to how it was ↩️');
   });
 
@@ -487,6 +534,7 @@
     $('edMsg').textContent = ''; $('urlHint').textContent = ''; $('coverHint').textContent = '';
     $('fFile').value = '';
     renderTags();
+    renderCatPick();
     setKind(E.type);
     setPreviewPic(E.image ? picSrc(E.image) : '');
     $('edDelete').hidden = isNew;
@@ -679,6 +727,40 @@
   });
   $('fTag').addEventListener('blur', addTag);
 
+  // categories this product helps with (Ask Pip recommends by these)
+  function renderCatPick() {
+    const box = $('catPick'), mine = (E.categories || []).filter((id) => catById(id));
+    E.categories = mine;
+    box.textContent = '';
+    const full = mine.length >= LIMITS.itemCats;
+    S.catalog.categories.forEach((c) => {
+      const on = mine.indexOf(c.id) >= 0;
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'cat-chip';
+      b.setAttribute('aria-pressed', String(on));
+      const ic = document.createElement('b'); ic.setAttribute('aria-hidden', 'true'); ic.textContent = c.emoji || '🏷️';
+      const tx = document.createElement('span'); tx.textContent = c.name;
+      b.appendChild(ic); b.appendChild(tx);
+      if (!on && full) b.setAttribute('aria-disabled', 'true');
+      b.addEventListener('click', () => {
+        const list = E.categories;
+        const k = list.indexOf(c.id);
+        if (k >= 0) list.splice(k, 1);
+        else if (list.length >= LIMITS.itemCats) {
+          $('catHint').className = 'hint warn'; $('catHint').textContent = 'That’s 3 already, the most for one product. Tap one to remove it first.';
+          return;
+        } else list.push(c.id);
+        edDirty = true; renderCatPick();
+        const btn = box.querySelectorAll('.cat-chip')[S.catalog.categories.indexOf(c)];
+        if (btn) { btn.focus(); if (k < 0) { btn.classList.remove('pop'); void btn.offsetWidth; btn.classList.add('pop'); } }
+      });
+      box.appendChild(b);
+    });
+    const h = $('catHint');
+    if (!S.catalog.categories.length) { h.className = 'hint'; h.textContent = 'No categories yet. Add some in the Categories tab.'; }
+    else if (!mine.length) { h.className = 'hint'; h.textContent = 'Pick the problems this product solves, so Pip can recommend it.'; }
+    else { h.className = 'hint good'; h.textContent = 'Pip will suggest it for: ' + mine.map((id) => catById(id).name).join(', ') + ' ✓'; }
+  }
+
   // save
   function friendlyField(f) { return { title: 'fTitle', text: 'fText', url: 'fUrl', price: 'fPrice', hook: 'fHook', kicker: 'fKicker', cta: 'fCta' }[f]; }
   function markBad(field, msg) {
@@ -717,6 +799,7 @@
     item.url = v('fUrl');
     if (E.local) item.local = E.local;
     if (E.tags && E.tags.length) item.tags = E.tags.slice();
+    if (E.categories && E.categories.length) item.categories = E.categories.slice();
     if ($('fFeatured').checked) item.featured = true;
     if (!$('fVisible').checked) item.hidden = true;
     busy($('edSave'), true);
@@ -732,7 +815,11 @@
       if (isNew) trial.items.unshift(item); else trial.items[edIndex] = item;
       const check = validateCatalog(trial);
       const mine = check.errors.filter((er) => er.where === item.id);
-      if (mine.length) { busy($('edSave'), false); return markBad(mine[0].field, mine[0].msg); }
+      if (mine.length) {
+        busy($('edSave'), false);
+        if (mine[0].field === 'categories') { $('edMsg').textContent = mine[0].msg; $('catPick').scrollIntoView({ block: 'center' }); return; }
+        return markBad(mine[0].field, mine[0].msg);
+      }
       S.catalog = trial;
       flashId = item.id;
       edDirty = false;
@@ -821,6 +908,130 @@
     S.catalog.social.splice(leIndex, 1); commit(); closeLink();
   });
 
+  // ---------- category editor ----------
+  let C = null, ceIndex = -1, ceReturn = null, ceDirty = false;
+  function buildEmojis() {
+    const box = $('emojiPick'); box.textContent = '';
+    EMOJIS.forEach((em) => {
+      const b = document.createElement('button'); b.type = 'button'; b.textContent = em; b.setAttribute('aria-label', 'Use ' + em);
+      b.addEventListener('click', () => { $('cEmoji').value = em; ceDirty = true; markEmoji(); tryCat(); });
+      box.appendChild(b);
+    });
+  }
+  function markEmoji() {
+    const v = $('cEmoji').value.trim();
+    $('emojiPick').querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.textContent === v)));
+  }
+  function renderWords() {
+    const box = $('cWordBox');
+    box.querySelectorAll('.tag').forEach((t) => t.remove());
+    C.words.forEach((w, i) => {
+      const s = document.createElement('span'); s.className = 'tag';
+      const tx = document.createElement('span'); tx.textContent = w;
+      const x = document.createElement('button'); x.type = 'button'; x.textContent = '×'; x.setAttribute('aria-label', 'Remove ' + w);
+      x.addEventListener('click', (e) => { e.preventDefault(); C.words.splice(i, 1); ceDirty = true; renderWords(); tryCat(); $('cWord').focus(); });
+      s.appendChild(tx); s.appendChild(x);
+      box.insertBefore(s, $('cWord'));
+    });
+    const n = C.words.length;
+    $('wordCount').textContent = n + '/' + LIMITS.catWords;
+  }
+  function addWord() {
+    const raw = $('cWord').value.replace(/,/g, ' ').trim().toLowerCase().replace(/\s+/g, ' ');
+    $('cWord').value = '';
+    if (!raw) return;
+    if (C.words.indexOf(raw) >= 0) return;
+    if (C.words.length >= LIMITS.catWords) { toast('That’s plenty of words 😊'); return; }
+    C.words.push(raw.slice(0, LIMITS.catWord)); ceDirty = true; renderWords(); tryCat();
+  }
+  // Uses Pip's own matching, so what you see here is what visitors get.
+  function tryCat() {
+    const q = $('cTry').value.trim(), r = $('cTryRes');
+    if (!q) { r.className = 'try-result'; r.textContent = ''; return; }
+    const H = window.FWHelper;
+    const score = H ? H.categoryScore({ name: $('cName').value.trim(), words: C.words }, q) : 0;
+    if (score >= 2) { r.className = 'try-result good'; r.textContent = '✓ Pip would pick this category for that.'; }
+    else { r.className = 'try-result warn'; r.textContent = '✗ No match yet. Add a word from that sentence, like “' + guessWord(q) + '”.'; }
+  }
+  function guessWord(q) {
+    const skip = /^(i|im|me|my|a|an|the|to|of|in|on|and|or|is|am|are|was|how|what|can|cant|do|dont|want|need|help|with|for|it|this|that|so|very|really|about|get|be)$/;
+    const w = q.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter((x) => x.length > 2 && !skip.test(x));
+    return w.sort((a, b) => b.length - a.length)[0] || 'a key word';
+  }
+  function openCat(i, from) {
+    ceReturn = from || document.activeElement; ceIndex = i; ceDirty = false;
+    const isNew = i < 0;
+    C = isNew ? { id: '', name: '', emoji: '', words: [] } : clone(S.catalog.categories[i]);
+    $('ceTitle').textContent = isNew ? 'New category' : 'Edit category';
+    $('cEmoji').value = C.emoji || ''; $('cName').value = C.name || ''; $('cWord').value = ''; $('cTry').value = '';
+    $('ceMsg').textContent = ''; $('ceDelete').hidden = isNew;
+    ['cName', 'cEmoji'].forEach((id) => $(id).closest('.field').classList.remove('bad'));
+    markEmoji(); renderWords(); tryCat(); counters();
+    $('catEditor').hidden = false; $('app').setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => $(isNew ? 'cName' : 'cWord').focus(), 60);
+  }
+  async function closeCat(force) {
+    if (!force && ceDirty && !(await ask({ emoji: '🤔', title: 'Leave without saving?', text: 'Your changes to this category will be lost.', yes: 'Leave', no: 'Keep editing' }))) return;
+    $('catEditor').hidden = true; $('app').removeAttribute('aria-hidden');
+    document.body.style.overflow = '';
+    if (ceReturn && ceReturn.isConnected) ceReturn.focus();
+  }
+  function badCat(id, msg) {
+    $('ceMsg').textContent = msg;
+    if (id) { const f = $(id).closest('.field'); f.classList.remove('bad'); void f.offsetWidth; f.classList.add('bad'); $(id).focus(); }
+  }
+  $('addCat').addEventListener('click', () => openCat(-1, $('addCat')));
+  $('ceCancel').addEventListener('click', () => closeCat(false));
+  $('cName').addEventListener('input', () => { ceDirty = true; counters(); $('ceMsg').textContent = ''; $('cName').closest('.field').classList.remove('bad'); tryCat(); });
+  $('cEmoji').addEventListener('input', () => { ceDirty = true; markEmoji(); });
+  $('cTry').addEventListener('input', tryCat);
+  $('cWord').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addWord(); }
+    else if (e.key === 'Backspace' && !$('cWord').value && C.words.length) { C.words.pop(); ceDirty = true; renderWords(); tryCat(); }
+  });
+  $('cWord').addEventListener('blur', addWord);
+  $('ceSave').addEventListener('click', async () => {
+    addWord();
+    const name = $('cName').value.trim(), emoji = $('cEmoji').value.trim();
+    if (!name) return badCat('cName', 'Give the category a name.');
+    if (!C.words.length) { $('ceMsg').textContent = 'Add a few words people type about this problem.'; $('cWord').focus(); return; }
+    const isNew = ceIndex < 0;
+    const others = S.catalog.categories.filter((c, k) => k !== ceIndex);
+    if (others.some((c) => c.name.toLowerCase() === name.toLowerCase())) return badCat('cName', 'You already have a category with that name.');
+    let id = C.id;
+    if (isNew) {
+      const base = slugify(name).slice(0, 28).replace(/-+$/, '') || 'category';
+      let n = 2; id = base;
+      while (others.some((c) => c.id === id)) id = base + '-' + (n++);
+    }
+    const cat = { id: id, name: name };
+    if (emoji) cat.emoji = emoji;
+    cat.words = C.words.slice();
+    const trial = clone(S.catalog);
+    if (isNew) trial.categories.push(cat); else trial.categories[ceIndex] = cat;
+    const bad = validateCatalog(trial).errors.find((er) => er.where === 'category ' + id || er.where.indexOf('category #') === 0);
+    if (bad) return badCat(bad.field === 'name' ? 'cName' : bad.field === 'emoji' ? 'cEmoji' : null, bad.msg);
+    S.catalog = trial; ceDirty = false; commit(); await closeCat(true);
+    toast(isNew ? 'Category added 🏷️ Now pick it on a product.' : 'Saved ✓');
+  });
+  $('ceDelete').addEventListener('click', async () => {
+    const c = S.catalog.categories[ceIndex];
+    const users = S.catalog.items.filter((it) => (it.categories || []).indexOf(c.id) >= 0);
+    const text = users.length
+      ? 'It is picked on ' + (users.length === 1 ? '1 product' : users.length + ' products') + '. It will be removed from ' + (users.length === 1 ? 'it' : 'them') + ' too.'
+      : 'Pip will stop using its words.';
+    if (!(await ask({ emoji: '🗑️', title: 'Delete “' + c.name + '”?', text: text, yes: 'Delete', no: 'Keep it' }))) return;
+    S.catalog.items.forEach((it) => {
+      if (!it.categories) return;
+      it.categories = it.categories.filter((x) => x !== c.id);
+      if (!it.categories.length) delete it.categories;
+    });
+    S.catalog.categories.splice(ceIndex, 1);
+    commit(); await closeCat(true);
+    toast('Deleted. Undo all brings it back before you publish.');
+  });
+
   // ---------- publish ----------
   async function doPublish() {
     const list = changes();
@@ -855,7 +1066,8 @@
       if (err.code === 'invalid' && err.details.length) {
         const lines = err.details.slice(0, 3).map((d) => {
           const it = S.catalog.items.find((x) => x.id === d.where);
-          return '• ' + (it ? '“' + it.title + '”: ' : '') + d.msg;
+          const cat = String(d.where).indexOf('category ') === 0 ? catById(String(d.where).slice(9)) : null;
+          return '• ' + (it ? '“' + it.title + '”: ' : cat ? 'Category “' + cat.name + '”: ' : '') + d.msg;
         }).join('\n');
         await ask({ emoji: '🛠️', title: 'A few things need a fix', text: lines, yes: 'OK', no: null });
         return;
@@ -878,6 +1090,7 @@
     if (!$('menu').hidden) { toggleMenu(false); $('menuBtn').focus(); return; }
     if (!$('editor').hidden) return closeEditor(false);
     if (!$('linkEditor').hidden) return closeLink();
+    if (!$('catEditor').hidden) return closeCat(false);
   });
   // keep focus inside an open dialog
   document.addEventListener('focusin', (e) => {
@@ -885,7 +1098,7 @@
   });
 
   // ---------- start ----------
-  buildKinds(); buildPlatforms();
+  buildKinds(); buildPlatforms(); buildEmojis();
   (async function start() {
     try {
       const me = await api('GET', 'me');

@@ -33,9 +33,11 @@ TYPES = ["kit", "ebook", "app", "course", "video", "website", "template", "tool"
 PLATFORMS = ["youtube", "instagram", "facebook", "x", "threads", "linkedin", "tiktok", "telegram", "whatsapp",
              "pinterest", "website"]
 LIMITS = {"items": 60, "social": 12, "id": 48, "title": 90, "hook": 100, "text": 260, "kicker": 40, "cta": 24,
-          "price": 14, "imageAlt": 140, "tags": 24, "tag": 32, "url": 600, "label": 30, "help": 2000}
+          "price": 14, "imageAlt": 140, "tags": 24, "tag": 32, "url": 600, "label": 30, "help": 2000,
+          "categories": 40, "catId": 32, "catName": 30, "catEmoji": 8, "catWords": 60, "catWord": 40, "itemCats": 3}
 ITEM_KEYS = ["id", "type", "kicker", "title", "hook", "text", "price", "free", "cta", "image", "imageAlt",
-             "url", "local", "tags", "featured", "hidden"]
+             "url", "local", "tags", "categories", "featured", "hidden"]
+CATEGORY_KEYS = ["id", "name", "emoji", "words"]
 SOCIAL_KEYS = ["platform", "url", "label"]
 ID_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 IMAGE_RE = re.compile(r"^shelf/[a-z0-9]+(-[a-z0-9]+)*\.(jpg|png|webp)$")
@@ -72,7 +74,7 @@ def validate_catalog(cat, image_exists=None):
         err("catalog", "catalog", "The shop file is not readable.")
         return errors
     for k in cat:
-        if k not in ("_help", "items", "social"):
+        if k not in ("_help", "items", "social", "categories"):
             err("catalog", k, "Unknown part: " + k)
     if "_help" in cat and (not _is_str(cat["_help"]) or _js_len(cat["_help"]) > LIMITS["help"]):
         err("catalog", "_help", "Help note is too long.")
@@ -82,6 +84,9 @@ def validate_catalog(cat, image_exists=None):
         return errors
     if len(items) > LIMITS["items"]:
         err("catalog", "items", "Too many products.")
+    cat_ids = set()
+    if isinstance(cat.get("categories"), list):
+        cat_ids = {c["id"] for c in cat["categories"] if isinstance(c, dict) and _is_str(c.get("id"))}
     seen = set()
     for n, it in enumerate(items):
         where = "#%d" % (n + 1)
@@ -141,6 +146,21 @@ def validate_catalog(cat, image_exists=None):
                 for t in it["tags"]:
                     if not _is_str(t) or not t.strip(JS_WS) or _js_len(t) > LIMITS["tag"] or CTRL_RE.search(t):
                         err(where, "tags", "A search word is empty or too long.")
+        if "categories" in it:
+            ic = it["categories"]
+            if not isinstance(ic, list):
+                err(where, "categories", "Categories must be a list.")
+            else:
+                if len(ic) > LIMITS["itemCats"]:
+                    err(where, "categories", "Pick up to 3 categories.")
+                mine = set()
+                for c in ic:
+                    if not _is_str(c) or c not in cat_ids:
+                        err(where, "categories", "A category does not exist.")
+                    elif c in mine:
+                        err(where, "categories", "The same category is picked twice.")
+                    else:
+                        mine.add(c)
     if "social" in cat:
         social = cat["social"]
         if not isinstance(social, list):
@@ -164,6 +184,47 @@ def validate_catalog(cat, image_exists=None):
                     lb = s["label"]
                     if not _is_str(lb) or not lb.strip(JS_WS) or _js_len(lb) > LIMITS["label"] or CTRL_RE.search(lb):
                         err(where, "label", "The name is empty or too long.")
+    if "categories" in cat:
+        cats = cat["categories"]
+        if not isinstance(cats, list):
+            err("catalog", "categories", "Categories must be a list.")
+        else:
+            if len(cats) > LIMITS["categories"]:
+                err("catalog", "categories", "Too many categories.")
+            ids = set()
+
+            def tidy(v, limit):
+                return _is_str(v) and v.strip(JS_WS) != "" and v.strip(JS_WS) == v and _js_len(v) <= limit and not CTRL_RE.search(v)
+            for n, c in enumerate(cats):
+                where = "category #%d" % (n + 1)
+                if not isinstance(c, dict):
+                    err(where, "category", "Not a category.")
+                    continue
+                if _is_str(c.get("id")) and c.get("id"):
+                    where = "category " + c["id"]
+                for k in c:
+                    if k not in CATEGORY_KEYS:
+                        err(where, k, "Unknown field: " + k)
+                cid = c.get("id")
+                if not _is_str(cid) or not ID_RE.fullmatch(cid) or _js_len(cid) > LIMITS["catId"]:
+                    err(where, "id", "Category id can only use a-z, 0-9 and single dashes.")
+                elif cid in ids:
+                    err(where, "id", "Two categories have the same id.")
+                else:
+                    ids.add(cid)
+                if not tidy(c.get("name"), LIMITS["catName"]):
+                    err(where, "name", "The category name is empty or too long.")
+                if "emoji" in c and not tidy(c["emoji"], LIMITS["catEmoji"]):
+                    err(where, "emoji", "The emoji is not allowed.")
+                words = c.get("words")
+                if not isinstance(words, list) or not words:
+                    err(where, "words", "Add some words people type.")
+                else:
+                    if len(words) > LIMITS["catWords"]:
+                        err(where, "words", "Too many words.")
+                    for w in words:
+                        if not tidy(w, LIMITS["catWord"]):
+                            err(where, "words", "A word is empty or too long.")
     return errors
 
 
@@ -187,7 +248,7 @@ def shelf_for(items, site):
         if it.get("hidden"):
             continue
         d = {k: it[k] for k in ("id", "type", "kicker", "title", "hook", "text", "price", "free", "cta",
-                                "image", "imageAlt", "tags", "featured") if k in it}
+                                "image", "imageAlt", "tags", "categories", "featured") if k in it}
         d["url"] = "/tools/%s/" % it["id"] if (site and it.get("local")) else it["url"]
         out.append(d)
     return out
@@ -198,17 +259,22 @@ def read(name):
         return f.read()
 
 
+def categories_for(cat):
+    """Categories with the words people type about each problem. Ask Pip uses them to recommend products."""
+    return [{k: c[k] for k in ("id", "name", "emoji", "words") if k in c} for c in cat.get("categories", [])]
+
+
 def social_for(cat):
     return [{k: s[k] for k in ("platform", "url", "label") if k in s} for s in cat.get("social", [])]
 
 
-def build_html(site_url, pwa, analytics, shelf, social):
+def build_html(site_url, pwa, analytics, shelf, social, categories=()):
     js = "\n".join(read(n) for n in JS_ORDER)
     css = read("style.css")
     if "</script" in js.lower() or "</style" in css.lower():
         raise SystemExit("Refusing to inline: a closing tag was found in the source.")
     config = {"appName": APP_NAME, "siteUrl": site_url, "pwa": pwa, "version": VERSION, "shelf": shelf,
-              "social": social,
+              "social": social, "categories": list(categories),
               # Ask Pip can point to the study guides (live site only; the one-file preview cannot open other pages).
               "guides": [{"slug": g["slug"], "h1": g["h1"]} for g in load_guides()] if pwa else []}
     config_js = "window.FW_CONFIG = " + json.dumps(config).replace("</", "<\\/") + ";"
@@ -396,7 +462,8 @@ def build_admin():
     rules = re.sub(r"^export \{[^}]*\};\s*$", "", rules, flags=re.M)
     if "export " in rules:
         raise SystemExit("lib/catalog-rules.mjs: only one export line at the end is supported")
-    js = read(os.path.join("admin", "admin.js"))
+    # Ask Pip's matching (helper.js) lets the Categories editor test words exactly the way visitors' messages are matched.
+    js = read("helper.js") + "\n" + read(os.path.join("admin", "admin.js"))
     css = read(os.path.join("admin", "admin.css"))
     both = rules + js
     if "</script" in both.lower() or "</style" in css.lower():
@@ -560,8 +627,8 @@ def main():
         return
     os.makedirs(DIST, exist_ok=True)
     cat = load_catalog()
-    items, social = cat["items"], social_for(cat)
-    preview = build_html(site_url, pwa=False, analytics="", shelf=shelf_for(items, False), social=social)
+    items, social, cats = cat["items"], social_for(cat), categories_for(cat)
+    preview = build_html(site_url, pwa=False, analytics="", shelf=shelf_for(items, False), social=social, categories=cats)
     with open(os.path.join(DIST, "preview.html"), "w", encoding="utf-8") as f:
         f.write(preview)
     copy_shelf(DIST, items, False)
@@ -573,7 +640,7 @@ def main():
         shutil.rmtree(out)
     os.makedirs(out)
     with open(os.path.join(out, "index.html"), "w", encoding="utf-8") as f:
-        f.write(build_html(site_url, pwa=True, analytics=analytics, shelf=shelf_for(items, True), social=social))
+        f.write(build_html(site_url, pwa=True, analytics=analytics, shelf=shelf_for(items, True), social=social, categories=cats))
     copy_shelf(out, items, True)
     # Icons and the link-preview picture are drawn once (python3 build.py --icons) and kept in src/static/.
     static = os.path.join(SRC, "static")

@@ -106,10 +106,18 @@ You stay logged in on that phone for 30 days.
 | Show on the break card | **☆ Feature** → **⭐ Featured** |
 | Change the order | **↑** / **↓** |
 | Add your YouTube, Instagram… | **Follow links** tab → **+ Add a follow link** |
+| Let Ask Pip recommend a product | Edit the product → step 6 **Problems it solves** → tap up to 3 categories → **Save** |
+| Add a new category | **Categories** tab → **+ Add a category** → name, emoji, **words people type** (press Enter after each) → **Test it with Pip** → **Save** |
+| Teach Pip more words | **Categories** tab → **Edit** → add words → test a sentence → **Save** |
 | Make it live | **Publish** (bottom bar) → wait for **Live now! 🎉** |
 | Changed your mind before publishing | **Undo all** |
 
 Your changes stay on your phone until you tap **Publish**, even if you close the page.
+
+**How Ask Pip picks products:** each category has a list of words. When a visitor's message contains those words,
+Pip shows the products in that category. Good words are the ones people really type: *"can't sleep"*, *"speak English"*,
+*"resume"*. Test them in the **Test it with Pip** box before saving. Pip is not an AI and does not learn by itself;
+it only knows the words in your categories (plus each product's search words).
 
 ---
 
@@ -140,6 +148,7 @@ and if anything is wrong it stops and the old site stays up.
 | `node tests/test_logic.js` | Focus timer, streaks, scenes |
 | `node tests/test_helper.js` | Ask Pip: typed messages get the right answer and products |
 | `python3 build.py --site` then `python3 tests/ask_test.py` | Ask Pip in a real browser (phone and laptop sizes) |
+| `node tests/dev_server.mjs 8791 /tmp/fw-dev-cats` then `PORT=8791 python3 tests/admin_cats_e2e.py` | My Shop categories → publish → Ask Pip uses them (run one My Shop test at a time) |
 | `node tests/test_rules.mjs` | Product rules: JavaScript and Python copies agree |
 | `node tests/test_admin_api.mjs` | My Shop server: login, upload, publish, conflicts |
 | `node tests/dev_server.mjs 8790 /tmp/fw-dev` then `python3 tests/admin_e2e.py` | Full My Shop test with a fake GitHub that rebuilds on publish |

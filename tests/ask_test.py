@@ -131,6 +131,13 @@ async def main():
         check(any(h == "tel:14416" for _, h in r["acts"]) and any("findahelpline.com" in (h or "") for _, h in r["acts"]) and not r["cards"],
               "someone in danger gets helplines, not products")
 
+        r = await say(pg, "something else is wrong")
+        check(len(r["cards"]) == 4 and any("School" in c for c in r["chips"]) and any("Money" in c for c in r["chips"]),
+              "'something else' shows the shelf and category buttons: %s" % r["chips"])
+        await pg.locator("#askLog .chat-chips button", has_text="Money").click(); await pg.wait_for_timeout(150)
+        r = await last_bot(pg)
+        check("Money & taxes" in r["text"] and len(r["cards"]) == 2, "a category button shows that category's products")
+
         r = await say(pg, "qwzx")
         check("didn’t catch" in r["text"] and r["chips"], "unknown message gets a gentle hint and buttons")
 
@@ -145,7 +152,7 @@ async def main():
         # The chat is still there when it opens again
         await pg.click("#askBtn"); await pg.wait_for_timeout(500)
         n = await pg.evaluate("document.querySelectorAll('#askLog .msg.me').length")
-        check(n >= 7, "conversation is kept while the page is open (%d of my messages)" % n)
+        check(n >= 9, "conversation is kept while the page is open (%d of my messages)" % n)
 
         # Keyboard: Escape closes, focus goes back to the button
         await pg.keyboard.press("Escape"); await pg.wait_for_timeout(500)

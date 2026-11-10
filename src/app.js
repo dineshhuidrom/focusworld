@@ -973,6 +973,10 @@
   var GUIDES = Array.isArray(CFG.guides) ? CFG.guides.filter(function (g) {
     return g && /^[a-z0-9]+(-[a-z0-9]+)*$/.test(g.slug || '') && typeof g.h1 === 'string';
   }) : [];
+  // My Shop categories: the words people type about each problem, so Pip can recommend the right products.
+  var CATEGORIES = Array.isArray(CFG.categories) ? CFG.categories.filter(function (c) {
+    return c && typeof c.id === 'string' && typeof c.name === 'string' && Array.isArray(c.words);
+  }) : [];
   var askStarted = false, askBusy = false;
   var finePointer = (function () { try { return window.matchMedia('(pointer: fine)').matches; } catch (e) { return false; } })();
   var PIP_FACE = '<svg class="avatar" viewBox="0 0 64 64" aria-hidden="true"><path d="M32 22 C32 17 32 14 32 11" stroke="#4e9a46" stroke-width="2.6" stroke-linecap="round" fill="none"/>' +
@@ -986,7 +990,7 @@
   function askCtx() {
     var total = L.totalMin(S), st = L.streakInfo(S.days, now()).current, p = L.progressToNext(total);
     return {
-      products: SHELF, guides: GUIDES, hasSocial: SOCIAL.length > 0,
+      products: SHELF, categories: CATEGORIES, guides: GUIDES, hasSocial: SOCIAL.length > 0,
       streak: st + (st === 1 ? ' day' : ' days'), total: L.fmtDuration(S.totalMs),
       next: p.next ? p.next.name + ', ' + Math.max(1, Math.ceil(p.next.at - total)) + ' min away' : 'nothing left, your island is complete'
     };
@@ -1059,7 +1063,7 @@
       }
     });
     if (r.products.length) {
-      var pre = document.createElement('p'); pre.className = 'pre'; pre.textContent = r.pre; b.appendChild(pre);
+      if (r.pre) { var pre = document.createElement('p'); pre.className = 'pre'; pre.textContent = r.pre; b.appendChild(pre); }
       r.products.forEach(function (p) { b.appendChild(chatCard(p)); });
     }
     var acts = askActions(r);
@@ -1070,7 +1074,7 @@
       var row = document.createElement('div'); row.className = 'chat-chips'; row.setAttribute('role', 'group'); row.setAttribute('aria-label', 'Quick answers');
       r.chips.forEach(function (c) {
         var bt = document.createElement('button'); bt.type = 'button'; bt.textContent = c.label;
-        bt.addEventListener('click', function () { askSend(c.label, c.topic); });
+        bt.addEventListener('click', function () { askSend(c.label, c); });
         row.appendChild(bt);
       });
       el.askLog.appendChild(row);
@@ -1078,13 +1082,15 @@
     askTrim();
     askScroll(m);
   }
-  function askSend(text, topic) {
+  // chip: a tapped button ({ topic } or { cat }) is answered directly, without guessing from the words.
+  function askSend(text, chip) {
     if (askBusy) return false;
     text = String(text || '').replace(/\s+/g, ' ').trim().slice(0, 200);
     if (!text) return false;
     Array.prototype.forEach.call(el.askLog.querySelectorAll('.chat-chips'), function (c) { c.parentNode.removeChild(c); });
     askUserMsg(text);
-    var r = topic ? H.replyTopic(topic, askCtx()) : H.reply(text, askCtx());
+    var ctx = askCtx();
+    var r = chip && chip.cat ? H.replyCategory(chip.cat, ctx) : chip && chip.topic ? H.replyTopic(chip.topic, ctx) : H.reply(text, ctx);
     askBusy = true;
     var dots = document.createElement('div'); dots.className = 'msg bot typing'; dots.setAttribute('aria-hidden', 'true');
     dots.innerHTML = PIP_FACE + '<div class="bubble"><i></i><i></i><i></i></div>';

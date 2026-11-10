@@ -41,10 +41,11 @@
      A word matches the start of a typed word ("distract" matches "distracted"); words of 3 letters or less, or
      ending in "$", must match a whole word. A word ending in "!" is distinctive ("streak!") and scores 3. say: the answer, "• " lines become a list. {streak} {next} {total}
      are filled from the person's own progress (lines are dropped if unknown). q: words used to find matching
-     products, pre: the line shown above them. guides: study guides to suggest, in order (only published ones). */
+     products, pre: the line shown above them. guides: study guides to suggest, in order (only published ones).
+     cat: the My Shop category this topic belongs to; Pip shows 1 product from it under study tips. */
   var TOPICS = [
     // ----- real-life problems the maker has made something for -----
-    { id: 'ai', label: '🤖 Teacher says I used AI',
+    { id: 'ai', cat: 'school', label: '🤖 Teacher says I used AI',
       k: ['ai detector', 'ai detection', 'detector', 'turnitin!', 'gptzero!', 'zerogpt!', 'copyleaks!', 'chatgpt', 'chat gpt',
         'about ai', 'is ai', 'was ai', 'ai checker', 'ai check', 'ai score', 'ai report', 'ai percent',
         'used ai', 'written by ai', 'ai written', 'ai generated', 'accused', 'flagged', 'cheating',
@@ -56,7 +57,7 @@
       w: ['ai$'],
       pre: 'The maker made something for exactly this:', q: 'ai detector accused of ai turnitin chatgpt',
       next: ['stress', 'writing'] },
-    { id: 'tax', label: '📄 Scary IRS letter',
+    { id: 'tax', cat: 'money', label: '📄 Scary IRS letter',
       k: ['irs', 'cp2000!', 'cp 2000', 'tax', 'taxes', 'tax return', 'underreport', '1099', 'owe more', 'audit'],
       say: ['A letter from the IRS can feel scary, but you have options:',
         '• Find the reply date first. Don’t ignore the letter.',
@@ -66,7 +67,7 @@
       next: ['stress', 'shop'] },
 
     // ----- studying -----
-    { id: 'focus', label: '😵 I can’t focus',
+    { id: 'focus', cat: 'focus', label: '😵 I can’t focus',
       k: ['cant focus', 'cannot focus', 'can not focus', 'not able to focus', 'unable to focus', 'lose focus', 'losing focus',
         'distract', 'concentrat', 'scrolling', 'waste time', 'wasting time', 'time waste', 'social media', 'reels', 'mind wander', 'attention span', 'dhyan', 'man nahi lagta', 'focus'],
       w: ['phone', 'instagram', 'youtube', 'tiktok', 'attention'],
@@ -77,7 +78,7 @@
         '• A distracting thought? Write it on paper and deal with it later.',
         'Want a challenge? Phone-free mode makes your sprout droop if you leave the page.'],
       acts: ['start-25', 'settings'], next: ['procrastinate', 'music', 'phonefree'] },
-    { id: 'procrastinate', label: '🐢 I keep putting it off',
+    { id: 'procrastinate', cat: 'focus', label: '🐢 I keep putting it off',
       k: ['procrastinat', 'cant start', 'cannot start', 'cant get started', 'dont want to study', 'no motivation', 'motivat',
         'lazy', 'dont feel like', 'putting it off', 'put it off', 'padhne ka man', 'man nahi karta', 'aalas', 'bored', 'boring',
         'hate studying', 'hate study'],
@@ -88,7 +89,7 @@
         '• Begin with the easiest bit to warm up.',
         'Most people keep going once they start. 🌱'],
       acts: ['start-2'], next: ['focus', 'plan'] },
-    { id: 'exam', label: '⏰ Exam soon!',
+    { id: 'exam', cat: 'study', label: '⏰ Exam soon!',
       k: ['exam tomorrow', 'test tomorrow', 'exam today', 'test today', 'tomorrow exam', 'tomorrow test', 'tomorrow is my',
         'exam is tomorrow', 'last minute', 'night before', 'one day left', '1 day left', 'two days left', '2 days left',
         'few hours left', 'cram', 'exam soon', 'test soon', 'kal exam', 'kal paper', 'paper tomorrow', 'pariksha', 'exam', 'test'],
@@ -100,7 +101,7 @@
         '• Sleep at least 6 hours. Your brain stores what you learned while you sleep.',
         'Good luck! You’ve got this. 💪'],
       acts: ['set-50-10', 'start-25'], next: ['memory', 'stress'] },
-    { id: 'plan', label: '🗓️ Make a study plan',
+    { id: 'plan', cat: 'study', label: '🗓️ Make a study plan',
       k: ['study plan', 'plan$', 'timetable', 'time table', 'schedule', 'routine', 'exam next week', 'exam in a week',
         'next month', 'in a month', 'in two weeks', 'in 2 weeks', 'weeks left', 'syllabus', 'how to prepare', 'prepare for', 'preparation', 'revision plan'],
       say: ['Here’s a simple plan that works:',
@@ -110,7 +111,7 @@
         '• Keep the last few days for practice tests and review.',
         '• Aim for 3 to 5 focus sessions a day, not 12 hours. Steady wins.'],
       acts: ['set-50-10', 'progress'], next: ['memory', 'howlong'] },
-    { id: 'howlong', label: '⏱️ How long should I study?',
+    { id: 'howlong', cat: 'study', label: '⏱️ How long should I study?',
       k: ['how long', 'how many hours', 'hours a day', 'how much time', 'how many minutes', 'pomodoro!', '50 10', '52 17',
         '25 5', 'session length', 'break time', 'how often'],
       w: ['break', 'breaks', 'hours', 'minutes'],
@@ -122,7 +123,7 @@
       acts: ['set-25-5', 'set-50-10', 'set-90-15'],
       guides: ['how-long-to-study-before-a-break', '50-10-study-method', '52-17-rule', 'pomodoro-vs-50-10-vs-52-17'],
       next: ['plan', 'timer'] },
-    { id: 'memory', label: '🧠 Help me remember',
+    { id: 'memory', cat: 'study', label: '🧠 Help me remember',
       k: ['remember', 'memoriz', 'memoris', 'forget', 'forgot', 'retain', 'recall', 'learn faster', 'flashcard', 'yaad', 'bhool'],
       w: ['revise', 'revision', 'learn'],
       say: ['Reading again and again feels like learning, but testing yourself works much better:',
@@ -131,7 +132,7 @@
         '• Explain it in simple words, as if teaching a friend.',
         '• Turn your notes into questions and answer them later.'],
       acts: ['start-25'], next: ['plan', 'focus'] },
-    { id: 'reading', label: '📖 I don’t understand it',
+    { id: 'reading', cat: 'study', label: '📖 I don’t understand it',
       k: ['confus', 'take notes', 'note taking', 'notes', 'read faster', 'textbook', 'chapter', 'difficult topic', 'hard topic',
         'hard subject', 'samajh'],
       w: ['dont understand', 'do not understand', 'understand', 'reading', 'read', 'maths', 'math', 'physics', 'chemistry', 'science', 'difficult', 'hard'],
@@ -141,7 +142,7 @@
         '• Still stuck? Try another explanation: a video, another book, or ask a friend or teacher.',
         '• For maths and science, do practice problems. Reading the answers isn’t enough.'],
       acts: ['start-25'], next: ['memory', 'focus'] },
-    { id: 'writing', label: '✍️ Big assignment',
+    { id: 'writing', cat: 'study', label: '✍️ Big assignment',
       k: ['homework', 'assignment', 'essay', 'project', 'thesis', 'dissertation', 'deadline', 'due tomorrow', 'due date'],
       w: ['write', 'writing', 'report', 'due'],
       say: ['Big work feels easier in small pieces:',
@@ -150,7 +151,7 @@
         '• One step per focus session. Tick it off.',
         '• Keep your drafts and notes. Version history can also prove the work is yours.'],
       acts: ['set-50-10', 'start-25'], next: ['procrastinate', 'plan'] },
-    { id: 'sleepy', label: '😴 I’m sleepy',
+    { id: 'sleepy', cat: 'calm', label: '😴 I’m sleepy',
       k: ['sleepy', 'sleep', 'tired', 'exhausted', 'yawn', 'drowsy', 'no energy', 'low energy', 'fall asleep', 'neend', 'nind'],
       say: ['A tired brain learns slowly, so be kind to it:',
         '• Stand up, drink water, splash your face, move for 2 minutes.',
@@ -158,7 +159,7 @@
         '• Try a short 15-minute session, then decide.',
         '• If it’s late, go to sleep. A good night’s sleep helps you remember more than one more tired hour.'],
       acts: ['start-15'], next: ['plan', 'focus'] },
-    { id: 'stress', label: '😟 I’m stressed',
+    { id: 'stress', cat: 'calm', label: '😟 I’m stressed',
       k: ['stress!', 'anxious!', 'anxiety!', 'panic!', 'overwhelm!', 'pressure', 'tension', 'scared', 'afraid', 'nervous', 'worried',
         'worry', 'depress!', 'hopeless!', 'cant do this', 'give up', 'giving up', 'lonely', 'ghabra', 'dar lag', 'overthink'],
       w: ['sad', 'cry', 'crying', 'upset'],
@@ -170,7 +171,7 @@
         '• Tell someone you trust how you feel. You don’t have to carry it alone.',
         'If you’ve felt low for a long time, please talk to a doctor or counsellor. In India you can call Tele-MANAS on 14416, free, any time.'],
       acts: ['start-2', 'sounds'], next: ['exam', 'plan'] },
-    { id: 'failed', label: '\uD83D\uDE1E I failed a test',
+    { id: 'failed', cat: 'study', label: '\uD83D\uDE1E I failed a test',
       k: ['failed!', 'i failed', 'fail my', 'failing', 'bad marks', 'low marks', 'less marks', 'poor marks', 'bad grade', 'low grade',
         'bad result', 'low score', 'flunk', 'backlog', 'compartment', 'didnt pass', 'did not pass', 'not pass'],
       say: ['I\u2019m sorry. That really hurts. \uD83D\uDC9B One result doesn\u2019t decide your future.',
@@ -190,7 +191,7 @@
         'No sound? Turn up your volume, check silent mode, then tap a sound in Sounds.'],
       acts: ['sounds'], guides: ['pomodoro-timer-with-lofi-music'], next: ['focus'] },
 
-    { id: 'study', label: '📚 Help me study',
+    { id: 'study', cat: 'study', label: '📚 Help me study',
       k: ['study tips', 'help me study', 'how to study', 'study better', 'study more', 'study hard', 'padhai', 'study', 'studying'],
       w: ['learn'],
       say: ['Happy to help! What’s the hardest part right now?'],
@@ -329,7 +330,9 @@
         'Tap \u2715 on it and it hides until your next break.'],
       next: ['free'] },
     { id: 'language', label: '🗣️ Other languages',
-      k: ['hindi', 'language', 'bengali', 'manipuri', 'meitei', 'tamil', 'telugu', 'marathi', 'urdu', 'spanish', 'french', 'translate'],
+      k: ['in hindi', 'hindi me', 'speak hindi', 'in manipuri', 'in meitei', 'in bengali', 'in tamil', 'in telugu', 'in marathi',
+        'other language', 'another language', 'change language', 'change the language', 'your language', 'language$',
+        'translate this', 'translate the app', 'translate it'],
       say: ['Right now Focus World and I only speak simple English. More languages may come later!'] },
 
     // ----- the maker -----
@@ -369,6 +372,8 @@
       next: 'main' }
   ];
   var MAIN = ['study', 'focus', 'exam', 'stress', 'what', 'shop'];
+  // Small talk: a category the person mentioned wins over these ("hi, I want to learn guitar").
+  var CHATTY = { hello: true, ok: true, thanks: true, bye: true, menu: true };
 
   // A person in danger needs a person, not a study tip. Checked before anything else.
   var CRISIS = ['suicid', 'kill myself', 'killing myself', 'end my life', 'end it all', 'want to die', 'wanna die', 'wish i was dead',
@@ -496,6 +501,60 @@
       .slice(0, max).map(function (x) { return x.p; });
   }
 
+  // ---------- categories (from My Shop) ----------
+  /* Each category has words people type about that problem. A word matches a whole typed word, its plural,
+     or the start of a longer word when it has 5+ letters ("procrastinat" style); a phrase matches as written.
+     A clear typo in a long word (7+ letters) still counts. */
+  function catWordHit(w, norm, toks, used) {
+    if (w.indexOf(' ') >= 0) return termIn(w, norm, toks) ? 3 : 0;
+    for (var i = 0; i < toks.length; i++) {
+      var t = toks[i];
+      if (t === w || t === w + 's' || t === w + 'es' || (w.length >= 5 && t.indexOf(w) === 0)) { used[i] = true; return 2; }
+    }
+    return 0;
+  }
+  function catTypo(w, toks, used) {
+    if (w.length < 7 || w.indexOf(' ') >= 0) return 0;
+    for (var i = 0; i < toks.length; i++) {
+      var t = toks[i];
+      if (used[i] || t.length < 5 || t.charAt(0) !== w.charAt(0)) continue;
+      for (var L = w.length - 1; L <= w.length + 1; L++) if (t.length >= L && dist(t.slice(0, L), w) <= 1) { used[i] = true; return 2; }
+    }
+    return 0;
+  }
+  function categoryScore(c, norm, toks) {
+    var s = 0, used = {}, missed = [], seen = {};
+    var words = (c.words || []).concat([c.name || '']).map(normalize).filter(function (w) {
+      if (!w || seen[w]) return false;
+      seen[w] = true; return true;
+    });
+    words.forEach(function (w) { var h = catWordHit(w, norm, toks, used); if (h) s += h; else missed.push(w); });
+    missed.forEach(function (w) { s += catTypo(w, toks, used); });
+    return s;
+  }
+  // Categories that have at least one product, with their products in the My Shop order.
+  function liveCategories(ctx) {
+    var products = (ctx && ctx.products) || [];
+    return ((ctx && ctx.categories) || []).map(function (c) {
+      return { c: c, products: products.filter(function (p) { return (p.categories || []).indexOf(c.id) >= 0; }) };
+    }).filter(function (x) { return x.products.length > 0; });
+  }
+  function catLabel(c) { return (c.emoji ? c.emoji + ' ' : '') + c.name; }
+  function catChip(c) { return { label: catLabel(c), cat: c.id }; }
+  function productsIn(ctx, id) {
+    var live = liveCategories(ctx);
+    for (var i = 0; i < live.length; i++) if (live[i].c.id === id) return live[i].products;
+    return [];
+  }
+  // The answer for a category: its products, and other categories to browse.
+  function categoryAnswer(c, ctx, firstChip) {
+    var list = productsIn(ctx, c.id);
+    var chips = liveCategories(ctx).filter(function (x) { return x.c.id !== c.id; }).slice(0, 4).map(function (x) { return catChip(x.c); });
+    if (firstChip) chips.unshift(firstChip);
+    return { id: 'cat:' + c.id, say: ['Here\u2019s what the maker has for ' + catLabel(c) + ':'], pre: null,
+      products: list.slice(0, 4), acts: list.length > 4 ? ['tools'] : [], guides: [], chips: chips.slice(0, 6) };
+  }
+
   // ---------- answers ----------
   function chip(id) {
     var t = topicById(id);
@@ -521,21 +580,39 @@
   function mainChips() { return MAIN.map(chip).filter(Boolean); }
 
   // Turn a topic into an answer the chat can show.
-  function answer(topic, ctx, extraText) {
+  // textCat: the category the typed words matched best (with its score), if any.
+  function answer(topic, ctx, extraText, textCat) {
     ctx = ctx || {};
     var products = ctx.products || [];
     var out = { id: topic.id, say: fill(topic.say, ctx), pre: null, products: [], acts: [], guides: [], chips: [] };
     var found = [];
-    if (topic.all) found = products.slice(0, 6);
-    else {
-      if (topic.q) found = findProducts(topic.q, products, 3, 2);
-      if (extraText) {
-        findProducts(extraText, products, 3, 2).forEach(function (p) { if (found.indexOf(p) < 0) found.push(p); });
-      }
+    function add(list) { (list || []).forEach(function (p) { if (found.indexOf(p) < 0) found.push(p); }); }
+    var live = topic.all ? liveCategories(ctx) : [];
+    if (topic.all) {
+      // "Something else is wrong": topic buttons when there are categories; the whole shelf when it is small.
+      if (!live.length || products.length <= 4) found = products.slice(0, 6);
+    } else if (topic.q) {
+      // A real-life problem: up to 2 products, from its words, its category and what was typed.
+      add(findProducts(topic.q, products, 3, 2));
+      add(productsIn(ctx, topic.cat));
+      if (textCat && textCat.score >= 2) add(productsIn(ctx, textCat.c.id));
+      if (extraText) add(findProducts(extraText, products, 3, 2));
       found = found.slice(0, 2);
+    } else if (topic.cat) {
+      // Study tips: just 1 product, from the clearest category.
+      if (textCat && textCat.score >= 3) add(productsIn(ctx, textCat.c.id));
+      if (extraText) add(findProducts(extraText, products, 3, 1));
+      add(productsIn(ctx, topic.cat));
+      found = found.slice(0, 1);
+    } else if (extraText) {
+      found = findProducts(extraText, products, 3, 2);
     }
-    if (found.length) { out.pre = topic.pre || 'This might help:'; out.products = found; }
-    else if (topic.all) out.say = ['The maker\u2019s shelf is still being stocked. Check back soon! \uD83C\uDF31'];
+    if (found.length) { out.pre = topic.pre || (topic.cat && !topic.q ? 'From the maker:' : 'This might help:'); out.products = found; }
+    else if (topic.all && !live.length) out.say = ['The maker\u2019s shelf is still being stocked. Check back soon! \uD83C\uDF31'];
+    if (topic.all && live.length) {
+      out.say = ['Tell me in a few words what\u2019s going on, like \u201Cmy teacher says I used AI\u201D, or pick a topic:'];
+      if (found.length) out.pre = 'Or see everything the maker has made:';
+    }
     out.acts = (topic.acts || []).filter(function (a) {
       if (a === 'follow') return !!ctx.hasSocial;
       return !!ACTIONS[a];
@@ -546,7 +623,7 @@
     (ctx.guides || []).forEach(function (g) { have[g.slug] = g; });
     out.guides = (topic.guides || []).filter(function (s) { return have[s]; }).slice(0, 2).map(function (s) { return have[s]; });
     var next = topic.next === 'main' ? MAIN : (topic.next || []);
-    out.chips = next.map(chip).filter(Boolean);
+    out.chips = topic.all && live.length ? live.map(function (x) { return catChip(x.c); }) : next.map(chip).filter(Boolean);
     if (!out.chips.length && topic.id !== 'crisis') out.chips = mainChips().filter(function (c) { return c.topic !== topic.id; }).slice(0, 4);
     return out;
   }
@@ -572,8 +649,33 @@
       if (s > bestScore) { second = best; secondScore = bestScore; best = t; bestScore = s; }
       else if (s > secondScore) { second = t; secondScore = s; }
     });
+    // The category (with products) that the typed words match best.
+    var textCat = null;
+    liveCategories(ctx).forEach(function (x) {
+      var sc = categoryScore(x.c, norm, toks);
+      if (sc >= 2 && (!textCat || sc > textCat.score)) textCat = { c: x.c, score: sc };
+    });
+    var chatty = best && CHATTY[best.id];
+    // Study tips and real-life problems keep their written answer (with a product under it). A category wins when
+    // nothing else fits ("How do I speak English fluently?"), over small talk, or over an unrelated how-to topic
+    // ("grow my YouTube channel" is not about growing the island). That topic then becomes the first button.
+    var ownAnswer = best && bestScore >= 2 && (best.cat || best.q);
+    if (textCat && !ownAnswer && (bestScore < 2 || chatty || (textCat.score >= 3 && textCat.score >= bestScore + 2))) {
+      return categoryAnswer(textCat.c, ctx, best && !chatty && bestScore >= 2 && best.label ? chip(best.id) : null);
+    }
+    // A category the maker has no products for yet: say so honestly instead of "I didn't catch that".
+    var known = null;
+    (ctx.categories || []).forEach(function (c) {
+      var sc = categoryScore(c, norm, toks);
+      if (sc >= 2 && (!known || sc > known.score)) known = { c: c, score: sc };
+    });
+    if (known && (!(best && bestScore >= 2) || chatty)) {
+      return { id: 'cat-empty:' + known.c.id,
+        say: ['That sounds like ' + catLabel(known.c) + '. The maker hasn\u2019t made anything for that yet. Check back soon! \uD83C\uDF31'],
+        pre: null, products: [], acts: [], guides: [], chips: mainChips() };
+    }
     if (best && bestScore >= 2) {
-      var out = answer(best, ctx, text);
+      var out = answer(best, ctx, text, textCat);
       // A second clear topic in the same message ("exam tomorrow and I can't focus") becomes the first button.
       if (second && secondScore >= 3 && second.label) {
         out.chips = [chip(second.id)].concat(out.chips.filter(function (c) { return c.topic !== second.id; })).slice(0, 6);
@@ -594,7 +696,17 @@
     return t ? answer(t, ctx || {}, '') : welcome(ctx);
   }
 
+  // Pressing a category button shows that category's products.
+  function replyCategory(id, ctx) {
+    var live = liveCategories(ctx || {});
+    for (var i = 0; i < live.length; i++) if (live[i].c.id === id) return categoryAnswer(live[i].c, ctx || {}, null);
+    return replyTopic('shop', ctx);
+  }
+
   var api = { ACTIONS: ACTIONS, TOPICS: TOPICS, MAIN: MAIN, normalize: normalize, reply: reply, replyTopic: replyTopic,
+    replyCategory: replyCategory, liveCategories: liveCategories, categoryScore: function (c, text) {
+      var n = normalize(text); return categoryScore(c, n, tokens(n));
+    },
     welcome: welcome, findProducts: findProducts, isCrisis: function (s) { return isCrisis(normalize(s)); } };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.FWHelper = api;

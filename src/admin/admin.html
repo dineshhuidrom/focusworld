@@ -52,6 +52,7 @@
   <nav class="tabs" role="tablist" aria-label="Shop parts">
     <button type="button" role="tab" id="tabProducts" aria-selected="true" aria-controls="paneProducts">Products <em id="countProducts">0</em></button>
     <button type="button" role="tab" id="tabLinks" aria-selected="false" aria-controls="paneLinks">Follow links <em id="countLinks">0</em></button>
+    <button type="button" role="tab" id="tabCats" aria-selected="false" aria-controls="paneCats">Categories <em id="countCats">0</em></button>
   </nav>
 
   <section id="paneProducts" role="tabpanel" aria-labelledby="tabProducts" class="pane">
@@ -72,6 +73,17 @@
       <span>Add your YouTube, Instagram or anything else.</span>
     </div>
     <button type="button" class="btn primary add" id="addLink"><span aria-hidden="true">+</span> Add a follow link</button>
+  </section>
+
+  <section id="paneCats" role="tabpanel" aria-labelledby="tabCats" class="pane" hidden>
+    <p class="muted pad">&#x1F331; <b>Ask Pip</b> uses these to recommend your products. Each category has <b>words people type</b> about that problem.
+      When someone&rsquo;s words match, Pip shows the products in that category.</p>
+    <div id="catList" class="list"></div>
+    <div id="catsEmpty" class="empty" hidden>
+      <b>No categories yet</b>
+      <span>Add one, like &ldquo;English speaking&rdquo;.</span>
+    </div>
+    <button type="button" class="btn primary add" id="addCat"><span aria-hidden="true">+</span> Add a category</button>
   </section>
 
   <footer class="publish" id="publishBar" hidden>
@@ -148,7 +160,14 @@
     </fieldset>
 
     <fieldset class="step">
-      <legend><i>6</i> Extras <small>(you can skip these)</small></legend>
+      <legend><i>6</i> Problems it solves</legend>
+      <p class="hint">Pick up to 3. Ask Pip shows this product when someone&rsquo;s words match one of them.</p>
+      <div class="cat-pick" id="catPick" role="group" aria-label="Categories, pick up to 3"></div>
+      <p class="hint" id="catHint" aria-live="polite"></p>
+    </fieldset>
+
+    <fieldset class="step">
+      <legend><i>7</i> Extras <small>(you can skip these)</small></legend>
       <label class="field"><span>Search words (who is it for?) — press Enter after each</span>
         <div class="tags" id="tagBox"><input id="fTag" maxlength="32" placeholder="e.g. exam" autocomplete="off" enterkeyhint="enter"></div></label>
       <label class="switch-row"><span><b>Show on the break card</b><small>Featured products can pop up during breaks</small></span>
@@ -182,6 +201,42 @@
     </fieldset>
     <p class="msg" id="leMsg" role="alert"></p>
     <button type="button" class="danger-btn" id="leDelete" hidden>Delete this link</button>
+  </div>
+</section>
+
+<!-- ============ category editor ============ -->
+<section id="catEditor" class="editor small-ed" role="dialog" aria-modal="true" aria-labelledby="ceTitle" hidden>
+  <header class="ed-head">
+    <button type="button" class="ghost-btn" id="ceCancel">Cancel</button>
+    <h2 id="ceTitle">Category</h2>
+    <button type="button" class="btn primary small" id="ceSave">Save</button>
+  </header>
+  <div class="ed-body">
+    <fieldset class="step">
+      <legend><i>1</i> Name and picture</legend>
+      <div class="cat-head">
+        <label class="field emoji-field"><span>Emoji</span>
+          <input id="cEmoji" maxlength="8" placeholder="&#x1F331;" autocomplete="off" aria-describedby="emojiHelp"></label>
+        <label class="field"><span>Name <small class="count" data-for="cName"></small></span>
+          <input id="cName" maxlength="30" placeholder="e.g. English speaking" autocomplete="off"></label>
+      </div>
+      <p class="hint" id="emojiHelp">Tap one, or type your own:</p>
+      <div class="emoji-pick" id="emojiPick" role="group" aria-label="Pick an emoji"></div>
+    </fieldset>
+    <fieldset class="step">
+      <legend><i>2</i> Words people type</legend>
+      <p class="hint">Write how people describe the problem, like <b>can&rsquo;t sleep</b> or <b>insomnia</b>. 10&ndash;20 words work best.</p>
+      <label class="field"><span>Words &mdash; press Enter after each <small id="wordCount"></small></span>
+        <div class="tags" id="cWordBox"><input id="cWord" maxlength="40" placeholder="e.g. speak english" autocomplete="off" enterkeyhint="enter"></div></label>
+    </fieldset>
+    <fieldset class="step">
+      <legend><i>3</i> Test it with Pip</legend>
+      <label class="field"><span>Type what a visitor might say</span>
+        <input id="cTry" maxlength="200" placeholder="e.g. I&rsquo;m scared to speak in English" autocomplete="off"></label>
+      <p class="try-result" id="cTryRes" aria-live="polite"></p>
+    </fieldset>
+    <p class="msg" id="ceMsg" role="alert"></p>
+    <button type="button" class="danger-btn" id="ceDelete" hidden>Delete this category</button>
   </div>
 </section>
 

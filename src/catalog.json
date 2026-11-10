@@ -1,5 +1,5 @@
 {
-  "_help": "Edited by the My Shop page (/admin/). One entry per product. type: kit | ebook | app | course | video | website | template | tool. Use price (e.g. \"$19\") or free: true. image: a 16:9 picture in src/shelf/. url: the sales page (https). local: optional page in src/tools/ hosted on our own site. featured: shown on the break card. hidden: kept but not shown. tags: words people might search for. social: Follow links shown in the Toolshed.",
+  "_help": "Edited by the My Shop page (/admin/). One entry per product. type: kit | ebook | app | course | video | website | template | tool. Use price (e.g. \"$19\") or free: true. image: a 16:9 picture in src/shelf/. url: the sales page (https). local: optional page in src/tools/ hosted on our own site. featured: shown on the break card. hidden: kept but not shown. tags: words people might search for. categories: up to 3 category ids from the categories list (Ask Pip recommends products by category). social: Follow links shown in the Toolshed. categories (list): id, name, emoji, words people type about that problem.",
   "items": [
     {
       "id": "paper-trail",
@@ -32,6 +32,9 @@
         "proof",
         "teacher",
         "professor"
+      ],
+      "categories": [
+        "school"
       ]
     },
     {
@@ -58,6 +61,9 @@
         "student",
         "essay",
         "free"
+      ],
+      "categories": [
+        "school"
       ]
     },
     {
@@ -85,6 +91,9 @@
         "usa",
         "money",
         "refund"
+      ],
+      "categories": [
+        "money"
       ]
     },
     {
@@ -111,6 +120,9 @@
         "usa",
         "money",
         "free"
+      ],
+      "categories": [
+        "money"
       ]
     }
   ],
@@ -119,6 +131,329 @@
       "platform": "instagram",
       "url": "https://www.instagram.com/speakaheadacademy?mdxt=M3V3ZXk1ZnFzcHhx",
       "label": "Speak Ahead Academy"
+    }
+  ],
+  "categories": [
+    {
+      "id": "study",
+      "name": "Study & exams",
+      "emoji": "📚",
+      "words": [
+        "study",
+        "studying",
+        "exam",
+        "test",
+        "revision",
+        "revise",
+        "notes",
+        "homework",
+        "syllabus",
+        "marks",
+        "grades",
+        "board exam",
+        "neet",
+        "jee",
+        "upsc",
+        "ssc",
+        "cbse",
+        "entrance exam",
+        "competitive exam",
+        "mock test",
+        "past papers",
+        "memorize",
+        "learn faster",
+        "class 10",
+        "class 12",
+        "tuition",
+        "padhai",
+        "semester",
+        "assignment"
+      ]
+    },
+    {
+      "id": "english",
+      "name": "English speaking",
+      "emoji": "🗣️",
+      "words": [
+        "english",
+        "speak english",
+        "spoken english",
+        "english speaking",
+        "speaking",
+        "fluency",
+        "fluent",
+        "pronunciation",
+        "accent",
+        "grammar",
+        "vocabulary",
+        "ielts",
+        "toefl",
+        "pte",
+        "communication skills",
+        "public speaking",
+        "hesitate",
+        "hesitation",
+        "conversation",
+        "presentation",
+        "talk confidently",
+        "speaking confidence"
+      ]
+    },
+    {
+      "id": "school",
+      "name": "School & college problems",
+      "emoji": "🎓",
+      "words": [
+        "teacher",
+        "professor",
+        "principal",
+        "dean",
+        "ai detector",
+        "turnitin",
+        "gptzero",
+        "accused",
+        "plagiarism",
+        "cheating",
+        "academic integrity",
+        "misconduct",
+        "used ai",
+        "chatgpt",
+        "grade appeal",
+        "college email",
+        "university email",
+        "suspended",
+        "flagged"
+      ]
+    },
+    {
+      "id": "jobs",
+      "name": "Jobs & careers",
+      "emoji": "💼",
+      "words": [
+        "job",
+        "career",
+        "resume",
+        "cv",
+        "interview",
+        "hiring",
+        "job search",
+        "apply for job",
+        "salary",
+        "promotion",
+        "internship",
+        "fresher",
+        "linkedin",
+        "cover letter",
+        "unemployed",
+        "work from home",
+        "naukri",
+        "placement",
+        "government job",
+        "sarkari"
+      ]
+    },
+    {
+      "id": "money",
+      "name": "Money & taxes",
+      "emoji": "💰",
+      "words": [
+        "money",
+        "tax",
+        "irs",
+        "cp2000",
+        "budget",
+        "save money",
+        "saving",
+        "debt",
+        "loan",
+        "emi",
+        "invest",
+        "income",
+        "bills",
+        "expenses",
+        "credit card",
+        "bank",
+        "gst",
+        "itr",
+        "income tax",
+        "finance",
+        "owe"
+      ]
+    },
+    {
+      "id": "business",
+      "name": "Business & selling",
+      "emoji": "🏪",
+      "words": [
+        "business",
+        "small business",
+        "start a business",
+        "customer",
+        "sales",
+        "selling",
+        "sell my",
+        "marketing",
+        "client",
+        "brand",
+        "startup",
+        "side hustle",
+        "freelance",
+        "freelancing",
+        "online store",
+        "dropshipping",
+        "shopify",
+        "meta ads",
+        "facebook ads",
+        "leads"
+      ]
+    },
+    {
+      "id": "content",
+      "name": "YouTube & content",
+      "emoji": "🎬",
+      "words": [
+        "youtube",
+        "youtube channel",
+        "youtuber",
+        "channel",
+        "subscriber",
+        "views",
+        "video editing",
+        "edit videos",
+        "editing",
+        "content creator",
+        "content",
+        "thumbnail",
+        "viral",
+        "monetize",
+        "monetization",
+        "podcast",
+        "grow my instagram",
+        "followers",
+        "instagram growth",
+        "shorts"
+      ]
+    },
+    {
+      "id": "tech",
+      "name": "Apps & tech",
+      "emoji": "💻",
+      "words": [
+        "app",
+        "website",
+        "coding",
+        "code",
+        "programming",
+        "software",
+        "ai tools",
+        "excel",
+        "tech",
+        "wordpress",
+        "no code",
+        "automation",
+        "build an app",
+        "make a website",
+        "computer skills"
+      ]
+    },
+    {
+      "id": "focus",
+      "name": "Focus & habits",
+      "emoji": "⏱️",
+      "words": [
+        "focus",
+        "procrastinate",
+        "procrastination",
+        "distracted",
+        "distraction",
+        "habit",
+        "routine",
+        "discipline",
+        "motivation",
+        "productivity",
+        "productive",
+        "time management",
+        "planner",
+        "to do list",
+        "consistency",
+        "consistent",
+        "lazy",
+        "wake up early",
+        "morning routine",
+        "phone addiction"
+      ]
+    },
+    {
+      "id": "calm",
+      "name": "Calm & sleep",
+      "emoji": "🧘",
+      "words": [
+        "stress",
+        "stressed",
+        "anxiety",
+        "anxious",
+        "calm",
+        "relax",
+        "sleep",
+        "cant sleep",
+        "insomnia",
+        "overthinking",
+        "meditation",
+        "meditate",
+        "breathing",
+        "burnout",
+        "tired",
+        "mindfulness",
+        "peace of mind",
+        "panic"
+      ]
+    },
+    {
+      "id": "languages",
+      "name": "Other languages",
+      "emoji": "🌐",
+      "words": [
+        "language",
+        "learn korean",
+        "korean",
+        "japanese",
+        "french",
+        "spanish",
+        "german",
+        "chinese",
+        "arabic",
+        "learn hindi",
+        "learn a language",
+        "duolingo",
+        "translate"
+      ]
+    },
+    {
+      "id": "creative",
+      "name": "Creative skills",
+      "emoji": "🎨",
+      "words": [
+        "drawing",
+        "draw",
+        "painting",
+        "art",
+        "music production",
+        "make music",
+        "guitar",
+        "piano",
+        "singing",
+        "sing",
+        "design",
+        "graphic design",
+        "canva",
+        "photography",
+        "photo editing",
+        "writing stories",
+        "poetry",
+        "dance",
+        "craft",
+        "animation"
+      ]
     }
   ]
 }

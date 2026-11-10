@@ -161,4 +161,88 @@ t('empty or odd input is handled', () => {
   assert.ok(H.reply('x'.repeat(5000), ctx));
 });
 
+// ---------- categories from My Shop ----------
+const catalog = require('../src/catalog.json');
+const extra = [
+  { id: 'speak-ahead-course', type: 'course', title: 'Speak English with confidence in 30 days', hook: 'Scared to speak English?',
+    price: '\u20B9999', categories: ['english', 'jobs'], url: 'https://example.com/a', image: 'shelf/a.jpg' },
+  { id: 'yt-growth', type: 'ebook', title: 'Grow your first channel', price: '$9', categories: ['content'], url: 'https://example.com/b', image: 'shelf/b.jpg' },
+  { id: 'focus-planner', type: 'template', title: 'Daily planner', price: '$5', categories: ['focus', 'study'], url: 'https://example.com/c', image: 'shelf/c.jpg' },
+  { id: 'calm-audio', type: 'video', title: 'Ten quiet minutes', free: true, categories: ['calm'], url: 'https://example.com/d', image: 'shelf/d.jpg' }
+];
+const cctx = { products: products.concat(extra), categories: catalog.categories, guides: [], hasSocial: true };
+const ids = (r) => r.products.map((p) => p.id);
+
+t('every starter category is well formed and has words', () => {
+  assert.strictEqual(catalog.categories.length, 12);
+  for (const c of catalog.categories) assert.ok(c.name && c.emoji && c.words.length >= 10, c.id);
+});
+
+t('typed problems find the products in that category', () => {
+  const want = [
+    ['how to speak english fluently', 'cat:english', ['speak-ahead-course']],
+    ['i want to improve my english speaking', 'cat:english', ['speak-ahead-course']],
+    ['public speaking tips', 'cat:english', ['speak-ahead-course']],
+    ['resume tips', 'cat:jobs', ['speak-ahead-course']],
+    ['how do i grow my youtube channel', 'cat:content', ['yt-growth']],
+    ['hi, how can I improve my pronounciation', 'cat:english', ['speak-ahead-course']]   // typo still works
+  ];
+  for (const [q, id, prods] of want) {
+    const r = H.reply(q, cctx);
+    assert.strictEqual(r.id, id, q + ' -> ' + r.id);
+    assert.deepStrictEqual(ids(r), prods, q);
+  }
+});
+
+t('study tips stay, with just 1 product from the matching category', () => {
+  for (const [q, id, prod] of [['i cant focus', 'focus', 'focus-planner'], ['exam tomorrow', 'exam', 'focus-planner'],
+    ['I am so stressed', 'stress', 'calm-audio'], ['i cant sleep', 'sleepy', 'calm-audio'], ['i waste time on youtube', 'focus', 'focus-planner']]) {
+    const r = H.reply(q, cctx);
+    assert.strictEqual(r.id, id, q);
+    assert.deepStrictEqual(ids(r), [prod], q);
+    assert.strictEqual(r.pre, 'From the maker:');
+  }
+  // a clear category in the words beats the topic's own category
+  assert.deepStrictEqual(ids(H.reply('I am nervous about my english speaking test', cctx)), ['speak-ahead-course']);
+});
+
+t('real-life problems still get their own advice and products', () => {
+  assert.deepStrictEqual(ids(H.reply('my teacher says I used ChatGPT', cctx)).sort(), ['first-reply', 'paper-trail']);
+  assert.deepStrictEqual(ids(H.reply('I got a letter from the IRS', cctx)).sort(), ['cp2000-kit', 'irs-letter-check']);
+});
+
+t('how-to questions about the app never show products', () => {
+  for (const q of ['what can i unlock', 'how do i grow my island', 'how do streaks work', 'can i install it']) {
+    assert.deepStrictEqual(ids(H.reply(q, cctx)), [], q);
+  }
+});
+
+t('a category with no products yet gets an honest answer', () => {
+  for (const q of ['learn korean', 'I want to learn French', 'hi i want to learn guitar']) {
+    const r = H.reply(q, cctx);
+    assert.ok(r.id.indexOf('cat-empty:') === 0, q + ' -> ' + r.id);
+    assert.ok(/hasn.t made anything/.test(r.say[0]));
+  }
+});
+
+t('"Something else is wrong" shows topic buttons for categories that have products', () => {
+  const r = H.replyTopic('shop', cctx);
+  const cats = r.chips.map((c) => c.cat);
+  assert.deepStrictEqual(cats, ['study', 'english', 'school', 'jobs', 'money', 'content', 'focus', 'calm']);
+  assert.deepStrictEqual(ids(r), []);           // 8 products: too many to list, the buttons lead to them
+  const small = H.replyTopic('shop', Object.assign({}, cctx, { products }));
+  assert.strictEqual(ids(small).length, 4);    // the real shop today: 4 products, all shown, plus buttons
+  assert.deepStrictEqual(small.chips.map((c) => c.cat), ['school', 'money']);
+  const c = H.replyCategory('english', cctx);
+  assert.deepStrictEqual(ids(c), ['speak-ahead-course']);
+  assert.ok(c.chips.every((x) => x.cat !== 'english'));
+  assert.strictEqual(H.replyCategory('languages', cctx).id, 'shop');   // empty category button can't exist; falls back
+});
+
+t('safety answer never shows products, even with categories', () => {
+  const r = H.reply('I am so stressed I want to die', cctx);
+  assert.strictEqual(r.id, 'crisis');
+  assert.deepStrictEqual(r.products, []);
+});
+
 console.log('helper tests passed:', passed);
