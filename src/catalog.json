@@ -34,13 +34,12 @@
     {
       "id": "first-reply",
       "type": "tool",
-      "free": true,
-      "featured": true,
       "kicker": "Free · For students",
       "title": "Free: write a calm first reply to your teacher",
       "hook": "Accused of using AI? Write a calm first reply, free.",
       "text": "Answer a few small questions and get a short, kind first reply, plus the things you should not do yet. No sign-up.",
       "details": "## Your first reply matters\nWhen a teacher says your work looks AI-written, it is easy to panic and send a long or angry email. This free tool helps you write a short, calm and respectful first reply instead.\n\n## How it works\n- Answer a few small questions about what happened\n- Get a short first reply you can copy and send\n- See the things you should not do yet\n\n## Free, no sign-up\nIt works in your browser. No account is needed.\n\n## Need more than a first reply?\nTo build full proof of your writing process, see the Paper Trail kit on this site.",
+      "free": true,
       "cta": "Try it free",
       "image": "shelf/first-reply.jpg",
       "imageAlt": "Free First Reply tool cover: Flagged by an AI detector? Send a calm first reply.",
@@ -58,7 +57,14 @@
         "free"
       ],
       "categories": [
-        "school"
+        "school",
+        "money",
+        "tech"
+      ],
+      "featured": true,
+      "ask": [
+        "name",
+        "email"
       ]
     },
     {
