@@ -125,12 +125,7 @@
       "categories": [
         "money"
       ],
-      "featured": true,
-      "ask": [
-        "name",
-        "phone",
-        "email"
-      ]
+      "featured": true
     },
     {
       "id": "cp2000-kit",
@@ -162,12 +157,7 @@
       "categories": [
         "money"
       ],
-      "featured": true,
-      "ask": [
-        "name",
-        "phone",
-        "email"
-      ]
+      "featured": true
     }
   ],
   "social": [],
