@@ -17,6 +17,7 @@ import re
 import shutil
 import sys
 import asyncio
+import urllib.parse
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 SRC = os.path.join(ROOT, "src")
@@ -220,6 +221,16 @@ def build_html(site_url, pwa, analytics, shelf, social):
         head.append("<script defer src=\"https://static.cloudflareinsights.com/beacon.min.js\" "
                     "data-cf-beacon='{\"token\": \"%s\"}'></script>" % analytics)
     html = read("index.html")
+    # The live site uses real icon files (Google shows /favicon.ico in search results and Search Console);
+    # the one-file preview keeps the icon inside the page.
+    if pwa:
+        favicon = ('<link rel="icon" href="/favicon.ico" sizes="48x48">\n'
+                   '<link rel="icon" type="image/svg+xml" href="/favicon.svg">\n'
+                   '<link rel="icon" type="image/png" sizes="96x96" href="/favicon-96.png">')
+    else:
+        svg = read(os.path.join("static", "favicon.svg")).strip()
+        favicon = '<link rel="icon" href="data:image/svg+xml,%s">' % urllib.parse.quote(svg, safe=" =:/'")
+    html = html.replace("{{FAVICON}}", favicon)
     for key, val in (("{{CSS}}", css), ("{{JS}}", js), ("{{CONFIG}}", config_js),
                      ("{{HEAD_EXTRA}}", "\n".join(head)), ("{{APP_NAME}}", APP_NAME)):
         html = html.replace(key, val)
@@ -420,7 +431,8 @@ def main():
     copy_shelf(out, items, True)
     # Icons and the link-preview picture are drawn once (python3 build.py --icons) and kept in src/static/.
     static = os.path.join(SRC, "static")
-    for need in ("icons/icon-180.png", "icons/icon-192.png", "icons/icon-512.png", "icons/icon-maskable-512.png", "og.jpg"):
+    for need in ("icons/icon-180.png", "icons/icon-192.png", "icons/icon-512.png", "icons/icon-maskable-512.png", "og.jpg",
+                 "favicon.ico", "favicon.svg", "favicon-96.png"):
         if not os.path.isfile(os.path.join(static, need)):
             raise SystemExit("Missing src/static/%s - run: python3 build.py --icons" % need)
     shutil.copytree(static, out, dirs_exist_ok=True)
