@@ -1,5 +1,7 @@
 # Focus World: go live and use My Shop
 
+**Live site:** https://focusworld-bj0.pages.dev · **My Shop:** https://focusworld-bj0.pages.dev/admin/
+
 This file explains how the site goes live and how you add products yourself.
 Read it on your phone anytime. Each part says **who** does it.
 
