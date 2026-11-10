@@ -26,7 +26,7 @@ SRC = os.path.join(ROOT, "src")
 DIST = os.path.join(ROOT, "dist")
 VERSION = "1.0.0"
 APP_NAME = "Focus World"
-JS_ORDER = ["logic.js", "items.js", "places.js", "world.js", "audio.js", "app.js"]
+JS_ORDER = ["logic.js", "helper.js", "items.js", "places.js", "world.js", "audio.js", "app.js"]
 
 # ---- catalog rules: the same rules as lib/catalog-rules.mjs (tests/test_rules.mjs checks they agree) ----
 TYPES = ["kit", "ebook", "app", "course", "video", "website", "template", "tool"]
@@ -208,7 +208,9 @@ def build_html(site_url, pwa, analytics, shelf, social):
     if "</script" in js.lower() or "</style" in css.lower():
         raise SystemExit("Refusing to inline: a closing tag was found in the source.")
     config = {"appName": APP_NAME, "siteUrl": site_url, "pwa": pwa, "version": VERSION, "shelf": shelf,
-              "social": social}
+              "social": social,
+              # Ask Pip can point to the study guides (live site only; the one-file preview cannot open other pages).
+              "guides": [{"slug": g["slug"], "h1": g["h1"]} for g in load_guides()] if pwa else []}
     config_js = "window.FW_CONFIG = " + json.dumps(config).replace("</", "<\\/") + ";"
     head = []
     if pwa:

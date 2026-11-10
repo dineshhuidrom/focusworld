@@ -138,6 +138,8 @@ and if anything is wrong it stops and the old site stays up.
 | `FW_SITE_URL=https://x.pages.dev python3 build.py --site` | Builds the live site into `dist/site` (plain Python, no extra packages) |
 | `python3 build.py --icons` | Redraws icons and the link picture into `src/static/` (needs Playwright + Pillow) |
 | `node tests/test_logic.js` | Focus timer, streaks, scenes |
+| `node tests/test_helper.js` | Ask Pip: typed messages get the right answer and products |
+| `python3 build.py --site` then `python3 tests/ask_test.py` | Ask Pip in a real browser (phone and laptop sizes) |
 | `node tests/test_rules.mjs` | Product rules: JavaScript and Python copies agree |
 | `node tests/test_admin_api.mjs` | My Shop server: login, upload, publish, conflicts |
 | `node tests/dev_server.mjs 8790 /tmp/fw-dev` then `python3 tests/admin_e2e.py` | Full My Shop test with a fake GitHub that rebuilds on publish |

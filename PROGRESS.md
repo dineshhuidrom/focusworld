@@ -110,3 +110,15 @@ Focus World is live at https://focusworld-bj0.pages.dev. dinesh adds products hi
 3. Bing Webmaster Tools: import from Google Search Console.
 4. Share the link on Instagram, YouTube Shorts, study communities.
 
+
+## 10 Nov 2026 — v1.6 Ask Pip, a free helper chat (dinesh: "recommend my products for the situation people are in, help them use Focus World, help students study. No AI, a helper bot is enough")
+| What | How |
+|---|---|
+| Where | 5th button in the bottom bar (**Ask Pip**), plus links in the Toolshed and in About & help. Hidden while a focus session runs |
+| Brain | `src/helper.js`: written answers, no AI, ₹0, works offline, nothing typed leaves the device. ~40 topics: study (can't focus, putting it off, exam soon, study plan, how long to study, remembering, understanding, big assignments, sleepy, stressed, failed a test, study music), using Focus World (unlocks, streaks, places, timer, stopping, phone-free mode, backup, install, alerts, calm mode, free/privacy…), and real-life problems (accused of using AI, IRS letter) |
+| Your products | Found by their **tags** from My Shop (and words in the title). A new product with good tags is recommended automatically; no code change. Study questions don't push products |
+| Buttons in answers | Start 2/15/25 min, set 25+5 / 50+10 / 90+15, open Sounds/Settings/Progress/Places/Toolshed, save a backup, open a study guide, follow links |
+| Safety | Messages about self-harm get a caring answer with 112, Tele-MANAS 14416 (India) and findahelpline.com, never products |
+| Tests | `node tests/test_helper.js` (95 typed messages plus product and safety checks), `python3 tests/ask_test.py` (browser, phone 320/360/390 px and laptop) |
+
+Tip for dinesh: in My Shop, give each product tags in the words people use ("teacher says I used AI", "scary tax letter"), so Pip can find it.

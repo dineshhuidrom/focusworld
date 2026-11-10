@@ -135,6 +135,7 @@ async def main():
 
         # 6. follow links
         await pg.click("#tabLinks")
+        links_before = await pg.eval_on_selector_all("#linkList .row", "n => n.length")   # the real shop may already have some
         await pg.click("#addLink")
         await pg.wait_for_selector("#linkEditor:not([hidden])")
         await pg.fill("#lUrl", "https://www.instagram.com/focusworld")
@@ -146,7 +147,7 @@ async def main():
         await pg.click("#leSave")
         await pg.wait_for_selector("#linkEditor", state="hidden")
         links = await pg.eval_on_selector_all("#linkList .row", "n => n.length")
-        check(links == 2, "2 follow links added")
+        check(links == links_before + 2, "2 follow links added")
         await pg.screenshot(path=SHOTS + "shop_05_links.png")
 
         # 7. drafts survive a reload
@@ -182,7 +183,7 @@ async def main():
         check(any("Study Planner" in t for t in titles), "live site has the new product")
         check(any("focused study day" in t for t in titles), "live site has the YouTube video")
         check(not any("IRS letter saying" in t for t in titles), "hidden product is not on the live site")
-        check(len(cfg["social"]) == 2, "live site has the 2 follow links")
+        check(len(cfg["social"]) == links_before + 2, "live site has the 2 new follow links")
         pic = next(x for x in cfg["shelf"] if "Study Planner" in x["title"])["image"]
         r = await site.request.get(BASE + "/" + pic)
         check(r.status == 200 and r.headers.get("content-type") == "image/jpeg", "new cover picture is served: " + pic)

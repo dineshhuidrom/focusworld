@@ -33,7 +33,7 @@
     'progressBtn', 'shareBtn', 'streakBtn', 'streakNum', 'menuBtn', 'live', 'pip', 'pipText', 'pipBtns', 'toast', 'scrim',
     'soundList', 'masterVol', 'soundWarn', 'stats', 'week', 'collection', 'collTitle', 'progressBackupBtn', 'shareImg', 'shareNowBtn',
     'saveImgBtn', 'notifySwitch', 'calmSwitch', 'skySeg', 'chimeVol', 'storageWarn', 'exportBtn', 'importBtn', 'resetBtn', 'sceneBtn', 'sceneIcon', 'sceneName', 'sceneMode', 'sceneGrid', 'sceneCount', 'toolsBtn', 'toolsList', 'followRow', 'followLinks', 'aboutBtn', 'toolsSearch', 'toolsChips', 'toolsCount', 'promo', 'promoX', 'promoLink', 'promoImg', 'promoKicker', 'promoTitle', 'promoCta', 'promoPrice',
-    'confirmTitle', 'confirmText', 'confirmYes', 'confirmNo', 'onboard', 'obTitle', 'obText', 'obDots', 'obBtns', 'importFile', 'customBtn'
+    'askBtn', 'askLog', 'askForm', 'askInput', 'confirmTitle', 'confirmText', 'confirmYes', 'confirmNo', 'onboard', 'obTitle', 'obText', 'obDots', 'obBtns', 'importFile', 'customBtn'
   ].forEach(function (id) { el[id] = $(id); });
 
   // ---------- sound ----------
@@ -967,6 +967,188 @@
     el.onboard.hidden = true;
     setInert(false);
   }
+
+  // ---------- Ask Pip: a small helper chat. Not an AI: the answers live in helper.js and nothing typed leaves the device ----------
+  var H = window.FWHelper;
+  var GUIDES = Array.isArray(CFG.guides) ? CFG.guides.filter(function (g) {
+    return g && /^[a-z0-9]+(-[a-z0-9]+)*$/.test(g.slug || '') && typeof g.h1 === 'string';
+  }) : [];
+  var askStarted = false, askBusy = false;
+  var finePointer = (function () { try { return window.matchMedia('(pointer: fine)').matches; } catch (e) { return false; } })();
+  var PIP_FACE = '<svg class="avatar" viewBox="0 0 64 64" aria-hidden="true"><path d="M32 22 C32 17 32 14 32 11" stroke="#4e9a46" stroke-width="2.6" stroke-linecap="round" fill="none"/>' +
+    '<ellipse cx="26.5" cy="10.5" rx="6" ry="3" transform="rotate(-24 26.5 10.5)" fill="#7fd06a"/><ellipse cx="37.5" cy="9.5" rx="6" ry="3" transform="rotate(24 37.5 9.5)" fill="#62bb57"/>' +
+    '<path d="M32 21c11 0 18 8 18 18 0 11-8 17-18 17S14 50 14 39c0-10 7-18 18-18z" fill="#bfe8a6"/>' +
+    '<ellipse cx="25.5" cy="36.5" rx="2.8" ry="3.2" fill="#23331f"/><ellipse cx="38.5" cy="36.5" rx="2.8" ry="3.2" fill="#23331f"/>' +
+    '<path d="M29 42.5q3 2.6 6 0" stroke="#23331f" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>';
+  var PLAY_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="#fffaf0"/></svg>';
+
+  // The person's own numbers, so "what's next?" gets a real answer.
+  function askCtx() {
+    var total = L.totalMin(S), st = L.streakInfo(S.days, now()).current, p = L.progressToNext(total);
+    return {
+      products: SHELF, guides: GUIDES, hasSocial: SOCIAL.length > 0,
+      streak: st + (st === 1 ? ' day' : ' days'), total: L.fmtDuration(S.totalMs),
+      next: p.next ? p.next.name + ', ' + Math.max(1, Math.ceil(p.next.at - total)) + ' min away' : 'nothing left, your island is complete'
+    };
+  }
+  function askScroll(node) {
+    var log = el.askLog;
+    if (node.offsetHeight > log.clientHeight - 24) log.scrollTop = Math.max(0, node.offsetTop - 6);   // long answer: show its start
+    else log.scrollTop = log.scrollHeight;
+  }
+  function askTrim() { while (el.askLog.children.length > 80) el.askLog.removeChild(el.askLog.firstChild); }
+  function askUserMsg(text) {
+    var m = document.createElement('div'); m.className = 'msg me';
+    var b = document.createElement('div'); b.className = 'bubble'; b.textContent = text;
+    var sr = document.createElement('span'); sr.className = 'sr-only'; sr.textContent = 'You said: ';
+    b.insertBefore(sr, b.firstChild);
+    m.appendChild(b); el.askLog.appendChild(m); askScroll(m);
+  }
+  function chatCard(p) {
+    var a = shelfAnchor(p, 'chat-card');
+    var th = document.createElement('span'); th.className = 'thumb';
+    var im = document.createElement('img'); im.src = p.image; im.alt = ''; im.width = 960; im.height = 540; im.loading = 'lazy';
+    th.appendChild(im);
+    if (p.type === 'video' || p.type === 'course') { var pl = document.createElement('span'); pl.className = 'play'; pl.innerHTML = PLAY_ICON; th.appendChild(pl); }
+    var info = document.createElement('span'); info.className = 'info';
+    var k = document.createElement('small'); k.textContent = p.kicker || TYPE_LABEL[p.type] || 'From the maker';
+    var t = document.createElement('b'); t.textContent = p.title;
+    var buy = document.createElement('span'); buy.className = 'buy';
+    var pr = document.createElement('em'); pr.textContent = p.free ? 'Free' : (p.price || ''); if (p.free) pr.className = 'free';
+    var cta = document.createElement('span'); cta.textContent = (p.cta || 'Take a look') + ' →';
+    buy.appendChild(pr); buy.appendChild(cta);
+    info.appendChild(k); info.appendChild(t); info.appendChild(buy);
+    a.appendChild(th); a.appendChild(info);
+    a.setAttribute('aria-label', p.title + (p.free ? ', free' : (p.price ? ', ' + p.price : '')) + ' (opens in a new tab)');
+    return a;
+  }
+  function chatLink(label, href, soft, newTab) {
+    var a = document.createElement('a'); a.className = 'chat-act' + (soft ? ' soft' : ''); a.href = href; a.textContent = label;
+    if (newTab) { a.target = '_blank'; a.rel = 'noopener noreferrer'; }
+    return a;
+  }
+  function askActions(r) {
+    var row = document.createElement('div'); row.className = 'chat-acts';
+    r.acts.forEach(function (id, i) {
+      if (id === 'follow') {
+        SOCIAL.forEach(function (x) { row.appendChild(chatLink(SOCIAL_ICON[x.platform] + ' ' + (x.label || SOCIAL_NAME[x.platform]), x.url, true, true)); });
+      } else if (id === 'call-14416') row.appendChild(chatLink(H.ACTIONS[id], 'tel:14416', false, false));
+      else if (id === 'helplines') row.appendChild(chatLink(H.ACTIONS[id], 'https://findahelpline.com/', true, true));
+      else {
+        var b = document.createElement('button'); b.type = 'button'; b.className = 'chat-act' + (i ? ' soft' : ''); b.textContent = H.ACTIONS[id];
+        b.addEventListener('click', function () { askRun(id); });
+        row.appendChild(b);
+      }
+    });
+    r.guides.forEach(function (g) { row.appendChild(chatLink('📖 ' + g.h1, '/guides/' + g.slug + '/', true, false)); });
+    return row.children.length ? row : null;
+  }
+  function askBotMsg(r) {
+    var m = document.createElement('div'); m.className = 'msg bot';
+    m.insertAdjacentHTML('beforeend', PIP_FACE);   // fixed markup of our own, never typed text
+    var b = document.createElement('div'), list = null;
+    b.className = 'bubble';
+    var sr = document.createElement('span'); sr.className = 'sr-only'; sr.textContent = 'Pip says: '; b.appendChild(sr);
+    r.say.forEach(function (line) {
+      if (line.indexOf('• ') === 0) {
+        if (!list) { list = document.createElement('ul'); b.appendChild(list); }
+        var li = document.createElement('li'); li.textContent = line.slice(2); list.appendChild(li);
+      } else {
+        list = null;
+        var p = document.createElement('p'); p.textContent = line; b.appendChild(p);
+      }
+    });
+    if (r.products.length) {
+      var pre = document.createElement('p'); pre.className = 'pre'; pre.textContent = r.pre; b.appendChild(pre);
+      r.products.forEach(function (p) { b.appendChild(chatCard(p)); });
+    }
+    var acts = askActions(r);
+    if (acts) b.appendChild(acts);
+    m.appendChild(b);
+    el.askLog.appendChild(m);
+    if (r.chips.length) {
+      var row = document.createElement('div'); row.className = 'chat-chips'; row.setAttribute('role', 'group'); row.setAttribute('aria-label', 'Quick answers');
+      r.chips.forEach(function (c) {
+        var bt = document.createElement('button'); bt.type = 'button'; bt.textContent = c.label;
+        bt.addEventListener('click', function () { askSend(c.label, c.topic); });
+        row.appendChild(bt);
+      });
+      el.askLog.appendChild(row);
+    }
+    askTrim();
+    askScroll(m);
+  }
+  function askSend(text, topic) {
+    if (askBusy) return false;
+    text = String(text || '').replace(/\s+/g, ' ').trim().slice(0, 200);
+    if (!text) return false;
+    Array.prototype.forEach.call(el.askLog.querySelectorAll('.chat-chips'), function (c) { c.parentNode.removeChild(c); });
+    askUserMsg(text);
+    var r = topic ? H.replyTopic(topic, askCtx()) : H.reply(text, askCtx());
+    askBusy = true;
+    var dots = document.createElement('div'); dots.className = 'msg bot typing'; dots.setAttribute('aria-hidden', 'true');
+    dots.innerHTML = PIP_FACE + '<div class="bubble"><i></i><i></i><i></i></div>';
+    el.askLog.appendChild(dots); askScroll(dots);
+    setTimeout(function () {
+      if (dots.parentNode) dots.parentNode.removeChild(dots);
+      askBusy = false;
+      askBotMsg(r);
+    }, isCalm() ? 120 : 550);
+    return true;
+  }
+  // Buttons under an answer: start a timer, open a screen, save a backup...
+  function askRun(id) {
+    var st = /^start-(\d+)$/.exec(id), set = /^set-(\d+)-(\d+)$/.exec(id), m = mode();
+    if (st) {
+      closeSheet();
+      if (m === 'focus' || m === 'paused') { toast('You’re already focusing. Keep going! 🌱'); return; }
+      if (m === 'break') finishBreak(false);
+      startFocus(+st[1], +st[1] === 2);
+      return;
+    }
+    if (set) {
+      S.settings.focusMin = +set[1]; S.settings.breakMin = +set[2]; save(); renderPanel();
+      closeSheet();
+      toast('Timer set: ' + set[1] + ' min focus + ' + set[2] + ' min break. Tap Grow when you’re ready! 🌱');
+      return;
+    }
+    if (id === 'sounds') { ensureAudio(); buildSounds(); openSheet('sheetSounds'); }
+    else if (id === 'settings') { syncSettingsUI(); openSheet('sheetMenu'); }
+    else if (id === 'custom') { syncSettingsUI(); openSheet('sheetCustom'); }
+    else if (id === 'progress') { renderProgress(); openSheet('sheetProgress'); }
+    else if (id === 'scenes') { renderScenes(); openSheet('sheetScenes'); }
+    else if (id === 'tools') { renderTools(); openSheet('sheetTools'); }
+    else if (id === 'share') { closeSheet(true); openShare(); }
+    else if (id === 'backup') exportBackup();
+  }
+  // Phones: keep the chat above the on-screen keyboard.
+  function fitChat() {
+    var sh = $('sheetAsk'), vv = window.visualViewport;
+    if (!vv || window.innerWidth >= 900) { sh.style.bottom = ''; sh.style.height = ''; return; }
+    var kb = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+    if (kb > 80) { sh.style.bottom = kb + 'px'; sh.style.height = Math.max(240, Math.floor(vv.height) - 8) + 'px'; }
+    else { sh.style.bottom = ''; sh.style.height = ''; }
+  }
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', function () {
+      if (openSheetEl && openSheetEl.id === 'sheetAsk') { fitChat(); el.askLog.scrollTop = el.askLog.scrollHeight; }
+    });
+  }
+  function openAsk() {
+    var m = mode();
+    if (m === 'focus' || m === 'paused') { toast('Pip will be right here after your session 🌱'); return; }
+    hidePromo();
+    if (!askStarted) { askStarted = true; askBotMsg(H.welcome()); }
+    openSheet('sheetAsk');
+    fitChat();
+    if (finePointer) setTimeout(function () { if (openSheetEl && openSheetEl.id === 'sheetAsk') el.askInput.focus({ preventScroll: true }); }, 120);
+  }
+  el.askForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (askSend(el.askInput.value)) el.askInput.value = '';
+  });
+  el.askBtn.addEventListener('click', openAsk);
+  Array.prototype.forEach.call(document.querySelectorAll('[data-ask]'), function (b) { b.addEventListener('click', openAsk); });
 
   // ---------- wiring ----------
   el.startBtn.addEventListener('click', function () { startFocus(); });
