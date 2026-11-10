@@ -30,6 +30,18 @@ async def text(pg, sel):
     return (await pg.inner_text(sel)).strip()
 
 
+async def wait_ready(pg):
+    # the local stand-in builds the whole site first; wait for it (up to 90 s) instead of failing on a slow start
+    for _ in range(90):
+        try:
+            r = await pg.request.get(BASE + "/admin/")
+            if r.status == 200:
+                return
+        except Exception:
+            pass
+        await pg.wait_for_timeout(1000)
+
+
 async def main():
     async with async_playwright() as p:
         b = await p.chromium.launch(executable_path="/usr/bin/google-chrome", args=["--no-sandbox"])
@@ -40,6 +52,7 @@ async def main():
         pg.on("pageerror", lambda e: errs.append(str(e)))
         pg.on("response", lambda r: errs.append("404 " + r.url) if r.status == 404 else None)
 
+        await wait_ready(pg)
         await pg.goto(BASE + "/admin/")
         await pg.wait_for_selector("#login:not([hidden])")
         await pg.fill("#pw", PASSWORD)

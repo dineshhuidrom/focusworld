@@ -34,10 +34,10 @@ ASK_FIELDS = ["name", "phone", "email"]
 PLATFORMS = ["youtube", "instagram", "facebook", "x", "threads", "linkedin", "tiktok", "telegram", "whatsapp",
              "pinterest", "website"]
 LIMITS = {"items": 60, "social": 12, "id": 48, "title": 90, "hook": 100, "text": 260, "kicker": 40, "cta": 24,
-          "price": 14, "imageAlt": 140, "tags": 24, "tag": 32, "url": 600, "label": 30, "help": 2000,
+          "price": 14, "imageAlt": 140, "tags": 24, "tag": 32, "url": 600, "label": 30, "help": 2000, "details": 3000,
           "categories": 40, "catId": 32, "catName": 30, "catEmoji": 8, "catWords": 60, "catWord": 40, "itemCats": 3}
 ITEM_KEYS = ["id", "type", "kicker", "title", "hook", "text", "price", "free", "cta", "image", "imageAlt",
-             "url", "local", "tags", "categories", "featured", "hidden", "noPrice", "ad", "ask"]
+             "url", "local", "tags", "categories", "featured", "hidden", "noPrice", "ad", "ask", "details"]
 CATEGORY_KEYS = ["id", "name", "emoji", "words"]
 SOCIAL_KEYS = ["platform", "url", "label", "friend", "ad"]
 ID_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
@@ -101,7 +101,7 @@ def validate_catalog(cat, image_exists=None):
                 err(where, k, "Unknown field: " + k)
         for key, required in (("id", True), ("type", True), ("title", True), ("text", True), ("cta", True),
                               ("image", True), ("url", True), ("kicker", False), ("hook", False),
-                              ("price", False), ("imageAlt", False), ("local", False)):
+                              ("price", False), ("imageAlt", False), ("local", False), ("details", False)):
             v = it.get(key)
             if v is None or v == "":
                 if required:
@@ -356,6 +356,10 @@ def build_html(site_url, pwa, analytics, shelf, social, categories=()):
         if gl:
             guide_links = ('<h3>Study guides</h3><ul class="guide-links">%s<li><a href="/guides/">All study guides &rarr;</a></li></ul>'
                            % "".join('<li><a href="/guides/%s/">%s</a></li>' % (g["slug"], _e(g["h1"])) for g in gl))
+    if pwa and shelf:
+        # the Shop pages (one Google page per product) are linked from About & help too
+        guide_links += ('<h3>Shop</h3><ul class="guide-links"><li><a href="/shop/">All kits, tools and pages (%d) &rarr;</a></li></ul>'
+                        % len(shelf))
     html = html.replace("{{GUIDE_LINKS}}", guide_links)
     for key, val in (("{{CSS}}", css), ("{{JS}}", js), ("{{CONFIG}}", config_js),
                      ("{{HEAD_EXTRA}}", "\n".join(head)), ("{{APP_NAME}}", APP_NAME)):
@@ -670,6 +674,193 @@ def render_privacy(site_url, analytics, social, items=()):
     return ads_wording(html)
 
 
+# ---------- product pages for Google (/shop/ and /shop/<id>/), made from My Shop's products ----------
+TYPE_NAME = {"kit": "Kit", "ebook": "Ebook", "app": "App", "course": "Video course", "video": "Video", "website": "Website",
+             "template": "Template", "tool": "Tool", "group": "Group", "social": "Social page"}
+_CURRENCY = (("₹", "INR"), ("Rs", "INR"), ("INR", "INR"), ("US$", "USD"), ("USD", "USD"), ("$", "USD"),
+             ("€", "EUR"), ("EUR", "EUR"), ("£", "GBP"), ("GBP", "GBP"))
+
+
+def _offer_price(it):
+    """(price, currency) for structured data, or None when the price can't be read (then no price is claimed)."""
+    if it.get("free"):
+        return ("0", "USD")
+    p = it.get("price") or ""
+    cur = next((code for sym, code in _CURRENCY if sym in p), None)
+    m = re.search(r"\d[\d,]*(?:\.\d+)?", p)
+    return (m.group(0).replace(",", ""), cur) if cur and m else None
+
+
+def render_details(text):
+    """The owner's longer text, made safe: blank line = new paragraph, '- ' = list item, '## ' = small heading."""
+    out = []
+    for block in re.split(r"\n\s*\n", text.strip()):
+        lines = [ln.strip() for ln in block.split("\n") if ln.strip()]
+        para, items = [], []
+
+        def flush():
+            if para:
+                out.append("<p>%s</p>" % "<br>".join(_e(x) for x in para)); para.clear()
+            if items:
+                out.append("<ul>%s</ul>" % "".join("<li>%s</li>" % _e(x) for x in items)); items.clear()
+        for ln in lines:
+            if ln.startswith("## "):
+                flush(); out.append("<h2>%s</h2>" % _e(ln[3:].strip()))
+            elif ln.startswith("- "):
+                if para:
+                    flush()
+                items.append(ln[2:].strip())
+            else:
+                if items:
+                    flush()
+                para.append(ln)
+        flush()
+    return "\n".join(out)
+
+
+def _short(text, n):
+    text = re.sub(r"\s+", " ", text or "").strip()
+    return text if len(text) <= n else text[:n - 1].rsplit(" ", 1)[0].rstrip(",.;:") + "…"
+
+
+def _product_cards(items):
+    cards = []
+    for it in items:
+        cards.append('<a class="card p" href="/shop/%s/"><img src="/%s" alt="" width="960" height="540" loading="lazy">'
+                     '<span><b>%s</b><small>%s</small></span></a>'
+                     % (it["id"], _e(it["image"]), _e(it["title"]), _e(_price_label(it) + " · " + TYPE_NAME.get(it["type"], "Tool"))))
+    return '<div class="cards">%s</div>' % "".join(cards)
+
+
+def _price_label(it):
+    return "Free" if it.get("free") else ("Link" if it.get("noPrice") else it.get("price", ""))
+
+
+def _shop_page(title, description, url, image_url, og_type, ld, main, script=""):
+    page = read(os.path.join("shop", "_product.html"))
+    css = read(os.path.join("guides", "guide.css")) + "\n" + read(os.path.join("shop", "shop.css"))
+    og_extra = []
+    if url:
+        og_extra.append('<meta property="og:url" content="%s">' % _e(url))
+    if image_url:
+        og_extra.append('<meta property="og:image" content="%s">' % _e(image_url))
+    fill = {"{{TITLE}}": _e(title), "{{DESCRIPTION}}": _e(description), "{{OG_TYPE}}": og_type,
+            "{{CANONICAL}}": '<link rel="canonical" href="%s">' % _e(url) if url else "", "{{OG_EXTRA}}": "\n".join(og_extra),
+            "{{JSONLD}}": '<script type="application/ld+json">%s</script>' % json.dumps(ld).replace("</", "<\\/"),
+            "{{CSS}}": css, "{{APP_NAME}}": APP_NAME, "{{SCRIPT}}": script}
+    for k, v in fill.items():
+        page = page.replace(k, v)
+    page = page.replace("{{MAIN}}", main)
+    left = re.findall(r"\{\{[A-Z_]+\}\}", page)
+    if left:
+        raise SystemExit("shop page: unfilled %s" % left[:3])
+    return ads_wording(page)
+
+
+def render_product(it, shown, cats, site_url):
+    """One product's own page. `it` is the shelf entry (its url already points to /tools/... for our own tools)."""
+    by_cat = {c["id"]: c for c in cats}
+    url = "%s/shop/%s/" % (site_url, it["id"]) if site_url else ""
+    image_url = "%s/%s" % (site_url, it["image"]) if site_url else ""
+    my_cats = [by_cat[c] for c in it.get("categories", []) if c in by_cat]
+    kicker = it.get("kicker") or TYPE_NAME.get(it["type"], "Tool")
+    title = "%s | %s" % (it["title"], APP_NAME)
+    description = _short(it.get("text") or it.get("hook") or it["title"], 158)
+    offer = _offer_price(it)
+    link = it["url"]
+    host = "this site" if link.startswith("/") else urllib.parse.urlparse(link).hostname.replace("www.", "")
+    rel = "noopener sponsored nofollow" if it.get("ad") else "noopener"
+    price_html = ""
+    if not it.get("noPrice"):
+        price_html = '<span class="price%s">%s</span>' % (" free" if it.get("free") else "", _e(_price_label(it)))
+    tags = ['<span class="tag">%s</span>' % _e(TYPE_NAME.get(it["type"], "Tool"))]
+    if it.get("ad"):
+        tags.append('<span class="tag ad" title="Paid promotion">Ad</span>')
+    ask = [f for f in it.get("ask", []) if f in ("name", "phone", "email")]
+    data = ' data-id="%s" data-title="%s" data-ask="%s"' % (_e(it["id"]), _e(it["title"]), ",".join(ask)) if ask else ""
+    lead = ""
+    if ask:
+        lead = ('<section class="lead" id="leadBox" hidden aria-labelledby="leadTtl"><h2 id="leadTtl">Before you go &#x1F331;</h2>'
+                '<p>Leave your details so %(app)s can help you with this.</p><form id="leadForm" novalidate>'
+                '<label class="lead-field" id="l_nameRow"><span>Your name</span><input id="l_name" autocomplete="name" maxlength="60"></label>'
+                '<label class="lead-field" id="l_phoneRow"><span>WhatsApp number <small>with country code</small></span>'
+                '<input id="l_phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="22" placeholder="+91 98123 45678"></label>'
+                '<label class="lead-field" id="l_emailRow"><span>Email</span><input id="l_email" type="email" inputmode="email" '
+                'autocomplete="email" maxlength="254" placeholder="you@example.com" spellcheck="false" autocapitalize="off"></label>'
+                '<p class="small" id="l_either" hidden>Fill in at least one: your WhatsApp number or your email.</p>'
+                '<label class="lead-ok"><input type="checkbox" id="l_ok"><span>Yes, %(app)s can contact me about this.</span></label>'
+                '<input type="text" id="l_hp" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">'
+                '<p class="msg" id="l_msg" role="alert"></p><button class="btn" type="submit">Continue &rarr;</button>'
+                '<button class="skip" type="button" id="l_skip">Skip, just open it</button>'
+                '<p class="small">Saved only so %(app)s can contact you. <a href="/privacy/">Privacy</a></p></form>'
+                '<p id="l_done" hidden>Thank you! It&rsquo;s opening in a new tab. &#x1F331;</p></section>') % {"app": APP_NAME}
+    details = render_details(it["details"]) if it.get("details") else ""
+    good_for = ""
+    if my_cats:
+        good_for = '<section><h2>Helps with</h2><div class="good-for">%s</div></section>' % "".join(
+            '<a class="tag" href="/shop/#cat-%s">%s %s</a>' % (c["id"], _e(c.get("emoji", "")), _e(c["name"])) for c in my_cats)
+    same = [x for x in shown if x["id"] != it["id"] and set(x.get("categories", [])) & set(it.get("categories", []))]
+    others = same + [x for x in shown if x["id"] != it["id"] and x not in same]
+    related = '<section class="related"><h2>You might also like</h2>%s</section>' % _product_cards(others[:3]) if others else ""
+    main = ('<nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> <span aria-hidden="true">›</span> '
+            '<a href="/shop/">Shop</a></nav>'
+            '<figure class="hero product"><img src="/%s" alt="%s" width="960" height="540"></figure>'
+            '<p class="kicker">%s</p><h1>%s</h1><div class="price-line">%s%s</div>'
+            '<div class="answer"><b>In short</b><p>%s</p></div>'
+            '<div class="get"><a class="btn" id="getBtn" href="%s" target="_blank" rel="%s"%s>%s &rarr;</a><small>Opens %s</small></div>'
+            '%s<article class="body">%s</article>%s%s'
+            % (_e(it["image"]), _e(it.get("imageAlt") or it["title"]), _e(kicker), _e(it["title"]), price_html, "".join(tags),
+               _e(it.get("text") or it.get("hook") or ""), _e(link), rel, data, _e(it.get("cta") or "Take a look"), _e(host),
+               lead, details, good_for, related))
+    crumbs = {"@type": "BreadcrumbList", "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Home", "item": site_url + "/"},
+        {"@type": "ListItem", "position": 2, "name": "Shop", "item": site_url + "/shop/"},
+        {"@type": "ListItem", "position": 3, "name": it["title"], "item": url}]}
+    body_text = _short((it.get("text") or "") + " " + re.sub(r"(^|\n)(## |- )", r"\1", it.get("details") or ""), 600)
+    if offer:
+        thing = {"@type": "Product", "name": it["title"], "description": body_text, "image": image_url, "url": url,
+                 "category": ", ".join(c["name"] for c in my_cats) or TYPE_NAME.get(it["type"], "Tool"),
+                 "offers": {"@type": "Offer", "price": offer[0], "priceCurrency": offer[1],
+                            "availability": "https://schema.org/InStock",
+                            "url": (site_url + link) if link.startswith("/") else link}}
+    else:
+        thing = {"@type": "WebPage", "name": it["title"], "description": body_text, "url": url, "image": image_url}
+    ld = {"@context": "https://schema.org", "@graph": [thing, crumbs]}
+    script = "<script>%s</script>" % read(os.path.join("shop", "shop.js")) if ask else ""
+    return _shop_page(title, description, url, image_url, "product" if offer else "website", ld, main, script)
+
+
+def render_shop_index(shown, cats, site_url):
+    url = site_url + "/shop/" if site_url else ""
+    live = [c for c in cats if any(c["id"] in x.get("categories", []) for x in shown)]
+    placed, sections = set(), []
+    for c in live:
+        group = [x for x in shown if c["id"] in x.get("categories", []) and x["id"] not in placed]
+        if not group:
+            continue
+        placed.update(x["id"] for x in group)
+        sections.append('<h2 class="shop-cat" id="cat-%s">%s %s</h2>%s' % (c["id"], _e(c.get("emoji", "")), _e(c["name"]), _product_cards(group)))
+    rest = [x for x in shown if x["id"] not in placed]
+    if rest:
+        sections.append('<h2 class="shop-cat" id="cat-more">%s</h2>%s' % ("More" if sections else "Everything", _product_cards(rest)))
+    names = ", ".join(c["name"].lower() for c in live[:4])
+    description = _short("Helpful kits, tools, courses and pages%s. Some are free, some are paid." % (" for " + names if names else ""), 158)
+    main = ('<nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> <span aria-hidden="true">›</span> Shop</nav>'
+            '<p class="kicker">Handy helpers</p><h1>Shop</h1>'
+            '<div class="answer"><b>What&rsquo;s here</b><p>Kits, tools, courses, groups and pages that can help. '
+            'Some are free, some are paid. Paid promotions are marked &ldquo;Ad&rdquo;.</p></div>%s' % "".join(sections))
+    ld = {"@context": "https://schema.org", "@graph": [
+        {"@type": "CollectionPage", "name": "Shop", "description": description, "url": url,
+         "mainEntity": {"@type": "ItemList", "itemListElement": [
+             {"@type": "ListItem", "position": i + 1, "url": "%s/shop/%s/" % (site_url, x["id"]), "name": x["title"]}
+             for i, x in enumerate(shown)]}},
+        {"@type": "BreadcrumbList", "itemListElement": [
+            {"@type": "ListItem", "position": 1, "name": "Home", "item": site_url + "/"},
+            {"@type": "ListItem", "position": 2, "name": "Shop", "item": url}]}]}
+    return _shop_page("Shop: kits, tools and pages that help | " + APP_NAME, description, url,
+                      (site_url + "/og.jpg") if site_url else "", "website", ld, main)
+
+
 def copy_shelf(dest, items, site):
     """Product cover pictures, plus (live site only) our own free tool pages under /tools/<id>/."""
     out = os.path.join(dest, "shelf")
@@ -727,6 +918,15 @@ def main():
     if guides:
         with open(os.path.join(out, "guides", "index.html"), "w", encoding="utf-8") as f:
             f.write(render_guides_index(guides, site_url))
+    shown = shelf_for(items, True)
+    for it in shown:
+        pdir = os.path.join(out, "shop", it["id"])
+        os.makedirs(pdir, exist_ok=True)
+        with open(os.path.join(pdir, "index.html"), "w", encoding="utf-8") as f:
+            f.write(render_product(dict(it, details=next(x.get("details", "") for x in items if x["id"] == it["id"])), shown, cats, site_url))
+    if shown:
+        with open(os.path.join(out, "shop", "index.html"), "w", encoding="utf-8") as f:
+            f.write(render_shop_index(shown, cats, site_url))
     os.makedirs(os.path.join(out, "privacy"))
     with open(os.path.join(out, "privacy", "index.html"), "w", encoding="utf-8") as f:
         f.write(render_privacy(site_url, analytics, social, items))
@@ -761,6 +961,7 @@ def main():
         f.write(robots)
     if site_url:
         pages = ["/"] + ["/tools/%s/" % it["id"] for it in items if it.get("local") and not it.get("hidden")] + ["/privacy/"]
+        pages += (["/shop/"] + ["/shop/%s/" % it["id"] for it in shown]) if shown else []
         pages += (["/guides/"] + ["/guides/%s/" % g["slug"] for g in guides]) if guides else []
         with open(os.path.join(out, "sitemap.xml"), "w") as f:
             f.write('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'

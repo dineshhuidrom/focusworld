@@ -119,7 +119,13 @@ const cases = {
   oldWhatsapp: Object.assign({}, base, { whatsapp: '919812345678' }),
   friendLinkOk: Object.assign({}, base, { social: [{ platform: 'instagram', url: 'https://instagram.com/a', label: 'A friend', friend: true, ad: true }] }),
   friendLinkBad: Object.assign({}, base, { social: [{ platform: 'instagram', url: 'https://instagram.com/a', friend: 'yes' }] }),
-  adLinkBad: Object.assign({}, base, { social: [{ platform: 'instagram', url: 'https://instagram.com/a', ad: null }] })
+  adLinkBad: Object.assign({}, base, { social: [{ platform: 'instagram', url: 'https://instagram.com/a', ad: null }] }),
+  // longer text for the product's own Google page
+  detailsOk: withItem({ details: 'Who it is for.\n\n- point one\n- point two\n\n## What is inside\nA plan.' }),
+  detailsLong: withItem({ details: 'x'.repeat(3001) }),
+  detailsPadded: withItem({ details: 'text\n' }),
+  detailsCtrl: withItem({ details: 'a\u0007b' }),
+  detailsNumber: withItem({ details: 5 })
 };
 // remove undefined keys (JSON has no undefined)
 const fixtures = JSON.parse(JSON.stringify(cases));
@@ -142,7 +148,7 @@ for (const name of Object.keys(fixtures)) {
 // a few expectations, so "both wrong the same way" is caught too
 const okNames = ['real', 'empty', 'freeNoPrice', 'portUrl', 'emojiTitleOk', 'tabOkInside', 'hiddenOk', 'socialOk', 'nullKicker',
   'catsOk', 'catsEmptyOk', 'itemIdConstructor', 'catListNone', 'catNew', 'catNoEmojiOk', 'catEmojiOk',
-  'groupOk', 'socialNoPriceOk', 'askOk', 'askEmailOnlyOk', 'friendLinkOk'];
+  'groupOk', 'socialNoPriceOk', 'askOk', 'askEmailOnlyOk', 'friendLinkOk', 'detailsOk'];
 okNames.forEach((n) => assert.deepEqual(pyOut[n], [], n + ' should be fine'));
 Object.keys(fixtures).filter((n) => okNames.indexOf(n) < 0).forEach((n) => assert.ok(pyOut[n].length > 0, n + ' should be refused'));
 

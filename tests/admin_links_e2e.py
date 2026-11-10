@@ -54,6 +54,18 @@ async def add_product(pg, url, title, text_, extra=None):
     await pg.wait_for_selector("#editor", state="hidden", timeout=8000)
 
 
+async def wait_ready(pg):
+    # the local stand-in builds the whole site first; wait for it (up to 90 s) instead of failing on a slow start
+    for _ in range(90):
+        try:
+            r = await pg.request.get(BASE + "/admin/")
+            if r.status == 200:
+                return
+        except Exception:
+            pass
+        await pg.wait_for_timeout(1000)
+
+
 async def main():
     picture("/tmp/fw_cover_wide.png")
     async with async_playwright() as p:
@@ -66,6 +78,7 @@ async def main():
         pg.on("console", lambda m: errs.append(m.text) if m.type in ("error", "warning") and "401" not in m.text else None)
         pg.on("pageerror", lambda e: errs.append(str(e)))
 
+        await wait_ready(pg)
         await pg.goto(BASE + "/admin/")
         await pg.wait_for_selector("#login:not([hidden])")
         await pg.fill("#pw", PASSWORD)
@@ -199,14 +212,41 @@ async def main():
         await o2.close()
         check(True, "Skip opens the link")
 
+        # 7b. each product has its own Google page; the form works there too
+        pp = await ctx.new_page()
+        pp.on("pageerror", lambda e: errs.append(str(e)))
+        r = await pp.goto(BASE + "/shop/learn-english-with-a-friend/")
+        html = await pp.content()
+        check(r.status == 200 and 'rel="noopener sponsored nofollow"' in html and "Paid promotion" in html,
+              "the paid product's page tells Google the link is paid, and shows Ad")
+        await pp.goto(BASE + "/shop/cp2000-kit/")
+        await pp.click("#getBtn")
+        check(await pp.is_visible("#leadBox") and await pp.is_visible("#l_phone") and not await pp.is_visible("#l_email"),
+              "the product page shows its form (WhatsApp number only)")
+        await pp.fill("#l_phone", "+1 415 555 0123")
+        await pp.click("label:has(#l_ok)")
+        async with ctx.expect_page() as newp4:
+            await pp.click("#leadForm button[type='submit']")
+        await (await newp4.value).close()
+        await pp.wait_for_selector("#l_done:not([hidden])", timeout=3000)
+        check(True, "the page form sends the details and opens the link")
+        await pp.screenshot(path=SHOTS + "links_06_product_page_form.png")
+        await pp.close()
+
         # 7. My Shop: the Leads tab
         await pg.click("#tabLeads")
         await pg.wait_for_selector("#leadList .row", timeout=8000)
-        await wait_js(pg, "document.querySelectorAll('#leadList .row').length === 2", 8000)
+        await wait_js(pg, "document.querySelectorAll('#leadList .row').length === 3", 8000)
         rows = await pg.eval_on_selector_all("#leadList .row", "n => n.length")
+        page_lead = await text(pg, "#leadList .row:nth-child(1)")
+        check("+14155550123" in page_lead, "newest: the lead from the product page: " + page_lead.replace("\n", " | "))
+        await pg.click("#leadList .row:nth-child(1) .tools button")
+        await pg.wait_for_selector("#dialog:not([hidden])")
+        await pg.click("#dlgYes")
+        await wait_js(pg, "document.querySelectorAll('#leadList .row').length === 2", 5000)
         first = await text(pg, "#leadList .row:nth-child(1)")
         second = await text(pg, "#leadList .row:nth-child(2)")
-        check(rows == 2, "2 leads show (Skip saved nothing)")
+        check(rows == 3, "3 leads show (Skip saved nothing)")
         check("+919812345678" in first and "IRS" in first and "No name" in first, "newest first: the number-only lead: " + first.replace("\n", " | "))
         check("Asha Devi" in second and "asha@example.com" in second and "Learn English" in second, "the email lead: " + second.replace("\n", " | "))
         href1 = await pg.get_attribute("#leadList .row:nth-child(1) .thumb", "href")

@@ -143,3 +143,13 @@ Tip for dinesh: in My Shop, give each product tags in the words people use ("tea
 | Leads tab | My Shop → **Leads**: newest first, 💬 WhatsApp / ✉️ email in one tap, delete one or all, download a spreadsheet (CSV). Auto-deleted after 12 months. Stored in a free Cloudflare D1 database: **needs Part F of SETUP.md once** |
 | Privacy | New page `/privacy/` (what is kept, why, who sees it, how long, how to delete; paid promotions say Ad). Linked from the form and About |
 | Tests | `test_leads.mjs` (10), `admin_links_e2e.py` (39), rules agree on 104 cases, all older tests pass |
+
+## 10 Nov 2026 — v1.9 A Google page for every product (dinesh: "people should find my digital products on Google by their keywords")
+| What | How |
+|---|---|
+| Product pages | Every shown product gets its own page `/shop/<id>/` with a Google-friendly title and description, the picture, price, the button, and the "Before you go" form when it is switched on. `/shop/` lists them all. Both are in the sitemap; the Shop link is in the guide and page footers |
+| Google data | Each page tells Google what it is (Product with price when there is one, otherwise a normal page) plus the breadcrumb. Paid promotions keep **Ad** and their links are marked sponsored |
+| More details for Google | New box in My Shop (step 4, up to 3000 letters) with a live "how it may look on Google" preview. Claude wrote the text for the 5 current products; dinesh writes it for new ones |
+| Check | Speak Ahead Academy's page says Zoom classes, a practice app and help in Manipuri; dinesh to confirm these are right before it goes live |
+| Tests | `shop_test.py` (new), `admin_e2e.py` (32), `admin_links_e2e.py` (42), `admin_cats_e2e.py` (24), rules agree on 109 cases, all older tests pass. My Shop browser tests now wait for the local server to finish building |
+

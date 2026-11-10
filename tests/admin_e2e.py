@@ -42,6 +42,18 @@ async def text(pg, sel):
     return (await pg.inner_text(sel)).strip()
 
 
+async def wait_ready(pg):
+    # the local stand-in builds the whole site first; wait for it (up to 90 s) instead of failing on a slow start
+    for _ in range(90):
+        try:
+            r = await pg.request.get(BASE + "/admin/")
+            if r.status == 200:
+                return
+        except Exception:
+            pass
+        await pg.wait_for_timeout(1000)
+
+
 async def main():
     make_picture("/tmp/fw_cover.png")
     async with async_playwright() as p:
@@ -54,6 +66,7 @@ async def main():
         pg.on("response", lambda r: errs.append("404 " + r.url) if r.status == 404 else None)
 
         # 1. login
+        await wait_ready(pg)
         await pg.goto(BASE + "/admin/")
         await pg.wait_for_selector("#login:not([hidden])")
         check(await pg.is_visible("#pw"), "login screen shows")
@@ -91,6 +104,10 @@ async def main():
         await pg.fill("#fText", "Tell it your exam dates and it builds a gentle daily plan with breaks.")
         await pg.fill("#fKicker", "For students")
         await pg.fill("#fPrice", "₹299")
+        await pg.fill("#fDetails", "## Who it is for\nStudents with exams soon.\n\n\n\n- Pick your exam dates\n- Get a daily plan   ")
+        await pg.wait_for_timeout(200)
+        gp = await text(pg, ".gpreview")
+        check("Study Planner" in gp and "| Focus World" in gp and "› shop ›" in gp and "Exams soon?" in gp, "Google preview shows title, address and description")
         await pg.fill("#fTag", "exam")
         await pg.press("#fTag", "Enter")
         await pg.fill("#fTag", "planner")
@@ -167,6 +184,11 @@ async def main():
         cfg = await site.evaluate("window.FW_CONFIG")
         titles = [x["title"] for x in cfg["shelf"]]
         check(any("Study Planner" in t for t in titles), "live site has the new product")
+        sp_id = next(x["id"] for x in cfg["shelf"] if "Study Planner" in x["title"])
+        rp = await site.request.get(BASE + "/shop/%s/" % sp_id)
+        body = await rp.text()
+        check(rp.status == 200 and "<h2>Who it is for</h2>" in body and "<li>Get a daily plan</li>" in body and "₹299" in body,
+              "the new product got its own Google page with the extra details")
         check(any("focused study day" in t for t in titles), "live site has the YouTube video")
         check(not any("IRS letter saying" in t for t in titles), "hidden product is not on the live site")
         check(cfg["social"] == [] and any(x["id"] == "speak-ahead-academy" for x in cfg["shelf"]), "Speak Ahead is a card, not a text link")

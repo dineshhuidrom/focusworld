@@ -127,6 +127,8 @@ The table is made by itself the first time. Leads older than 12 months delete th
 | Promote someone else's product or page | Add it as a product. If they pay you, switch on **Paid promotion** (shows **Ad**) |
 | Ask for name, WhatsApp number or email before the link | Edit the product → step 6 **When someone taps it** → **Ask for their details first** → tap the boxes you want |
 | See who left details | **Leads** tab → 💬 WhatsApp or ✉️ email them in one tap → **Download list** for a spreadsheet |
+| Help people find a product on Google | Edit the product → step 4 **More details for Google** → write 2–4 short paragraphs with the words people search for (who it is for, the problem, what is inside). The preview shows how it may look on Google → **Save** → **Publish**. Use `## ` at the start of a line for a small heading and `- ` for a list |
+| See a product's own page | `yoursite/shop/<product-id>/`. All products are listed at `yoursite/shop/`. Every shown product gets a page by itself, and Google finds it through the sitemap |
 | Let Ask Pip recommend a product | Edit the product → step 6 **Problems it solves** → tap up to 3 categories → **Save** |
 | Add a new category | **Categories** tab → **+ Add a category** → name, emoji, **words people type** (press Enter after each) → **Test it with Pip** → **Save** |
 | Teach Pip more words | **Categories** tab → **Edit** → add words → test a sentence → **Save** |
@@ -173,6 +175,7 @@ and if anything is wrong it stops and the old site stays up.
 | `node --no-warnings tests/test_leads.mjs` | The "Before you go" form server and the Leads routes (uses Node's built-in SQLite as a stand-in for D1) |
 | `node tests/dev_server.mjs 8792 /tmp/fw-dev-links` then `PORT=8792 python3 tests/admin_links_e2e.py` | Big link cards, Ad label, small links, the visitor form and the Leads tab, end to end |
 | `node tests/dev_server.mjs 8791 /tmp/fw-dev-cats` then `PORT=8791 python3 tests/admin_cats_e2e.py` | My Shop categories → publish → Ask Pip uses them (run one My Shop test at a time) |
+| `python3 build.py --site` then `python3 tests/shop_test.py` | Product pages and the Shop page: titles, Google data, links, form, sitemap |
 | `node tests/test_rules.mjs` | Product rules: JavaScript and Python copies agree |
 | `node tests/test_admin_api.mjs` | My Shop server: login, upload, publish, conflicts |
 | `node tests/dev_server.mjs 8790 /tmp/fw-dev` then `python3 tests/admin_e2e.py` | Full My Shop test with a fake GitHub that rebuilds on publish |

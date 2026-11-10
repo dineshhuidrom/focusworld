@@ -167,6 +167,14 @@
         <input id="fHook" maxlength="100" placeholder="e.g. Exams soon? Get a calm plan in 1 minute." autocomplete="off"></label>
       <label class="field"><span>Description <small class="count" data-for="fText"></small></span>
         <textarea id="fText" maxlength="260" rows="3" placeholder="What does it do, in 1–2 simple sentences?"></textarea></label>
+      <label class="field"><span>More details for Google <small>(optional)</small> <small class="count" data-for="fDetails"></small></span>
+        <textarea id="fDetails" maxlength="3000" rows="7" placeholder="Who is it for? What problem does it solve? What is inside? How does it work?"></textarea></label>
+      <p class="hint">Shown on this product&rsquo;s own Google page, not on the card. Write 2&ndash;4 short paragraphs using the words people search for.
+        Start a line with <b>- </b> for a list, or <b>## </b> for a small heading.</p>
+      <div class="gpreview" aria-label="How it may look on Google">
+        <p class="eyebrow">How it may look on Google</p>
+        <b id="gpTitle"></b><small id="gpUrl"></small><span id="gpDesc"></span>
+      </div>
       <div class="two">
         <label class="field"><span>Small label above the title <small class="count" data-for="fKicker"></small></span>
           <input id="fKicker" maxlength="40" placeholder="e.g. For students" autocomplete="off"></label>

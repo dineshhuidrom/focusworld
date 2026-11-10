@@ -1,0 +1,29 @@
+/* product pages (added to guide.css) */
+.hero.product img { aspect-ratio: 16 / 9; }
+.price-line { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 16px; }
+.price-line .price { font-size: 26px; font-weight: 800; }
+.price-line .price.free { color: var(--mint); }
+.tag { display: inline-flex; align-items: center; min-height: 28px; padding: 0 10px; border-radius: 999px; background: rgba(255, 255, 255, .08); border: 1px solid var(--line); color: var(--muted); font-size: 13.5px; font-weight: 700; text-decoration: none; }
+.tag.ad { background: #fff1c9; color: #6b4a00; border-color: transparent; }
+a.tag:hover { background: rgba(255, 255, 255, .14); }
+.get { display: flex; flex-direction: column; gap: 8px; margin: 18px 0 8px; }
+.get .btn { width: 100%; font-size: 18px; min-height: 56px; }
+.get small { color: var(--faint); font-size: 13.5px; text-align: center; }
+.good-for { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 0; }
+.lead { margin: 10px 0 0; padding: 16px; border-radius: 18px; background: var(--paper); border: 1px solid var(--line); }
+.lead h2 { margin: 0 0 4px; font-size: 20px; }
+.lead p { margin: 0 0 10px; color: var(--muted); font-size: 15px; }
+.lead-field { display: flex; flex-direction: column; gap: 6px; margin: 0 0 10px; font-weight: 700; font-size: 15px; }
+.lead-field small { color: var(--faint); font-weight: 600; }
+.lead-field input { height: 50px; border-radius: 14px; border: 1px solid var(--line); background: rgba(255, 255, 255, .07); color: var(--text); font: inherit; font-size: 16px; padding: 0 16px; }
+.lead-field input:focus { outline: none; border-color: rgba(255, 210, 127, .7); }
+.lead-ok { display: flex; gap: 10px; align-items: flex-start; font-size: 15px; color: var(--muted); margin: 4px 0 10px; cursor: pointer; }
+.lead-ok input { flex: none; width: 22px; height: 22px; margin: 2px 0 0; accent-color: #ffb95e; }
+.lead .msg { color: #ff9a8a; font-size: 14.5px; margin: 0 0 8px; }
+.lead .msg:empty { display: none; }
+.lead .skip { display: block; margin: 8px auto 0; min-height: 44px; border: 0; background: none; color: var(--muted); font: inherit; font-weight: 700; text-decoration: underline; cursor: pointer; }
+.lead .small { color: var(--faint); font-size: 13px; text-align: center; margin: 6px 0 0; }
+.hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+.shop-cat { margin: 26px 0 8px; font-size: 21px; scroll-margin-top: 80px; }
+[hidden] { display: none !important; }
+.card.p img { aspect-ratio: 16 / 9; }

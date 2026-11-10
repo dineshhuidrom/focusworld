@@ -494,7 +494,7 @@
 
   // ---------- product editor ----------
   let E = null, edIndex = -1, edReturn = null, edDirty = false, srcImage = null, fitMode = 'fill', pendingCover = null, kindTouched = false, priceTouched = false, ctaTouched = false;
-  const FIELDS = { title: 'fTitle', hook: 'fHook', text: 'fText', kicker: 'fKicker', cta: 'fCta', price: 'fPrice', url: 'fUrl' };
+  const FIELDS = { title: 'fTitle', hook: 'fHook', text: 'fText', kicker: 'fKicker', cta: 'fCta', price: 'fPrice', url: 'fUrl', details: 'fDetails' };
 
   function buildKinds() {
     const box = $('kinds'); box.textContent = '';
@@ -580,9 +580,19 @@
   let rafPrev = 0;
   function updatePreview() { cancelAnimationFrame(rafPrev); rafPrev = requestAnimationFrame(drawPreview); }
   function bumpPreview() { const p = $('preview'); p.classList.remove('bump'); void p.offsetWidth; p.classList.add('bump'); }
+  // how the product's own page may look in Google results (title, address, description)
+  function drawGooglePreview(v) {
+    const t = (v('fTitle') || 'Your title') + ' | ' + APP_NAME_SHOP;
+    $('gpTitle').textContent = t.length > 62 ? t.slice(0, 60) + '…' : t;
+    const id = (E && E.id) || slugify(v('fTitle') || 'product');
+    $('gpUrl').textContent = location.host + ' › shop › ' + id;
+    const d = v('fHook') || v('fText') || 'Your short description shows here.';
+    $('gpDesc').textContent = d.length > 158 ? d.slice(0, 156) + '…' : d;
+  }
   function drawPreview() {
     const p = $('preview'); p.textContent = '';
     const v = (id) => $(id).value.trim();
+    drawGooglePreview(v);
     const pic = document.createElement('div'); pic.className = 'cp-pic';
     const src = pendingCover ? pendingCover.dataUrl : (E.image ? picSrc(E.image) : '');
     if (src) { const im = document.createElement('img'); im.alt = ''; im.src = src; pic.appendChild(im); }
@@ -616,7 +626,7 @@
       c.classList.toggle('near', inp.value.length >= max * 0.9);
     });
   }
-  ['fTitle', 'fHook', 'fText', 'fKicker', 'fCta', 'fPrice'].forEach((id) => {
+  ['fTitle', 'fHook', 'fText', 'fKicker', 'fCta', 'fPrice', 'fDetails'].forEach((id) => {
     $(id).addEventListener('input', () => {
       edDirty = true; counters(); updatePreview(); $('edMsg').textContent = '';
       $(id).closest('.field').classList.remove('bad');
@@ -846,7 +856,7 @@
   }
 
   // save
-  function friendlyField(f) { return { title: 'fTitle', text: 'fText', url: 'fUrl', price: 'fPrice', hook: 'fHook', kicker: 'fKicker', cta: 'fCta' }[f]; }
+  function friendlyField(f) { return { title: 'fTitle', text: 'fText', url: 'fUrl', price: 'fPrice', hook: 'fHook', kicker: 'fKicker', cta: 'fCta', details: 'fDetails' }[f]; }
   function markBad(field, msg) {
     $('edMsg').textContent = msg;
     const id = friendlyField(field);
@@ -876,6 +886,9 @@
     item.title = v('fTitle');
     if (v('fHook')) item.hook = v('fHook');
     item.text = v('fText');
+    // longer text for the product's own Google page: tidy line breaks, at most one empty line in a row
+    const details = $('fDetails').value.replace(/\r\n?/g, '\n').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+    if (details) item.details = details;
     if ($('fFree').checked) item.free = true; else if ($('fNoPrice').checked) item.noPrice = true; else item.price = v('fPrice');
     item.cta = v('fCta') || KIND[E.type].cta;
     item.image = E.image || '';
