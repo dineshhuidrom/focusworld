@@ -25,11 +25,7 @@
         "jobs",
         "school"
       ],
-      "featured": true,
-      "ask": [
-        "name",
-        "phone"
-      ]
+      "featured": true
     },
     {
       "id": "first-reply",
