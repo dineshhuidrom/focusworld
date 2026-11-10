@@ -159,5 +159,5 @@ v1.6 to v1.9 are live: Ask Pip, categories, picture cards, Ad label, details for
 
 ### Next
 - dinesh: add the full Speak Ahead details (one-on-one practice, tongue twisters…) and his logo in My Shop
-- Part F of SETUP.md (Leads database), needed before any product asks for details
+- ✅ Part F done 10 Nov 21:45: D1 `focusworld-leads` made, `LEADS_DB` connected, Leads tab shows "No leads yet"
 - Search Console: send the sitemap again so Google finds the new product pages
