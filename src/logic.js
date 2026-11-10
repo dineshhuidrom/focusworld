@@ -105,6 +105,8 @@
       notify: false,
       chime: 0.6,
       master: 0.8,
+      soundsOn: true,      // the 🔊 button on the timer: false = all sounds stopped
+      breakSounds: false,  // keep playing during breaks (off = quiet breaks)
       sounds: { rain: 0, ocean: 0, forest: 0, fire: 0, brown: 0, lofi: 0 },
       scene: 'daily'       // 'daily', 'session', or a scene id the person picked
     };
@@ -146,6 +148,8 @@
     d.notify = bool(raw.notify, d.notify);
     d.chime = num(raw.chime, 0, 1, d.chime);
     d.master = num(raw.master, 0, 1, d.master);
+    d.soundsOn = bool(raw.soundsOn, d.soundsOn);
+    d.breakSounds = bool(raw.breakSounds, d.breakSounds);
     d.scene = raw.scene === 'daily' || raw.scene === 'session' || SCENE_IDS.indexOf(raw.scene) >= 0 ? raw.scene : 'daily';
     if (raw.sounds && typeof raw.sounds === 'object') {
       SOUND_KEYS.forEach(function (k) { d.sounds[k] = num(raw.sounds[k], 0, 1, 0); });

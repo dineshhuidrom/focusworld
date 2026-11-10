@@ -136,7 +136,10 @@ async def main():
               "'something else' shows category buttons: %s" % r["chips"])
         await pg.locator("#askLog .chat-chips button", has_text="Money").click(); await pg.wait_for_timeout(150)
         r = await last_bot(pg)
-        check("Money & taxes" in r["text"] and len(r["cards"]) == 2, "a category button shows that category's products")
+        import json as _json   # count from today's shop, so My Shop changes don't break the test
+        _items = _json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "src", "catalog.json")))["items"]
+        _want = min(4, sum(1 for i in _items if not i.get("hidden") and "money" in (i.get("categories") or [])))
+        check("Money & taxes" in r["text"] and len(r["cards"]) == _want, "a category button shows that category's products (%d)" % _want)
 
         r = await say(pg, "how do I follow you on instagram")
         check(r["cards"] and "instagram.com/speakaheadacademy" in r["cards"][0], "follow: Pip shows the Speak Ahead picture card")

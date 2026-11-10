@@ -66,7 +66,10 @@ async def main():
         rows = await pg.eval_on_selector_all("#catList .row", "n => n.length")
         check(rows == 12 and await text(pg, "#countCats") == "12", "12 starter categories show")
         school = await pg.inner_text("#catList .row:nth-child(3)")
-        check("School" in school and "2 products" in school, "a category shows how many products use it")
+        # counted from today's shop, so dinesh's own category changes in My Shop don't break the test
+        _items = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "src", "catalog.json")))["items"]
+        school_n = sum(1 for i in _items if not i.get("hidden") and "school" in (i.get("categories") or []))
+        check("School" in school and ("%d products" % school_n) in school, "a category shows how many products use it (%d)" % school_n)
         await pg.screenshot(path=SHOTS + "cats_01_tab.png")
 
         # 2. test words with Pip, then cancel
@@ -159,7 +162,7 @@ async def main():
         await site.locator("#askLog .chat-chips button", has_text="School").click()
         await site.wait_for_timeout(1200)
         n = await site.evaluate("[...document.querySelectorAll('#askLog .msg.bot .bubble')].pop().querySelectorAll('.chat-card').length")
-        check(n == 2, "tapping a category button shows its products (%d)" % n)
+        check(n == min(4, school_n), "tapping a category button shows its products (%d)" % n)
         await site.screenshot(path=SHOTS + "cats_05_pip.png")
 
         check(not errs, "no errors: %s" % errs[:3])

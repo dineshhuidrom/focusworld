@@ -33,7 +33,7 @@
     'progressBtn', 'shareBtn', 'streakBtn', 'streakNum', 'menuBtn', 'live', 'pip', 'pipText', 'pipBtns', 'toast', 'scrim',
     'soundList', 'masterVol', 'soundWarn', 'stats', 'week', 'collection', 'collTitle', 'progressBackupBtn', 'shareImg', 'shareNowBtn',
     'saveImgBtn', 'notifySwitch', 'calmSwitch', 'skySeg', 'chimeVol', 'storageWarn', 'exportBtn', 'importBtn', 'resetBtn', 'sceneBtn', 'sceneIcon', 'sceneName', 'sceneMode', 'sceneGrid', 'sceneCount', 'toolsBtn', 'toolsList', 'followRow', 'followLinks', 'aboutBtn', 'toolsSearch', 'toolsChips', 'toolsCount', 'promo', 'promoX', 'promoLink', 'promoImg', 'promoKicker', 'promoTitle', 'promoCta', 'promoPrice',
-    'askBtn', 'askLog', 'askForm', 'askInput', 'leadTitle', 'leadForm', 'leadName', 'leadPhone', 'leadEmail', 'leadNameRow', 'leadPhoneRow', 'leadEmailRow', 'leadPhoneNote',
+    'askBtn', 'askLog', 'askForm', 'askInput', 'leadTitle', 'leadForm', 'leadName', 'leadPhone', 'leadEmail', 'leadNameRow', 'leadPhoneRow', 'leadEmailRow', 'leadPhoneNote', 'muteBtn', 'breakMuteBtn', 'breakSoundSwitch',
     'leadEmailNote', 'leadEither', 'leadOk', 'leadOkText', 'leadHp', 'leadMsg', 'leadSkip', 'friendRow', 'friendLinks', 'confirmTitle', 'confirmText', 'confirmYes', 'confirmNo', 'onboard', 'obTitle', 'obText', 'obDots', 'obBtns', 'importFile', 'customBtn'
   ].forEach(function (id) { el[id] = $(id); });
 
@@ -43,13 +43,52 @@
   function ensureAudio() {
     if (!engine.supported()) return false;
     engine.unlock();
-    if (!audioReady && engine.ctx) { audioReady = true; engine.setLevels(S.settings.sounds, S.settings.master); }
+    if (!audioReady && engine.ctx) { audioReady = true; applySounds(); }
     return audioReady;
   }
   function anySound() { return L.SOUND_KEYS.some(function (k) { return S.settings.sounds[k] > 0; }); }
-  function applySounds() {
-    if (audioReady) engine.setLevels(S.settings.sounds, S.settings.master);
+  // Sounds play while focusing (and in breaks only if the person chose that), never when idle or paused.
+  // The Sounds panel plays them while it is open so people can hear what they pick.
+  var soundsPreview = false, soundWas = null;
+  var NO_SOUND = { rain: 0, ocean: 0, forest: 0, fire: 0, brown: 0, lofi: 0 };
+  function soundWanted() {
+    if (!S.settings.soundsOn || !anySound()) return false;
+    if (soundsPreview) return true;
+    var m = mode();
+    return m === 'focus' || (m === 'break' && S.settings.breakSounds);
+  }
+  function applySounds(fade) {
+    var on = soundWanted();
+    soundWas = on;
+    if (audioReady) engine.setLevels(on ? S.settings.sounds : NO_SOUND, S.settings.master, fade);
     el.soundDot.hidden = !anySound();
+    renderSoundBtns();
+  }
+  // Called after every change of state: fades the sounds in or out only when that actually changes.
+  function syncSound() {
+    if (soundWanted() !== soundWas) applySounds(soundWanted() ? 0.8 : 1.5);
+    else renderSoundBtns();
+  }
+  // The 🔊 button beside Pause/Stop (and in breaks): one tap stops or plays the sounds.
+  function soundBtnOn(inBreak) { return S.settings.soundsOn && anySound() && (!inBreak || S.settings.breakSounds); }
+  function renderSoundBtns() {
+    [[el.muteBtn, false], [el.breakMuteBtn, true]].forEach(function (x) {
+      var b = x[0], on = soundBtnOn(x[1]);
+      if (!b) return;
+      b.classList.toggle('off', !on);
+      b.setAttribute('aria-label', on ? (x[1] ? 'Stop the music in breaks' : 'Stop the sounds') : (x[1] ? 'Play music in the break' : 'Play the sounds'));
+      b.title = b.getAttribute('aria-label');
+    });
+  }
+  function tapSoundBtn(inBreak, b) {
+    ensureAudio();
+    if (!anySound()) { buildSounds(); openSheet('sheetSounds'); return; }
+    var on = soundBtnOn(inBreak);
+    if (inBreak) { S.settings.breakSounds = !on; if (!on) S.settings.soundsOn = true; }
+    else S.settings.soundsOn = !on;
+    save(); applySounds(on ? 0.6 : 0.8);
+    b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop');
+    toast(on ? (inBreak ? 'Quiet breaks \uD83C\uDF3F' : 'Sounds off. Tap \uD83D\uDD0A to play them again') : (inBreak ? 'Music on in breaks \uD83C\uDFA7' : 'Sounds on \uD83C\uDFA7'));
   }
   function firstGesture() {
     ['click', 'keydown', 'touchend'].forEach(function (ev) { window.removeEventListener(ev, firstGesture, true); });
@@ -172,7 +211,7 @@
       S.tips.soundSet = true;
       S.settings.sounds.lofi = 0.5; S.settings.sounds.rain = 0.3;
       applySounds();
-      setTimeout(function () { toast('Playing lofi + soft rain \uD83C\uDFA7 Change it in Sounds'); }, 400);
+      setTimeout(function () { toast('Playing lofi + soft rain \uD83C\uDFA7 Tap \uD83D\uDD0A to stop it'); }, 400);
     }
     S.session = L.newSession('focus', m * MIN, now(), { strict: S.settings.strict, tiny: !!tiny });
     wiltUntil = 0; bloomUntil = 0;
@@ -429,7 +468,7 @@
     el.worldDesc.textContent = 'Your island has ' + have.length + ' of ' + L.ITEMS.length + ' things' +
       (have.length ? ': ' + have.map(function (i) { return i.name; }).join(', ') + '.' : '. It is still just sand and a little grass.');
   }
-  function renderAll() { renderPanel(); renderStreak(); renderDesc(); el.soundDot.hidden = !anySound(); }
+  function renderAll() { renderPanel(); renderStreak(); renderDesc(); el.soundDot.hidden = !anySound(); syncSound(); }
 
   // ---------- product showcase (our own products: Tools page, and a picture card during breaks) ----------
   var SHELF = Array.isArray(CFG.shelf) ? CFG.shelf.filter(function (p) {
@@ -657,6 +696,7 @@
     el.scrim.classList.add('on'); sh.classList.add('open');
     setInert(true);
     openSheetEl = sh;
+    if (id === 'sheetSounds') { soundsPreview = true; syncSound(); }
     var f = sh.querySelector('[data-close], button, input, a[href]');
     setTimeout(function () { if (f && openSheetEl === sh) f.focus({ preventScroll: true }); }, 80);
   }
@@ -664,6 +704,7 @@
     var sh = openSheetEl;
     if (!sh) return;
     openSheetEl = null;
+    if (sh.id === 'sheetSounds') { soundsPreview = false; syncSound(); }
     if (sh.id === 'sheetConfirm' && confirmResolve) { var r = confirmResolve; confirmResolve = null; r(false); }
     sh.classList.remove('open'); el.scrim.classList.remove('on');
     setInert(false);
@@ -724,7 +765,7 @@
         ensureAudio();
         S.tips.soundSet = true;
         S.settings.sounds[m.k] = L.clamp(v, 0, 1);
-        if (v > 0) lastLevel[m.k] = v;
+        if (v > 0) { lastLevel[m.k] = v; S.settings.soundsOn = true; }   // picking a sound means: I want sound
         applySounds(); sync(); saveSoon();
       }
       bt.addEventListener('click', function () { set(S.settings.sounds[m.k] > 0 ? 0 : (lastLevel[m.k] || 0.6)); });
@@ -734,9 +775,13 @@
       el.soundList.appendChild(row);
     });
     el.masterVol.value = String(Math.round(S.settings.master * 100));
+    el.breakSoundSwitch.checked = !!S.settings.breakSounds;
     el.soundWarn.hidden = engine.supported();
   }
   el.masterVol.addEventListener('input', function () { ensureAudio(); S.settings.master = +el.masterVol.value / 100; applySounds(); saveSoon(); });
+  el.breakSoundSwitch.addEventListener('change', function () { S.settings.breakSounds = el.breakSoundSwitch.checked; save(); renderSoundBtns(); });
+  el.muteBtn.addEventListener('click', function () { tapSoundBtn(false, el.muteBtn); });
+  el.breakMuteBtn.addEventListener('click', function () { tapSoundBtn(true, el.breakMuteBtn); });
 
   // ---------- progress sheet ----------
   function stat(value, label) {

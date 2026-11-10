@@ -187,6 +187,7 @@
       say: ['Calm sounds can help you focus. Songs with words usually distract, so try sounds without words:',
         '• Focus World has rain, ocean, forest, campfire, brown noise and lofi music.',
         '• Mix them in Sounds. They’re made on your device and work offline.',
+        '• They play while you focus and stop when the timer ends. Tap 🔊 next to Pause to stop or play them. Want music in breaks too? Switch on “Play during breaks” in Sounds.',
         'Noisy around you? Brown noise covers voices well.',
         'No sound? Turn up your volume, check silent mode, then tap a sound in Sounds.'],
       acts: ['sounds'], guides: ['pomodoro-timer-with-lofi-music'], next: ['focus'] },

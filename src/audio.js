@@ -97,8 +97,11 @@
     this.masterLevel = v;
     if (this.master) this.master.gain.setTargetAtTime(v * 0.9, this.ctx.currentTime, 0.1);
   };
-  Engine.prototype.setLevels = function (levels, master) {
+  // fade: seconds to fade in or out (default quick). Channels that reach 0 are stopped after the fade,
+  // so nothing keeps running (or using the phone's battery) when no sound is wanted.
+  Engine.prototype.setLevels = function (levels, master, fade) {
     if (master != null) this.setMaster(master);
+    var f = fade > 0 ? fade : 0;
     var c = this.ctx;
     var self = this;
     Object.keys(BASE).forEach(function (k) {
@@ -108,14 +111,14 @@
       if (lv > 0) {
         if (self.stopTimers[k]) { clearTimeout(self.stopTimers[k]); self.stopTimers[k] = null; }
         if (!self.ch[k]) self.ch[k] = MAKERS[k](self);
-        self.ch[k].out.gain.setTargetAtTime(BASE[k] * Math.pow(lv, 1.6), c.currentTime, 0.25);
+        self.ch[k].out.gain.setTargetAtTime(BASE[k] * Math.pow(lv, 1.6), c.currentTime, f ? f / 3 : 0.25);
       } else if (self.ch[k]) {
-        self.ch[k].out.gain.setTargetAtTime(0, c.currentTime, 0.15);
+        self.ch[k].out.gain.setTargetAtTime(0, c.currentTime, f ? f / 4 : 0.15);
         if (!self.stopTimers[k]) {
           self.stopTimers[k] = setTimeout(function () {
             self.stopTimers[k] = null;
             if (self.ch[k] && !(self.levels[k] > 0)) { self.ch[k].stop(); delete self.ch[k]; }
-          }, 900);
+          }, Math.max(900, f * 1000 + 400));
         }
       }
     });
@@ -132,8 +135,10 @@
     var self = this;
     if (this.timer) { clearInterval(this.timer); this.timer = null; }
     if (!this.ctx || !this.anyOn()) return;
-    var ahead = this.hidden ? 2.6 : 0.35;
-    var every = this.hidden ? 500 : 90;
+    // Notes are booked this far ahead. 1 s on screen survives a busy phone; more when the tab is hidden
+    // because browsers slow timers down there.
+    var ahead = this.hidden ? 3 : 1;
+    var every = this.hidden ? 500 : 200;
     this.pumpAll(this.ctx.currentTime + ahead);
     this.timer = setInterval(function () { self.pumpAll(self.ctx.currentTime + ahead); }, every);
   };
@@ -183,6 +188,7 @@
     return {
       out: out,
       pump: function (until) {
+        if (next < c.currentTime) next = c.currentTime + 0.02;   // after a stall: carry on from now
         while (next < until) {
           burst(e, out, next, 0.025 + Math.random() * 0.05, 0.03 + Math.random() * 0.09, 'bandpass', 2200 + Math.random() * 4000, 2 + Math.random() * 3);
           next += 0.015 + Math.random() * 0.05;
@@ -202,6 +208,7 @@
     return {
       out: out,
       pump: function (until) {
+        if (next < c.currentTime) next = c.currentTime + 0.05;
         while (next < until) {
           var P = 6 + Math.random() * 4, peak = 0.6 + Math.random() * 0.4;
           env.gain.setTargetAtTime(peak, next, P * 0.18); env.gain.setTargetAtTime(0.12, next + P * 0.45, P * 0.2);
@@ -238,6 +245,8 @@
     return {
       out: out,
       pump: function (until) {
+        if (nextWind < c.currentTime) nextWind = c.currentTime;
+        if (nextBird < c.currentTime) nextBird = c.currentTime + 1;
         while (nextWind < until) {
           var d = 4 + Math.random() * 3;
           bp.frequency.setTargetAtTime(400 + Math.random() * 700, nextWind, d * 0.4);
@@ -260,6 +269,7 @@
     return {
       out: out,
       pump: function (until) {
+        if (next < c.currentTime) next = c.currentTime + 0.02;
         while (next < until) {
           var big = Math.random() < 0.07;
           burst(e, out, next, 0.004 + Math.random() * 0.018, big ? 0.45 : 0.04 + Math.random() * 0.14, 'highpass', 1200 + Math.random() * 3500, 0.7);
@@ -299,38 +309,40 @@
     var bus = gainN(c, 0.5), shaper = c.createWaveShaper(), tone = filt(c, 'lowpass', 3600, 0.3);
     shaper.curve = softCurve(); shaper.oversample = '2x';
     bus.connect(shaper); shaper.connect(tone); tone.connect(out);
-    var keys = filt(c, 'lowpass', 2300, 0.4); keys.connect(bus);
+    var keys = filt(c, 'lowpass', 2300, 0.4), wobble = c.createDelay(0.1);
+    wobble.delayTime.value = 0.012; keys.connect(wobble); wobble.connect(bus);
     var drums = gainN(c, 0.6), dtone = filt(c, 'lowpass', 6500, 0.4); drums.connect(dtone); dtone.connect(bus);
-    var wow = c.createOscillator(), wowG = gainN(c, 5); wow.frequency.value = 0.45; wow.connect(wowG); wow.start();
+    var wow = c.createOscillator(), wowG = gainN(c, 0.0009); wow.frequency.value = 0.45; wow.connect(wowG); wowG.connect(wobble.delayTime); wow.start();
     var key = pick([0, 2, -3, 5, -2]), bpm = 70 + Math.floor(Math.random() * 10), beat = 60 / bpm;
     var mBus = gainN(c, 1), dly = c.createDelay(2), fb = gainN(c, 0.3), wet = gainN(c, 0.35);
     dly.delayTime.value = beat * 0.75;
     mBus.connect(bus); mBus.connect(dly); dly.connect(fb); fb.connect(dly); dly.connect(wet); wet.connect(bus);
-    var hiss = loopSrc(e, 'pink'), hhp = filt(c, 'highpass', 2600, 0.5), hg = gainN(c, 0.012);
-    hiss.connect(hhp); hhp.connect(hg); hg.connect(out);
 
-    var step = 0, bar = 0, prog = pick(PROGS), next = c.currentTime + 0.15, crack = next;
+    var step = 0, bar = 0, prog = pick(PROGS), next = c.currentTime + 0.15;
 
     function osc(type, f, t, stop) { var o = c.createOscillator(); o.type = type; o.frequency.value = f; o.start(t); o.stop(stop); return o; }
     function epiano(t, m, vel, dur) {
       var f = mtof(m + key);
-      var o1 = osc('sine', f, t, t + dur + 0.05), o3 = osc('triangle', f, t, t + dur + 0.05), o2 = osc('sine', f * 2, t, t + 0.7);
+      var end = t + dur + 0.6;
+      var o1 = osc('sine', f, t, end), o3 = osc('triangle', f, t, end), o2 = osc('sine', f * 2, t, t + 0.7);
       o3.detune.value = -6;
-      wowG.connect(o1.detune); wowG.connect(o2.detune);
       var g = c.createGain(), g3 = gainN(c, 0.25), g2 = c.createGain();
+      // strike, settle, hold softly for the whole bar, then fade while the next chord comes in
       g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vel, t + 0.015);
-      g.gain.exponentialRampToValueAtTime(vel * 0.4, t + 0.5); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      g.gain.exponentialRampToValueAtTime(vel * 0.5, t + 0.45); g.gain.exponentialRampToValueAtTime(vel * 0.32, t + dur);
+      g.gain.exponentialRampToValueAtTime(0.0001, end);
       g2.gain.setValueAtTime(0.0001, t); g2.gain.exponentialRampToValueAtTime(vel * 0.3, t + 0.008); g2.gain.exponentialRampToValueAtTime(0.0001, t + 0.6);
       o1.connect(g); o3.connect(g3); g3.connect(g); o2.connect(g2);
       g.connect(keys); g2.connect(keys);
     }
     function chord(t, ch) {
-      for (var i = 0; i < ch.n.length; i++) epiano(t + i * 0.018 + Math.random() * 0.01, ch.n[i], 0.075 + Math.random() * 0.02, beat * 3.7);
+      for (var i = 0; i < ch.n.length; i++) epiano(t + i * 0.018 + Math.random() * 0.01, ch.n[i], 0.075 + Math.random() * 0.02, beat * 4);
     }
     function bass(t, m, dur) {
       var f = mtof(m + key);
-      var o = osc('sine', f, t, t + dur + 0.05), o2 = osc('triangle', f, t, t + dur + 0.05);
-      var lp = filt(c, 'lowpass', 420, 0.6), g = c.createGain(), g2 = gainN(c, 0.3);
+      var o = osc('sine', f, t, t + dur + 0.05), o2 = osc('triangle', f, t, t + dur + 0.05), o4 = osc('sine', f * 2, t, t + dur + 0.05);
+      var lp = filt(c, 'lowpass', 420, 0.6), g = c.createGain(), g2 = gainN(c, 0.3), g4 = gainN(c, 0.35);
+      o4.connect(g4); g4.connect(g);
       g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.34, t + 0.02);
       g.gain.exponentialRampToValueAtTime(0.22, t + 0.2); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
       o.connect(g); o2.connect(g2); g2.connect(g); g.connect(lp); lp.connect(bus);
@@ -351,7 +363,7 @@
     function bell(t, m) {
       var f = mtof(m + key);
       var o = osc('sine', f, t, t + 1.3), o2 = osc('sine', f * 2.76, t, t + 0.4), g = c.createGain(), g2 = c.createGain();
-      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.06, t + 0.006); g.gain.exponentialRampToValueAtTime(0.0001, t + 1.2);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.045, t + 0.006); g.gain.exponentialRampToValueAtTime(0.0001, t + 1.2);
       g2.gain.setValueAtTime(0.0001, t); g2.gain.exponentialRampToValueAtTime(0.012, t + 0.004); g2.gain.exponentialRampToValueAtTime(0.0001, t + 0.35);
       o.connect(g); o2.connect(g2); g.connect(mBus); g2.connect(mBus);
     }
@@ -372,24 +384,22 @@
           if (SNARE[s]) snare(t);
           if (s % 2 === 0) hat(t, s % 4 === 0 ? 0.05 : 0.035);
         }
-        if (s % 2 === 0 && Math.random() < 0.16) bell(t, melodyNote(ch));
+        if (s % 4 === 0 && !breakdown && Math.random() < 0.15) bell(t, melodyNote(ch));
       }
     }
     return {
       out: out,
       pump: function (until) {
+        var late = c.currentTime + 0.02;
         while (next < until) {
-          scheduleStep(step, next);
+          // a beat already in the past is skipped, not crammed in; a missed chord still comes in, a moment late
+          if (next >= late) scheduleStep(step, next); else if (step === 0) scheduleStep(0, late);
           next += beat / 4;
           step = (step + 1) % 16;
           if (step === 0) { bar++; if (bar % 8 === 0) prog = pick(PROGS); }
         }
-        while (crack < until) {
-          burst(e, out, crack, 0.002, 0.03 + Math.random() * 0.04, 'highpass', 3000, 0.7);
-          crack += 0.15 + Math.random() * 0.9;
-        }
       },
-      stop: function () { stopAll([wow, hiss]); out.disconnect(); }
+      stop: function () { stopAll([wow]); out.disconnect(); }
     };
   };
 

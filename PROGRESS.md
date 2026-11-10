@@ -169,3 +169,15 @@ v1.6 to v1.9 are live: Ask Pip, categories, picture cards, Ad label, details for
 | Where | Same rule in the site form (`src/app.js`), the product page form (`src/shop/shop.js`) and the server (`lib/leads.mjs`); a test checks the three copies agree. "with country code" removed from the forms |
 | Tests | `test_leads.mjs` 11 (19 number cases), `admin_links_e2e.py` 42, all others pass |
 
+## 10 Nov 2026 — v1.10 Calm, smooth sounds (dinesh: "the music plays non-stop, stops for 1–2 seconds again and again, too many sound effects, no way to stop it")
+| What | How |
+|---|---|
+| Measured first | Recorded the music with code: about every 3 seconds it fell to near silence for 0.5–1.8 s (each chord faded before the next one). On phone speakers the deep bass and drums can't be heard, so it sounded like the music stopping |
+| Smooth music | Chords now hold until the next chord. Bass has a soft higher layer so phone speakers hear it. Record crackle clicks and hiss removed; bells rarer and softer. Measured after: no gaps, no clicks |
+| No stutter in long sessions | Before, every chord stayed wired to the "tape wobble" forever, so the phone did a bit more work each bar. Now one wobble for all. Notes are booked 1 s ahead (was 0.35 s), and if the phone freezes for a moment, the missed beats are skipped instead of all playing at once |
+| Sounds follow the timer | Play while focusing, fade out when the timer ends or on Stop, quiet on Pause, quiet when idle. The Sounds panel plays them while it is open, so people hear what they pick |
+| Breaks | Quiet by default (dinesh chose A). Visitors choose: 🔊 button on the break screen, or "Play during breaks" in Sounds. Remembered |
+| 🔊 button | Beside Pause and Stop: one tap stops all sounds, one tap plays them again (crossed out when off). Toast on the first session says "Tap 🔊 to stop it". Pip and the FAQ explain it |
+| Tests | New `sound_test.py` (26 checks, incl. a 40-second recording with no gaps/clicks). Tests that counted today's products/categories now read them from the shop, so dinesh's My Shop edits don't break them. All suites pass |
+| Not live yet | Waiting for dinesh's yes (the +91 fix went live at 21:57) |
+

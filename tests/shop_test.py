@@ -70,7 +70,8 @@ check('rel="noopener sponsored nofollow"' in page and "Paid promotion" in page, 
 asking = dict(cat["items"][1], ask=["name", "email"])
 page = b.render_product(b.shelf_for([asking], True)[0], b.shelf_for([asking], True), cat["categories"], SITE_URL)
 check('data-ask="name,email"' in page and 'id="leadForm"' in page and "/api/lead" in page, "details form on the page when the product asks")
-plain = b.render_product(b.shelf_for([cat["items"][1]], True)[0], shown, cat["categories"], SITE_URL)
+plain_item = {k: v for k, v in cat["items"][1].items() if k != "ask"}   # the same product with the form switched off
+plain = b.render_product(b.shelf_for([plain_item], True)[0], shown, cat["categories"], SITE_URL)
 check('id="leadForm"' not in plain and "/api/lead" not in plain, "no form (and no script) when it doesn't ask")
 
 print("\n%d problem(s)" % len(fails) if fails else "\nall shop page checks passed")

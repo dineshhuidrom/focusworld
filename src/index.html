@@ -61,9 +61,11 @@
   <div class="actions" id="runActions" hidden>
     <button id="pauseBtn" class="btn soft" type="button">Pause</button>
     <button id="stopBtn" class="btn ghost" type="button">Stop</button>
+    <button id="muteBtn" class="btn soft sq sound-now" type="button" aria-label="Stop the sounds"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M4 9.5v5h3.5L12 19V5L7.5 9.5H4z" fill="currentColor"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
   </div>
   <div class="actions" id="breakActions" hidden>
     <button id="skipBreakBtn" class="btn soft" type="button">I&rsquo;m ready, let&rsquo;s go</button>
+    <button id="breakMuteBtn" class="btn soft sq sound-now" type="button" aria-label="Play music in the break"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M4 9.5v5h3.5L12 19V5L7.5 9.5H4z" fill="currentColor"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
   </div>
   <div class="next" id="next">
     <div class="next-top"><span id="nextName">Next up: First sprout</span><span id="nextLeft"></span></div>
@@ -131,6 +133,8 @@
   <p class="note">Mix your own cozy soundtrack. It is all made live, right here. Nothing to download!</p>
   <div class="sound-list" id="soundList"></div>
   <label class="slider-row"><span>Overall volume</span><input type="range" id="masterVol" min="0" max="100" step="1"></label>
+  <label class="switch-row"><span><b>Play during breaks</b><small>Off: your breaks are quiet. On: your sounds keep playing.</small></span><input type="checkbox" role="switch" class="switch" id="breakSoundSwitch"></label>
+  <p class="note">Sounds play while you focus and stop when the timer ends. Tap &#x1F50A; on the timer to stop or play them any time.</p>
   <p class="note" id="soundWarn" hidden>Aw, this browser can&rsquo;t play our sounds. Chrome, Safari or Edge can!</p>
 </section>
 
@@ -232,7 +236,7 @@
     <details><summary>Is it good for the Pomodoro technique?</summary>
       <p>Yes. The classic Pomodoro is 25 minutes of focus and a 5-minute break. {{APP_NAME}} can start your breaks by itself, and your streak grows every day you focus.</p></details>
     <details><summary>Can I study with music?</summary>
-      <p>Yes: soft rain, ocean waves, forest birds, a crackling fire, brown noise and calm lofi music. Mix them however you like in Sounds. They are made right on your device, so they work offline too.</p></details>
+      <p>Yes: soft rain, ocean waves, forest birds, a crackling fire, brown noise and calm lofi music. Mix them however you like in Sounds. They play while you focus and stop when the timer ends; tap &#x1F50A; next to Pause to stop or play them. Breaks are quiet unless you switch on &ldquo;Play during breaks&rdquo; in Sounds. They are made right on your device, so they work offline too.</p></details>
     <details><summary>Where is my world saved?</summary>
       <p>Only on this device, in your browser. Nothing is sent anywhere. To move it to another phone or laptop, use &ldquo;Save backup&rdquo; in Settings. Clearing your browser data erases it, so save a backup now and then.</p></details>
     <details><summary>Does it work offline? Can I install it?</summary>

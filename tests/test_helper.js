@@ -3,7 +3,12 @@
 const assert = require('assert');
 const H = require('../src/helper.js');
 const L = require('../src/logic.js');
-const products = require('../src/catalog.json').items.filter((p) => !p.hidden);
+// The real products, with their categories pinned as they were when these tests were written, so dinesh can
+// change categories in My Shop without breaking the tests (the tests check Pip's logic, not today's shop).
+const PINNED_CATS = { 'speak-ahead-academy': ['english'], 'paper-trail': ['school'], 'first-reply': ['school'],
+  'cp2000-kit': ['money'], 'irs-letter-check': ['money'] };
+const products = require('../src/catalog.json').items.filter((p) => !p.hidden)
+  .map((p) => Object.assign({}, p, PINNED_CATS[p.id] ? { categories: PINNED_CATS[p.id] } : {}));
 const ctx = { products, guides: [{ slug: '50-10-study-method', h1: 'The 50/10 study method' }], hasSocial: true };
 let passed = 0;
 function t(name, fn) {

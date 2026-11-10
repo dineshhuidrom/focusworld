@@ -176,6 +176,7 @@ and if anything is wrong it stops and the old site stays up.
 | `node tests/dev_server.mjs 8792 /tmp/fw-dev-links` then `PORT=8792 python3 tests/admin_links_e2e.py` | Big link cards, Ad label, small links, the visitor form and the Leads tab, end to end |
 | `node tests/dev_server.mjs 8791 /tmp/fw-dev-cats` then `PORT=8791 python3 tests/admin_cats_e2e.py` | My Shop categories → publish → Ask Pip uses them (run one My Shop test at a time) |
 | `python3 build.py --site` then `python3 tests/shop_test.py` | Product pages and the Shop page: titles, Google data, links, form, sitemap |
+| `python3 build.py` then `python3 tests/sound_test.py` | Sounds follow the timer, 🔊 buttons, quiet breaks, music has no gaps or clicks |
 | `node tests/test_rules.mjs` | Product rules: JavaScript and Python copies agree |
 | `node tests/test_admin_api.mjs` | My Shop server: login, upload, publish, conflicts |
 | `node tests/dev_server.mjs 8790 /tmp/fw-dev` then `python3 tests/admin_e2e.py` | Full My Shop test with a fake GitHub that rebuilds on publish |

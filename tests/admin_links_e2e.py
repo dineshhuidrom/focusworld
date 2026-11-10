@@ -123,7 +123,12 @@ async def main():
         await pg.locator("#productList .row", has_text="IRS letter saying").locator(".edit").click()
         await pg.wait_for_selector("#editor:not([hidden])")
         await pg.click("#gateSeg button[data-gate='form']")
-        await pg.click("#askPick [data-f='name']")
+        # set exactly "WhatsApp number" whatever the product asks today (dinesh can change it in My Shop):
+        # switch on what we want first, then switch off the rest (the last way to reach someone can't be removed)
+        for f, want in (("phone", True), ("name", False), ("email", False)):
+            on = await pg.get_attribute("#askPick [data-f='%s']" % f, "aria-pressed") == "true"
+            if on != want:
+                await pg.click("#askPick [data-f='%s']" % f)
         await pg.click("#edSave")
         await pg.wait_for_selector("#editor", state="hidden", timeout=8000)
 

@@ -91,6 +91,12 @@ canvas#world { position: fixed; inset: 0; display: block; width: 100vw; height: 
   transition: transform .12s var(--ease), background .2s, box-shadow .2s, opacity .2s; }
 .btn:active { transform: scale(.965); }
 .actions .btn { white-space: nowrap; }
+/* the 🔊 button beside Pause/Stop: a round button, crossed out when the sounds are off */
+.actions .btn.sq { flex: none; width: 52px; padding: 0; display: grid; place-items: center; position: relative; }
+.btn.sq.off { color: var(--muted); }
+.btn.sq.off::after { content: ''; position: absolute; inset: 0; margin: auto; width: 26px; height: 2.5px; border-radius: 2px; background: currentColor; transform: rotate(-45deg); }
+@media (prefers-reduced-motion: no-preference) { .btn.sq.pop { animation: sqpop .32s ease; } }
+@keyframes sqpop { 40% { transform: scale(1.12); } }
 @media (max-width: 400px) { .actions .btn { font-size: 15px; padding: 0 12px; } }
 .btn.primary { background: linear-gradient(180deg, #ffd889, #ffb95e); color: var(--ink); box-shadow: 0 8px 20px rgba(255, 176, 86, .32), inset 0 1px 0 rgba(255, 255, 255, .65); }
 .btn.primary:hover { box-shadow: 0 10px 26px rgba(255, 176, 86, .45), inset 0 1px 0 rgba(255, 255, 255, .65); }
