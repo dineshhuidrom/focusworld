@@ -8,7 +8,7 @@
       "title": "Speak Ahead Academy",
       "hook": "Speak English with confidence in real-life situations",
       "text": "Build the confidence and speaking skills you need for work, interviews, business and everyday conversations. Learn to express your ideas clearly, speak naturally, improve pronunciation and use English with confidence.",
-      "details": "## Speak English with confidence\nSpeak Ahead Academy is a spoken English academy for adults who understand English but hesitate when they speak.\n\n## Full course\n- Live spoken English classes on Zoom, taught in Manipuri\n- Practice in the Speak Ahead app after class\n\nSpeak Ahead Academy helps adults who understand English but struggle to speak confidently. The focus is not only on learning English—it is on learning how to actually use English when you need to speak.\n\nJob-Ready English Full Course\n\nA practical spoken-English program designed to help learners communicate more clearly and confidently in real situations.\n\nWhat you will develop\n\n• Spoken English confidence\n• Real-life conversation skills\n• Clear pronunciation and natural speech\n• Sentence-building and speaking patterns\n• Vocabulary for everyday communication\n• Essential grammar for speaking correctly\n• Listening and response skills\n• The ability to explain ideas clearly\n• Interview and workplace communication\n• Professional communication skills\n• Confidence in phone calls and conversations\n• Strategies for speaking when you forget a word\n\nLearn through practice\n\nThe course focuses on active speaking rather than simply studying English rules. Learners practise speaking, recording their answers, completing activities, taking tests and applying what they learn to realistic situations.\n\nReal-life English\n\nPractice English for situations such as:\n\n• Job interviews\n• Workplace conversations\n• Introducing yourself\n• Speaking with customers and colleagues\n• Phone calls\n• Asking and answering questions\n• Expressing opinions\n• Explaining problems\n• Giving information\n• Everyday conversations\n• Professional communication\n\nSpeak, practise and improve\n\nSpeak Ahead Academy combines guided lessons with practical speaking activities. Learners get opportunities to speak, listen, practise, review their performance and gradually become more comfortable producing English on their own.\n\nThe goal is not to make learners memorize complicated English. The goal is to help them turn the English they know into English they can actually speak.\n\nWho is this for?\n\nThis course is especially useful for adults who can understand or read basic English but hesitate, freeze, translate in their head, struggle to find words, or lack confidence when speaking.\n\nWhether you want to communicate better at work, prepare for interviews, handle everyday conversations or simply become more confident in English, the course is designed around practical speaking.\n\nThe Speak Ahead approach\n\nLearn → Practise → Speak → Improve → Speak with confidence.\n\nSpeak Ahead Academy is built around one simple idea: knowing English is not enough. You need to be able to use it when it matters.",
+      "details": "Speak Ahead Academy helps adults who understand English but struggle to speak confidently. The focus is not only on learning English—it is on learning how to actually use English when you need to speak.\n\n## Job-Ready English Full Course\nA practical spoken-English program designed to help learners communicate more clearly and confidently in real situations.\n\n- Live spoken English classes on Zoom, taught in Manipuri\n- Practice in the Speak Ahead app after class\n\n## What you will develop\n- Spoken English confidence\n- Real-life conversation skills\n- Clear pronunciation and natural speech\n- Sentence-building and speaking patterns\n- Vocabulary for everyday communication\n- Essential grammar for speaking correctly\n- Listening and response skills\n- The ability to explain ideas clearly\n- Interview and workplace communication\n- Professional communication skills\n- Confidence in phone calls and conversations\n- Strategies for speaking when you forget a word\n\n## Learn through practice\nThe course focuses on active speaking rather than simply studying English rules. Learners practise speaking, recording their answers, completing activities, taking tests and applying what they learn to realistic situations.\n\n## Real-life English\nPractice English for situations such as:\n- Job interviews\n- Workplace conversations\n- Introducing yourself\n- Speaking with customers and colleagues\n- Phone calls\n- Asking and answering questions\n- Expressing opinions\n- Explaining problems\n- Giving information\n- Everyday conversations\n- Professional communication\n\n## Speak, practise and improve\nSpeak Ahead Academy combines guided lessons with practical speaking activities. Learners get opportunities to speak, listen, practise, review their performance and gradually become more comfortable producing English on their own.\n\nThe goal is not to make learners memorize complicated English. The goal is to help them turn the English they know into English they can actually speak.\n\n## Who is this for?\nThis course is especially useful for adults who can understand or read basic English but hesitate, freeze, translate in their head, struggle to find words, or lack confidence when speaking.\n\nWhether you want to communicate better at work, prepare for interviews, handle everyday conversations or simply become more confident in English, the course is designed around practical speaking.\n\n## The Speak Ahead approach\nLearn → Practise → Speak → Improve → Speak with confidence.\n\nSpeak Ahead Academy is built around one simple idea: knowing English is not enough. You need to be able to use it when it matters.\n\n## Subscription\n- Practice in the Speak Ahead app",
       "noPrice": true,
       "cta": "Follow",
       "image": "shelf/speak-ahead-academy-lkkw34.jpg",
@@ -23,6 +23,37 @@
       "categories": [
         "english",
         "jobs",
+        "school"
+      ],
+      "featured": true
+    },
+    {
+      "id": "first-reply",
+      "type": "tool",
+      "free": true,
+      "featured": true,
+      "kicker": "Free · For students",
+      "title": "Free: write a calm first reply to your teacher",
+      "hook": "Accused of using AI? Write a calm first reply, free.",
+      "text": "Answer a few small questions and get a short, kind first reply, plus the things you should not do yet. No sign-up.",
+      "details": "## Your first reply matters\nWhen a teacher says your work looks AI-written, it is easy to panic and send a long or angry email. This free tool helps you write a short, calm and respectful first reply instead.\n\n## How it works\n- Answer a few small questions about what happened\n- Get a short first reply you can copy and send\n- See the things you should not do yet\n\n## Free, no sign-up\nIt works in your browser. No account is needed.\n\n## Need more than a first reply?\nTo build full proof of your writing process, see the Paper Trail kit on this site.",
+      "cta": "Try it free",
+      "image": "shelf/first-reply.jpg",
+      "imageAlt": "Free First Reply tool cover: Flagged by an AI detector? Send a calm first reply.",
+      "url": "https://claude.ai/artifact/77M9GCTcMdQ12ZycTCZHpv",
+      "local": "tools/first-reply.html",
+      "tags": [
+        "ai detector",
+        "accused of ai",
+        "email",
+        "reply",
+        "teacher",
+        "professor",
+        "student",
+        "essay",
+        "free"
+      ],
+      "categories": [
         "school"
       ]
     },
@@ -64,34 +95,35 @@
       ]
     },
     {
-      "id": "first-reply",
+      "id": "irs-letter-check",
       "type": "tool",
       "free": true,
-      "featured": true,
-      "kicker": "Free · For students",
-      "title": "Free: write a calm first reply to your teacher",
-      "hook": "Accused of using AI? Write a calm first reply, free.",
-      "text": "Answer a few small questions and get a short, kind first reply, plus the things you should not do yet. No sign-up.",
-      "details": "## Your first reply matters\nWhen a teacher says your work looks AI-written, it is easy to panic and send a long or angry email. This free tool helps you write a short, calm and respectful first reply instead.\n\n## How it works\n- Answer a few small questions about what happened\n- Get a short first reply you can copy and send\n- See the things you should not do yet\n\n## Free, no sign-up\nIt works in your browser. No account is needed.\n\n## Need more than a first reply?\nTo build full proof of your writing process, see the Paper Trail kit on this site.",
-      "cta": "Try it free",
-      "image": "shelf/first-reply.jpg",
-      "imageAlt": "Free First Reply tool cover: Flagged by an AI detector? Send a calm first reply.",
-      "url": "https://claude.ai/artifact/77M9GCTcMdQ12ZycTCZHpv",
-      "local": "tools/first-reply.html",
+      "kicker": "Free · Money & taxes · USA",
+      "title": "Free IRS letter check",
+      "hook": "Got an IRS letter? See where you stand, free.",
+      "text": "Answer a few quick questions and see your reply date, the days left, the likely cause and what to gather. Your answers stay on your phone.",
+      "details": "## Not sure what your IRS letter means?\nThis free check helps you understand a CP2000 notice in about 2 minutes.\n\n## You will see\n- Your reply date and how many days you have left\n- The likely reason for the mismatch, for each form on your letter\n- A list of what to gather for your reply\n\n## Free and private\nNo sign-up. Your answers stay on your phone.\n\n## Good to know\nThis is not tax advice. If you want a full step-by-step plan for your reply, see the CP2000 Rescue Kit on this site.",
+      "cta": "Check my letter",
+      "image": "shelf/irs-letter-check.jpg",
+      "imageAlt": "Free IRS letter check cover: Got an IRS letter? See where you stand.",
+      "url": "https://claude.ai/artifact/CQiGs7D5rLoYwJP5aKaw88",
+      "local": "tools/irs-letter-check.html",
       "tags": [
-        "ai detector",
-        "accused of ai",
-        "email",
-        "reply",
-        "teacher",
-        "professor",
-        "student",
-        "essay",
+        "irs",
+        "tax",
+        "taxes",
+        "cp2000",
+        "notice",
+        "letter",
+        "deadline",
+        "usa",
+        "money",
         "free"
       ],
       "categories": [
-        "school"
-      ]
+        "money"
+      ],
+      "featured": true
     },
     {
       "id": "cp2000-kit",
@@ -122,37 +154,8 @@
       ],
       "categories": [
         "money"
-      ]
-    },
-    {
-      "id": "irs-letter-check",
-      "type": "tool",
-      "free": true,
-      "kicker": "Free · Money & taxes · USA",
-      "title": "Free IRS letter check",
-      "hook": "Got an IRS letter? See where you stand, free.",
-      "text": "Answer a few quick questions and see your reply date, the days left, the likely cause and what to gather. Your answers stay on your phone.",
-      "details": "## Not sure what your IRS letter means?\nThis free check helps you understand a CP2000 notice in about 2 minutes.\n\n## You will see\n- Your reply date and how many days you have left\n- The likely reason for the mismatch, for each form on your letter\n- A list of what to gather for your reply\n\n## Free and private\nNo sign-up. Your answers stay on your phone.\n\n## Good to know\nThis is not tax advice. If you want a full step-by-step plan for your reply, see the CP2000 Rescue Kit on this site.",
-      "cta": "Check my letter",
-      "image": "shelf/irs-letter-check.jpg",
-      "imageAlt": "Free IRS letter check cover: Got an IRS letter? See where you stand.",
-      "url": "https://claude.ai/artifact/CQiGs7D5rLoYwJP5aKaw88",
-      "local": "tools/irs-letter-check.html",
-      "tags": [
-        "irs",
-        "tax",
-        "taxes",
-        "cp2000",
-        "notice",
-        "letter",
-        "deadline",
-        "usa",
-        "money",
-        "free"
       ],
-      "categories": [
-        "money"
-      ]
+      "featured": true
     }
   ],
   "social": [],
