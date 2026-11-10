@@ -51,8 +51,9 @@
 
   <nav class="tabs" role="tablist" aria-label="Shop parts">
     <button type="button" role="tab" id="tabProducts" aria-selected="true" aria-controls="paneProducts">Products <em id="countProducts">0</em></button>
-    <button type="button" role="tab" id="tabLinks" aria-selected="false" aria-controls="paneLinks">Follow links <em id="countLinks">0</em></button>
+    <button type="button" role="tab" id="tabLinks" aria-selected="false" aria-controls="paneLinks">Links <em id="countLinks">0</em></button>
     <button type="button" role="tab" id="tabCats" aria-selected="false" aria-controls="paneCats">Categories <em id="countCats">0</em></button>
+    <button type="button" role="tab" id="tabLeads" aria-selected="false" aria-controls="paneLeads">Leads <em id="countLeads">&middot;</em></button>
   </nav>
 
   <section id="paneProducts" role="tabpanel" aria-labelledby="tabProducts" class="pane">
@@ -66,13 +67,15 @@
   </section>
 
   <section id="paneLinks" role="tabpanel" aria-labelledby="tabLinks" class="pane" hidden>
-    <p class="muted pad">These show at the bottom of the Toolshed as <b>Say hi to the maker</b>. Great for your YouTube channel or Instagram.</p>
+    <p class="muted pad">Small buttons at the bottom of the Toolshed. Your own pages show under <b>Follow {{APP_NAME}}</b>,
+      other people&rsquo;s under <b>Worth a follow</b>. Want a big card with a picture and words instead? Add it as a product and pick
+      <b>Group</b> or <b>Social page</b>.</p>
     <div id="linkList" class="list"></div>
     <div id="linksEmpty" class="empty" hidden>
-      <b>No follow links yet</b>
+      <b>No small links yet</b>
       <span>Add your YouTube, Instagram or anything else.</span>
     </div>
-    <button type="button" class="btn primary add" id="addLink"><span aria-hidden="true">+</span> Add a follow link</button>
+    <button type="button" class="btn primary add" id="addLink"><span aria-hidden="true">+</span> Add a small link</button>
   </section>
 
   <section id="paneCats" role="tabpanel" aria-labelledby="tabCats" class="pane" hidden>
@@ -84,6 +87,25 @@
       <span>Add one, like &ldquo;English speaking&rdquo;.</span>
     </div>
     <button type="button" class="btn primary add" id="addCat"><span aria-hidden="true">+</span> Add a category</button>
+  </section>
+
+  <section id="paneLeads" role="tabpanel" aria-labelledby="tabLeads" class="pane" hidden>
+    <p class="muted pad">People who left their details before opening a product (turn on <b>Ask for their details first</b> on a product).
+      Only you can see this. Each one is deleted by itself after 12 months.</p>
+    <div class="leads-bar">
+      <button type="button" class="btn soft small" id="leadsReload">&#x1F504; Refresh</button>
+      <button type="button" class="btn soft small" id="leadsCsv" disabled>&#x2B07;&#xFE0F; Download list</button>
+      <button type="button" class="ghost-btn danger-text" id="leadsClear" hidden>Delete all</button>
+    </div>
+    <div id="leadsSetup" class="empty setup-card" hidden>
+      <b>&#x1F527; One setup step first</b>
+      <span>Leads are saved in a free Cloudflare database. Make it once in Cloudflare (steps in SETUP.md, Part F), then come back here.</span>
+    </div>
+    <div id="leadList" class="list"></div>
+    <div id="leadsEmpty" class="empty" hidden>
+      <b>No leads yet</b>
+      <span>When a visitor leaves their details, they show here.</span>
+    </div>
   </section>
 
   <footer class="publish" id="publishBar" hidden>
@@ -155,23 +177,44 @@
       <legend><i>5</i> Price</legend>
       <label class="switch-row"><span><b>It's free</b><small>Shows a green Free badge</small></span>
         <input type="checkbox" id="fFree" class="switch"></label>
+      <label class="switch-row"><span><b>No price</b><small>Just a link, like a WhatsApp group or Instagram page</small></span>
+        <input type="checkbox" id="fNoPrice" class="switch"></label>
       <label class="field" id="priceField"><span>Price</span>
         <input id="fPrice" maxlength="14" placeholder="e.g. $19 or ₹499" autocomplete="off"></label>
     </fieldset>
 
     <fieldset class="step">
-      <legend><i>6</i> Problems it solves</legend>
+      <legend><i>6</i> When someone taps it</legend>
+      <div class="gates" id="gateSeg" role="radiogroup" aria-label="When someone taps it">
+        <button type="button" role="radio" data-gate=""><b aria-hidden="true">&#x1F517;</b><span>Open the link</span></button>
+        <button type="button" role="radio" data-gate="form"><b aria-hidden="true">&#x1F4DD;</b><span>Ask for their details first</span></button>
+      </div>
+      <div id="askBox" hidden>
+        <p class="hint ask-q">Which details? Visitors fill a number or an email (or both), and can always skip.</p>
+        <div class="cat-pick" id="askPick" role="group" aria-label="Details to ask for">
+          <button type="button" class="cat-chip" data-f="name" aria-pressed="false"><b aria-hidden="true">&#x1F642;</b><span>Name</span></button>
+          <button type="button" class="cat-chip" data-f="phone" aria-pressed="false"><b aria-hidden="true">&#x1F4F1;</b><span>WhatsApp number</span></button>
+          <button type="button" class="cat-chip" data-f="email" aria-pressed="false"><b aria-hidden="true">&#x2709;&#xFE0F;</b><span>Email</span></button>
+        </div>
+      </div>
+      <p class="hint" id="gateHint" aria-live="polite"></p>
+    </fieldset>
+
+    <fieldset class="step">
+      <legend><i>7</i> Problems it solves</legend>
       <p class="hint">Pick up to 3. Ask Pip shows this product when someone&rsquo;s words match one of them.</p>
       <div class="cat-pick" id="catPick" role="group" aria-label="Categories, pick up to 3"></div>
       <p class="hint" id="catHint" aria-live="polite"></p>
     </fieldset>
 
     <fieldset class="step">
-      <legend><i>7</i> Extras <small>(you can skip these)</small></legend>
+      <legend><i>8</i> Extras <small>(you can skip these)</small></legend>
       <label class="field"><span>Search words (who is it for?) — press Enter after each</span>
         <div class="tags" id="tagBox"><input id="fTag" maxlength="32" placeholder="e.g. exam" autocomplete="off" enterkeyhint="enter"></div></label>
       <label class="switch-row"><span><b>Show on the break card</b><small>Featured products can pop up during breaks</small></span>
         <input type="checkbox" id="fFeatured" class="switch"></label>
+      <label class="switch-row"><span><b>Paid promotion</b><small>Someone pays you to show it. Shows a small &ldquo;Ad&rdquo; label</small></span>
+        <input type="checkbox" id="fAd" class="switch"></label>
       <label class="switch-row"><span><b>Show in the shop</b><small>Turn off to hide it without deleting</small></span>
         <input type="checkbox" id="fVisible" class="switch" checked></label>
     </fieldset>
@@ -198,6 +241,16 @@
         <input id="lUrl" type="url" inputmode="url" placeholder="https://…" autocomplete="off" spellcheck="false" autocapitalize="off"></label>
       <label class="field"><span>Name on the button (optional) <small class="count" data-for="lLabel"></small></span>
         <input id="lLabel" maxlength="30" placeholder="e.g. Golu Paisa on YouTube" autocomplete="off"></label>
+    </fieldset>
+    <fieldset class="step">
+      <legend><i>3</i> Whose page is it?</legend>
+      <div class="seg" id="ownerSeg" role="radiogroup" aria-label="Whose page is it">
+        <button type="button" role="radio" data-friend="0" aria-checked="true">Mine</button>
+        <button type="button" role="radio" data-friend="1" aria-checked="false">Someone else&rsquo;s</button>
+      </div>
+      <p class="hint owner-hint" id="ownerHint"></p>
+      <label class="switch-row"><span><b>Paid promotion</b><small>Someone pays you to show it. Shows a small &ldquo;Ad&rdquo; label</small></span>
+        <input type="checkbox" id="lAd" class="switch"></label>
     </fieldset>
     <p class="msg" id="leMsg" role="alert"></p>
     <button type="button" class="danger-btn" id="leDelete" hidden>Delete this link</button>

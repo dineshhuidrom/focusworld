@@ -403,3 +403,22 @@ body.calm *, body.calm *::before, body.calm *::after { animation-duration: .001s
 .chat-send:active { transform: scale(.94); }
 @media (max-width: 380px) { .chat-chips { padding-left: 0; } .bubble { max-width: 92%; } .chat-card .thumb { width: 88px; } }
 @media (min-width: 900px) { .sheet.chat { height: min(720px, 84vh); } }
+
+/* ---------- link cards and "Before you go" form ---------- */
+.tool-badges i.ad { background: #fff1c9; color: #6b4a00; }
+.follow-chip i.ad { font-style: normal; font-size: 11px; font-weight: 800; padding: 1px 6px; border-radius: 6px; background: #fff1c9; color: #6b4a00; }
+.lead-either { margin: -2px 0 0; font-size: 13px; color: var(--faint); }
+.lead-form { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
+.lead-field { display: flex; flex-direction: column; gap: 6px; font-weight: 700; font-size: 14.5px; }
+.lead-field small { color: var(--faint); font-weight: 600; }
+.lead-field input { height: 50px; border-radius: 14px; border: 1px solid var(--line); background: rgba(255, 255, 255, .07); color: var(--text);
+  font: inherit; font-size: 16px; padding: 0 16px; outline: none; }
+.lead-field input:focus { border-color: rgba(255, 210, 127, .7); background: rgba(255, 255, 255, .1); }
+.lead-ok { display: flex; gap: 10px; align-items: flex-start; font-size: 14.5px; line-height: 1.4; color: var(--muted); cursor: pointer; padding: 4px 0; }
+.lead-ok input { flex: none; width: 22px; height: 22px; margin: 0; accent-color: #ffb95e; }
+.lead-form .note.warn { margin: 0; min-height: 0; }
+.lead-form .note.warn:empty { display: none; }
+.lead-skip { align-self: center; min-height: 44px; padding: 0 14px; border: 0; background: none; color: var(--muted); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.lead-privacy { margin: 0; text-align: center; font-size: 12.5px; color: var(--faint); }
+.lead-privacy a { color: var(--accent); }
+.hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }

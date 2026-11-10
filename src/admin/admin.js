@@ -7,6 +7,7 @@
   const DRAFT_KEY = 'fw-myshop-draft-v1';
   const PENDING_KEY = 'fw-myshop-pending-v1';
   const $ = (id) => document.getElementById(id);
+  const APP_NAME_SHOP = (document.title.split('·')[1] || 'Focus World').trim();
   const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   const KINDS = [
@@ -17,8 +18,15 @@
     ['video', '▶️', 'YouTube video', 'Watch now'],
     ['template', '🧩', 'Template', 'Get it'],
     ['tool', '🛠️', 'Tool', 'Try it'],
-    ['kit', '🎁', 'Kit', 'Peek inside']
+    ['kit', '🎁', 'Kit', 'Peek inside'],
+    ['group', '💬', 'Group', 'Join the group'],
+    ['social', '📣', 'Social page', 'Follow']
   ];
+  const GATE_HINT = {
+    '': 'The button opens your link straight away.',
+    form: 'Visitors see a short form first, then your link opens. They can skip it. You see their details in the Leads tab.'
+  };
+  const ASK_NAME = { name: 'Name', phone: 'WhatsApp number', email: 'Email' };
   const KIND = {};
   KINDS.forEach((k) => { KIND[k[0]] = { icon: k[1], name: k[2], cta: k[3] }; });
   const PLAT = {
@@ -210,7 +218,7 @@
     before.items.forEach((it) => { if (!now[it.id]) out.push('Removed “' + it.title + '”'); });
     const ids = (list) => list.filter((it) => old[it.id] && now[it.id]).map((it) => it.id).join(',');
     if (ids(before.items) !== ids(S.catalog.items)) out.push('New order');
-    if (JSON.stringify(before.social || []) !== JSON.stringify(S.catalog.social || [])) out.push('Follow links');
+    if (JSON.stringify(before.social || []) !== JSON.stringify(S.catalog.social || [])) out.push('Small links');
     if (JSON.stringify(before.categories || []) !== JSON.stringify(S.catalog.categories || [])) out.push('Categories');
     return out;
   }
@@ -354,7 +362,9 @@
       const meta = document.createElement('div'); meta.className = 'meta';
       const add = (t, c) => { const x = document.createElement('i'); x.textContent = t; if (c) x.className = c; meta.appendChild(x); };
       add((KIND[it.type] ? KIND[it.type].icon + ' ' + KIND[it.type].name : it.type));
-      add(it.free ? 'Free' : it.price, it.free ? 'free' : '');
+      add(it.free ? 'Free' : it.noPrice ? 'No price' : it.price, it.free ? 'free' : '');
+      if (it.ask) add('📝 Asks details');
+      if (it.ad) add('Ad', 'ad');
       const cs = (it.categories || []).map(catById).filter(Boolean);
       if (cs.length) {
         add(cs.map((c) => c.emoji || '🏷️').join(' '), 'cats');
@@ -392,6 +402,8 @@
       const info = document.createElement('div'); info.className = 'info';
       const b = document.createElement('b'); b.textContent = s.label || (PLAT[s.platform] || PLAT.website)[1];
       const u = document.createElement('div'); u.className = 'meta'; const ui = document.createElement('i'); ui.textContent = s.url.replace(/^https:\/\//, ''); u.appendChild(ui);
+      if (s.friend) { const fi = document.createElement('i'); fi.textContent = 'Someone else’s'; u.appendChild(fi); }
+      if (s.ad) { const ai = document.createElement('i'); ai.className = 'ad'; ai.textContent = 'Ad'; u.appendChild(ai); }
       info.appendChild(b); info.appendChild(u);
       const tools = document.createElement('div'); tools.className = 'tools';
       tools.appendChild(toolBtn('↑', 'Move up', null, () => move(S.catalog.social, i, -1, () => {})));
@@ -434,12 +446,14 @@
   }
 
   // tabs
-  const TABS = [['products', 'tabProducts', 'paneProducts'], ['links', 'tabLinks', 'paneLinks'], ['cats', 'tabCats', 'paneCats']];
+  const TABS = [['products', 'tabProducts', 'paneProducts'], ['links', 'tabLinks', 'paneLinks'], ['cats', 'tabCats', 'paneCats'],
+    ['leads', 'tabLeads', 'paneLeads']];
   function selectTab(which) {
     TABS.forEach((t) => {
       const on = t[0] === which;
       $(t[1]).setAttribute('aria-selected', String(on)); $(t[1]).tabIndex = on ? 0 : -1; $(t[2]).hidden = !on;
     });
+    if (which === 'leads') loadLeads();
   }
   TABS.forEach((t, i) => {
     $(t[1]).addEventListener('click', () => selectTab(t[0]));
@@ -528,9 +542,13 @@
     Object.keys(FIELDS).forEach((k) => { $(FIELDS[k]).value = E[k] || ''; $(FIELDS[k]).closest('.field').classList.remove('bad'); });
     if (!ctaTouched) $('fCta').value = '';
     $('fFree').checked = !!E.free;
+    $('fNoPrice').checked = !!E.noPrice;
+    $('fAd').checked = !!E.ad;
+    askList = Array.isArray(E.ask) ? E.ask.slice() : [];
+    setGate(askList.length ? 'form' : '');
     $('fFeatured').checked = !!E.featured;
     $('fVisible').checked = !E.hidden;
-    $('priceField').hidden = !!E.free;
+    $('priceField').hidden = !!E.free || !!E.noPrice;
     $('edMsg').textContent = ''; $('urlHint').textContent = ''; $('coverHint').textContent = '';
     $('fFile').value = '';
     renderTags();
@@ -571,6 +589,7 @@
     const badges = document.createElement('div'); badges.className = 'cp-badges';
     const kb = document.createElement('i'); kb.textContent = KIND[E.type].name; badges.appendChild(kb);
     if ($('fFree').checked) { const fb = document.createElement('i'); fb.className = 'free'; fb.textContent = 'Free'; badges.appendChild(fb); }
+    if ($('fAd').checked) { const ab = document.createElement('i'); ab.className = 'ad'; ab.textContent = 'Ad'; badges.appendChild(ab); }
     pic.appendChild(badges);
     if (E.type === 'video' || E.type === 'course') {
       const pl = document.createElement('div'); pl.className = 'cp-play';
@@ -578,11 +597,12 @@
       pic.appendChild(pl);
     }
     const body = document.createElement('div'); body.className = 'cp-body';
-    const sm = document.createElement('small'); sm.textContent = v('fKicker') || 'From the maker';
+    const sm = document.createElement('small'); sm.textContent = v('fKicker') || KIND[E.type].name;
     const b = document.createElement('b'); b.textContent = v('fTitle') || 'Your title'; if (!v('fTitle')) b.className = 'cp-empty';
     const d = document.createElement('span'); d.className = 'd'; d.textContent = v('fText') || 'Your short description shows here.';
     const buy = document.createElement('div'); buy.className = 'cp-buy';
-    const pr = document.createElement('span'); pr.className = 'price' + ($('fFree').checked ? ' free' : ''); pr.textContent = $('fFree').checked ? 'Free' : (v('fPrice') || '$…');
+    const pr = document.createElement('span'); pr.className = 'price' + ($('fFree').checked ? ' free' : '');
+    pr.textContent = $('fFree').checked ? 'Free' : $('fNoPrice').checked ? '' : (v('fPrice') || '$…');
     const cta = document.createElement('span'); cta.className = 'cta'; cta.textContent = (v('fCta') || KIND[E.type].cta) + ' →';
     buy.appendChild(pr); buy.appendChild(cta);
     body.appendChild(sm); body.appendChild(b); body.appendChild(d); body.appendChild(buy);
@@ -603,7 +623,50 @@
       if (id === 'fCta') ctaTouched = true;
     });
   });
-  $('fFree').addEventListener('change', () => { edDirty = true; priceTouched = true; $('priceField').hidden = $('fFree').checked; updatePreview(); bumpPreview(); });
+  $('fFree').addEventListener('change', () => {
+    edDirty = true; priceTouched = true;
+    if ($('fFree').checked) $('fNoPrice').checked = false;
+    $('priceField').hidden = $('fFree').checked || $('fNoPrice').checked; updatePreview(); bumpPreview();
+  });
+  $('fNoPrice').addEventListener('change', () => {
+    edDirty = true; priceTouched = true;
+    if ($('fNoPrice').checked) $('fFree').checked = false;
+    $('priceField').hidden = $('fFree').checked || $('fNoPrice').checked; updatePreview(); bumpPreview();
+  });
+  $('fAd').addEventListener('change', () => { edDirty = true; updatePreview(); bumpPreview(); });
+  // what happens when a visitor taps it: open the link, or ask for their details first (the boxes you pick)
+  let gateOn = false, askList = [];
+  function setGate(g) {
+    gateOn = g === 'form';
+    if (gateOn && !askList.length) askList = ['name', 'phone'];
+    $('gateSeg').querySelectorAll('button').forEach((b) => {
+      const on = b.dataset.gate === (g || '');
+      b.setAttribute('aria-checked', String(on)); b.tabIndex = on ? 0 : -1;
+    });
+    $('askBox').hidden = !gateOn;
+    renderAsk();
+  }
+  function renderAsk(warn) {
+    $('askPick').querySelectorAll('.cat-chip').forEach((b) => b.setAttribute('aria-pressed', String(askList.indexOf(b.dataset.f) >= 0)));
+    const h = $('gateHint');
+    if (warn) { h.className = 'hint warn'; h.textContent = warn; return; }
+    h.className = 'hint';
+    h.textContent = gateOn
+      ? 'The form asks for: ' + ['name', 'phone', 'email'].filter((f) => askList.indexOf(f) >= 0).map((f) => ASK_NAME[f]).join(' + ') + '. ' + GATE_HINT.form
+      : GATE_HINT[''];
+  }
+  $('gateSeg').querySelectorAll('button').forEach((b) => b.addEventListener('click', () => { edDirty = true; setGate(b.dataset.gate); }));
+  radioKeys($('gateSeg'));
+  $('askPick').querySelectorAll('.cat-chip').forEach((b) => b.addEventListener('click', () => {
+    const f = b.dataset.f, k = askList.indexOf(f);
+    if (k >= 0) {
+      const rest = askList.filter((x) => x !== f);
+      if (rest.indexOf('phone') < 0 && rest.indexOf('email') < 0) return renderAsk('Keep a WhatsApp number or an email, so you can reach them.');
+      askList = rest;
+    } else askList.push(f);
+    edDirty = true; renderAsk();
+    if (k < 0) { b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop'); }
+  }));
   ['fFeatured', 'fVisible'].forEach((id) => $(id).addEventListener('change', () => { edDirty = true; }));
 
   // link field: friendly checks + YouTube helper
@@ -620,17 +683,37 @@
     if (!u) { h.textContent = ''; h.className = 'hint'; return; }
     if (isUrl(u)) {
       h.className = 'hint good';
-      h.textContent = yt ? 'A YouTube video ✓ You can use its cover below.' : 'Looks good ✓';
+      const kind = linkKind(u);
+      h.textContent = yt ? 'A YouTube video ✓ You can use its cover below.'
+        : kind === 'group' ? 'A group link ✓' : kind === 'social' ? 'A social page ✓' : 'Looks good ✓';
       if (yt && edIndex < 0) {
         if (!kindTouched) { setKind('video'); bumpPreview(); }
-        if (!priceTouched) { $('fFree').checked = true; $('priceField').hidden = true; updatePreview(); }
+        if (!priceTouched) { $('fFree').checked = true; $('fNoPrice').checked = false; $('priceField').hidden = true; updatePreview(); }
+      } else if (kind && edIndex < 0) {
+        if (!kindTouched) { setKind(kind); bumpPreview(); }
+        if (!priceTouched) {
+          $('fFree').checked = kind === 'group'; $('fNoPrice').checked = kind === 'social';
+          $('priceField').hidden = true; updatePreview();
+        }
       }
     } else { h.className = 'hint warn'; h.textContent = 'Paste the full link, starting with https://'; }
   }
+  // WhatsApp/Telegram groups and channels -> Group; Instagram, Facebook, a YouTube channel... -> Social page
+  function linkKind(u) {
+    let x;
+    try { x = new URL(u); } catch (e) { return ''; }
+    const host = x.hostname.toLowerCase().replace(/^www\./, ''), path = x.pathname;
+    if (host === 'chat.whatsapp.com' || (host === 'whatsapp.com' && path.indexOf('/channel/') === 0) || host === 't.me' || host === 'telegram.me') return 'group';
+    if (/(^|\.)(instagram\.com|facebook\.com|fb\.com|x\.com|twitter\.com|tiktok\.com|linkedin\.com|threads\.net|pinterest\.com)$/.test(host)) return 'social';
+    if (/(^|\.)youtube\.com$/.test(host) && !youtubeId(u) && /^\/(@|c\/|channel\/|user\/)/.test(path)) return 'social';
+    return '';
+  }
   $('fUrl').addEventListener('input', () => { edDirty = true; $('edMsg').textContent = ''; urlFeedback(); });
   // shrink the preview to a mini card once the form is scrolled, so there is room to type on a phone
+  // (two thresholds, so the page can't flip back and forth when shrinking the preview changes the scroll position)
   $('edBody').addEventListener('scroll', () => {
-    $('edBody').querySelector('.preview-wrap').classList.toggle('mini', $('edBody').scrollTop > 120);
+    const w = $('edBody').querySelector('.preview-wrap'), y = $('edBody').scrollTop;
+    if (y > 160) w.classList.add('mini'); else if (y < 60) w.classList.remove('mini');
   }, { passive: true });
   $('fUrl').addEventListener('blur', () => { const f = fixUrl($('fUrl').value); if (f !== $('fUrl').value) { $('fUrl').value = f; urlFeedback(); } });
   $('ytBtn').addEventListener('click', async () => {
@@ -778,7 +861,7 @@
     if (!v('fUrl')) return markBad('url', 'Paste the link the button should open.');
     if (!isUrl(v('fUrl'))) return markBad('url', 'The link must be a full address starting with https://');
     if (!pendingCover && !E.image) return markBad('image', 'Pick a cover picture (or use the YouTube cover).');
-    if (!$('fFree').checked && !v('fPrice')) return markBad('price', 'Add a price, or switch on “It’s free”.');
+    if (!$('fFree').checked && !$('fNoPrice').checked && !v('fPrice')) return markBad('price', 'Add a price, or switch on “It’s free” or “No price”.');
     const item = {};
     const isNew = edIndex < 0;
     if (isNew) {
@@ -792,7 +875,7 @@
     item.title = v('fTitle');
     if (v('fHook')) item.hook = v('fHook');
     item.text = v('fText');
-    if ($('fFree').checked) item.free = true; else item.price = v('fPrice');
+    if ($('fFree').checked) item.free = true; else if ($('fNoPrice').checked) item.noPrice = true; else item.price = v('fPrice');
     item.cta = v('fCta') || KIND[E.type].cta;
     item.image = E.image || '';
     item.imageAlt = (E.imageAlt && !isNew && !pendingCover) ? E.imageAlt : ('Cover: ' + item.title).slice(0, LIMITS.imageAlt);
@@ -802,6 +885,8 @@
     if (E.categories && E.categories.length) item.categories = E.categories.slice();
     if ($('fFeatured').checked) item.featured = true;
     if (!$('fVisible').checked) item.hidden = true;
+    if ($('fAd').checked) item.ad = true;
+    if (gateOn) item.ask = ['name', 'phone', 'email'].filter((f) => askList.indexOf(f) >= 0);
     busy($('edSave'), true);
     try {
       if (pendingCover) {
@@ -818,6 +903,7 @@
       if (mine.length) {
         busy($('edSave'), false);
         if (mine[0].field === 'categories') { $('edMsg').textContent = mine[0].msg; $('catPick').scrollIntoView({ block: 'center' }); return; }
+        if (mine[0].field === 'ask') { $('edMsg').textContent = mine[0].msg; $('gateSeg').scrollIntoView({ block: 'center' }); return; }
         return markBad(mine[0].field, mine[0].msg);
       }
       S.catalog = trial;
@@ -856,6 +942,14 @@
     L.platform = k;
     $('platforms').querySelectorAll('button').forEach((b) => { const on = b.dataset.p === k; b.setAttribute('aria-checked', String(on)); b.tabIndex = on ? 0 : -1; });
   }
+  // whose page: your own links show under "Follow Focus World", other people's under "Worth a follow"
+  function setOwner(friend) {
+    L.friend = !!friend;
+    $('ownerSeg').querySelectorAll('button').forEach((b) => { const on = (b.dataset.friend === '1') === L.friend; b.setAttribute('aria-checked', String(on)); b.tabIndex = on ? 0 : -1; });
+    $('ownerHint').textContent = L.friend ? 'Shows under “Worth a follow”.' : 'Shows under “Follow ' + APP_NAME_SHOP + '”.';
+  }
+  $('ownerSeg').querySelectorAll('button').forEach((b) => b.addEventListener('click', () => setOwner(b.dataset.friend === '1')));
+  radioKeys($('ownerSeg'));
   function openLink(i, from) {
     leReturn = from || document.activeElement; leIndex = i;
     const isNew = i < 0;
@@ -864,7 +958,7 @@
     $('lUrl').value = L.url || ''; $('lLabel').value = L.label || '';
     $('leMsg').textContent = ''; $('leDelete').hidden = isNew;
     $('lUrl').closest('.field').classList.remove('bad');
-    setPlat(L.platform); counters();
+    setPlat(L.platform); setOwner(!!L.friend); $('lAd').checked = !!L.ad; counters();
     $('linkEditor').hidden = false; $('app').setAttribute('aria-hidden', 'true');
     document.body.style.overflow = 'hidden';
     setTimeout(() => $(isNew ? 'lUrl' : 'lLabel').focus(), 60);
@@ -895,13 +989,15 @@
     }
     const link = { platform: L.platform, url: u };
     if (label) link.label = label;
+    if (L.friend) link.friend = true;
+    if ($('lAd').checked) link.ad = true;
     const trial = clone(S.catalog);
     if (leIndex < 0) trial.social.push(link); else trial.social[leIndex] = link;
     const check = validateCatalog(trial);
     const bad = check.errors.find((er) => er.where.indexOf('link') === 0);
     if (bad) { $('leMsg').textContent = bad.msg; return; }
     S.catalog = trial; commit(); closeLink();
-    toast(leIndex < 0 ? 'Follow link added 👋' : 'Saved ✓');
+    toast(leIndex < 0 ? 'Link added 👋' : 'Saved ✓');
   });
   $('leDelete').addEventListener('click', async () => {
     if (!(await ask({ emoji: '🗑️', title: 'Delete this link?', yes: 'Delete', no: 'Keep it' }))) return;
@@ -1030,6 +1126,94 @@
     S.catalog.categories.splice(ceIndex, 1);
     commit(); await closeCat(true);
     toast('Deleted. Undo all brings it back before you publish.');
+  });
+
+  // ---------- leads (visitors' details) ----------
+  let leads = [], leadsBusy = false;
+  function ago(ms) {
+    const m = Math.round((Date.now() - ms) / 60000);
+    if (m < 1) return 'just now';
+    if (m < 60) return m + ' min ago';
+    if (m < 60 * 24) return Math.round(m / 60) + ' h ago';
+    const d = new Date(ms);
+    return d.getDate() + ' ' + d.toLocaleString('en', { month: 'short' }) + (d.getFullYear() !== new Date().getFullYear() ? ' ' + d.getFullYear() : '');
+  }
+  async function loadLeads() {
+    if (leadsBusy) return;
+    leadsBusy = true; busy($('leadsReload'), true);
+    try {
+      const r = await api('GET', 'leads');
+      $('leadsSetup').hidden = r.setup !== false;
+      leads = r.leads || [];
+      renderLeads(r.setup !== false);
+    } catch (err) {
+      if (err.status !== 401) toast(err.message, 4000);
+    } finally { leadsBusy = false; busy($('leadsReload'), false); }
+  }
+  function renderLeads(ready) {
+    const box = $('leadList'); box.textContent = '';
+    $('countLeads').textContent = leads.length;
+    leads.forEach((l) => {
+      const who = l.name || l.phone || l.email;
+      const waLink = l.phone ? 'https://wa.me/' + String(l.phone).replace(/[^0-9]/g, '') : '';
+      const mailLink = l.email ? 'mailto:' + encodeURIComponent(l.email).replace(/%40/g, '@') : '';
+      const row = document.createElement('div'); row.className = 'row link lead';
+      // the big button: WhatsApp them if they left a number, otherwise email them
+      const th = document.createElement('a'); th.className = 'thumb wa'; th.textContent = waLink ? '💬' : '✉️';
+      th.href = waLink || mailLink; th.target = '_blank'; th.rel = 'noopener noreferrer';
+      th.setAttribute('aria-label', (waLink ? 'Message ' + who + ' on WhatsApp' : 'Email ' + who));
+      const info = document.createElement('div'); info.className = 'info';
+      const b = document.createElement('b'); b.textContent = l.name || 'No name given';
+      const meta = document.createElement('div'); meta.className = 'meta';
+      const chip = (text, cls) => { const x = document.createElement('i'); x.textContent = text; if (cls) x.className = cls; meta.appendChild(x); };
+      if (l.phone) chip(l.phone);
+      if (l.email) chip(l.email);
+      chip(l.title, 'free');
+      chip(ago(l.at));
+      info.appendChild(b); info.appendChild(meta);
+      const tools = document.createElement('div'); tools.className = 'tools';
+      if (waLink && mailLink) {
+        const em = document.createElement('a'); em.className = 'mail-btn'; em.href = mailLink; em.textContent = '✉️';
+        em.setAttribute('aria-label', 'Email ' + who); tools.appendChild(em);
+      }
+      const del = toolBtn('🗑️', 'Delete ' + who, null, async () => {
+        if (!(await ask({ emoji: '🗑️', title: 'Delete ' + who + '?', text: 'Their details are removed for good.', yes: 'Delete', no: 'Keep' }))) return;
+        try { await api('POST', 'leads-delete', { id: l.id }); leads = leads.filter((x) => x.id !== l.id); renderLeads(true); toast('Deleted'); }
+        catch (err) { if (err.status !== 401) toast(err.message); }
+      });
+      tools.appendChild(del);
+      row.appendChild(th); row.appendChild(info); row.appendChild(tools);
+      box.appendChild(row);
+    });
+    $('leadsEmpty').hidden = !ready || leads.length > 0;
+    $('leadsCsv').disabled = !leads.length;
+    $('leadsClear').hidden = !leads.length;
+  }
+  // A spreadsheet file (opens in Excel or Google Sheets). Cells that start like a formula are made plain text.
+  function csvCell(v) {
+    let s = String(v == null ? '' : v);
+    if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+    return '"' + s.replace(/"/g, '""') + '"';
+  }
+  $('leadsCsv').addEventListener('click', () => {
+    const lines = [['Date', 'Name', 'WhatsApp', 'Email', 'Product'].map(csvCell).join(',')];
+    leads.forEach((l) => {
+      // the number as text (="+91..."), so spreadsheets keep the + and don't show 9.19E+11; it is digits only
+      const phone = l.phone ? '"=""+' + String(l.phone).replace(/[^0-9]/g, '') + '"""' : '""';
+      lines.push([csvCell(new Date(l.at).toISOString().slice(0, 16).replace('T', ' ')), csvCell(l.name), phone, csvCell(l.email), csvCell(l.title)].join(','));
+    });
+    const blob = new Blob(['\ufeff' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = 'focus-world-leads-' + new Date().toISOString().slice(0, 10) + '.csv';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    toast('Downloaded ✓ Keep it somewhere private.');
+  });
+  $('leadsReload').addEventListener('click', loadLeads);
+  $('leadsClear').addEventListener('click', async () => {
+    if (!(await ask({ emoji: '🗑️', title: 'Delete all ' + leads.length + ' leads?', text: 'Download the list first if you need it. This cannot be undone.', yes: 'Delete all', no: 'Keep them' }))) return;
+    try { await api('POST', 'leads-delete', { all: true }); leads = []; renderLeads(true); toast('All deleted'); }
+    catch (err) { if (err.status !== 401) toast(err.message); }
   });
 
   // ---------- publish ----------

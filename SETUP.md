@@ -13,7 +13,7 @@ Read it on your phone anytime. Each part says **who** does it.
 |---|---|---|
 | **GitHub** (private folder) | Keeps all the code and your product list (`src/catalog.json`). Saves every version. | Free |
 | **Cloudflare Pages** | Builds the site from GitHub and shows it to the world at `yourname.pages.dev`. | Free |
-| **My Shop** (`/admin/`) | Your private page to add, edit, hide and delete products and follow links. | Free |
+| **My Shop** (`/admin/`) | Your private page to add, edit, hide and delete products, small links and categories, and to see Leads. | Free |
 
 When you tap **Publish** in My Shop:
 
@@ -95,6 +95,23 @@ You stay logged in on that phone for 30 days.
 
 ---
 
+## Part F: Turn on Leads (you, about 5 minutes, one time)
+
+Needed only if a product uses **Ask for their details first**. Until you do this, the form still shows and the link
+still opens, but the details are **not saved**, and the **Leads** tab shows "One setup step first".
+
+| Step | Where | What to do |
+|---|---|---|
+| F1 | Cloudflare → **Storage & databases** → **D1 SQL database** (or type "D1" in the dashboard search) | **Create Database** → name: `focusworld-leads` → **Create** |
+| F2 | **Workers & Pages** → your `focusworld` project → **Settings** → **Bindings** → **Add** → **D1 database** | Variable name: `LEADS_DB` (exactly). D1 database: `focusworld-leads`. **Save** |
+| F3 | **Deployments** → latest → **⋯** → **Retry deployment** | Bindings work only after a new build |
+| F4 | My Shop → **Leads** tab | The "setup" card is gone. Test it: tap a product with the form on your site, fill it, then **Refresh** |
+
+Free plan: 100,000 saves a day and 5 GB. If a limit is ever reached, saving pauses until the next day. There is no bill.
+The table is made by itself the first time. Leads older than 12 months delete themselves.
+
+---
+
 ## Using My Shop
 
 | To do this | Tap this |
@@ -105,7 +122,11 @@ You stay logged in on that phone for 30 days.
 | Hide a product for now | **👁️ Shown** → becomes **🙈 Hidden** (it stays in your list) |
 | Show on the break card | **☆ Feature** → **⭐ Featured** |
 | Change the order | **↑** / **↓** |
-| Add your YouTube, Instagram… | **Follow links** tab → **+ Add a follow link** |
+| Add your YouTube, Instagram… as a small button | **Links** tab → **+ Add a small link** → **Whose page is it?** Mine / Someone else's |
+| Show a WhatsApp group, Instagram or YouTube page as a big card | **+ Add a product** → paste the link (it picks **Group** or **Social page**) → picture + words → **Save** |
+| Promote someone else's product or page | Add it as a product (big card) or small link. If they pay you, switch on **Paid promotion** (shows **Ad**) |
+| Ask for name, WhatsApp number or email before the link | Edit the product → step 6 **When someone taps it** → **Ask for their details first** → tap the boxes you want |
+| See who left details | **Leads** tab → 💬 WhatsApp or ✉️ email them in one tap → **Download list** for a spreadsheet |
 | Let Ask Pip recommend a product | Edit the product → step 6 **Problems it solves** → tap up to 3 categories → **Save** |
 | Add a new category | **Categories** tab → **+ Add a category** → name, emoji, **words people type** (press Enter after each) → **Test it with Pip** → **Save** |
 | Teach Pip more words | **Categories** tab → **Edit** → add words → test a sentence → **Save** |
@@ -132,6 +153,7 @@ it only knows the words in your categories (plus each product's search words).
 | "GitHub says no" | Check `GITHUB_REPO` is exactly `name/focusworld`, and the key has Contents: Read and write. |
 | "Your shop changed somewhere else" | Another tab published first. Choose **Publish mine** or **Load newest**. |
 | "Still building… tap to check" | Open Cloudflare → Deployments to see if the build failed. If it did, ask Claude and share the build log. |
+| Leads tab: "One setup step first" | Do Part F. |
 
 Safety built in: a broken product list can never go live. The build checks every product first,
 and if anything is wrong it stops and the old site stays up.
@@ -148,6 +170,8 @@ and if anything is wrong it stops and the old site stays up.
 | `node tests/test_logic.js` | Focus timer, streaks, scenes |
 | `node tests/test_helper.js` | Ask Pip: typed messages get the right answer and products |
 | `python3 build.py --site` then `python3 tests/ask_test.py` | Ask Pip in a real browser (phone and laptop sizes) |
+| `node --no-warnings tests/test_leads.mjs` | The "Before you go" form server and the Leads routes (uses Node's built-in SQLite as a stand-in for D1) |
+| `node tests/dev_server.mjs 8792 /tmp/fw-dev-links` then `PORT=8792 python3 tests/admin_links_e2e.py` | Big link cards, Ad label, small links, the visitor form and the Leads tab, end to end |
 | `node tests/dev_server.mjs 8791 /tmp/fw-dev-cats` then `PORT=8791 python3 tests/admin_cats_e2e.py` | My Shop categories → publish → Ask Pip uses them (run one My Shop test at a time) |
 | `node tests/test_rules.mjs` | Product rules: JavaScript and Python copies agree |
 | `node tests/test_admin_api.mjs` | My Shop server: login, upload, publish, conflicts |

@@ -33,7 +33,8 @@
     'progressBtn', 'shareBtn', 'streakBtn', 'streakNum', 'menuBtn', 'live', 'pip', 'pipText', 'pipBtns', 'toast', 'scrim',
     'soundList', 'masterVol', 'soundWarn', 'stats', 'week', 'collection', 'collTitle', 'progressBackupBtn', 'shareImg', 'shareNowBtn',
     'saveImgBtn', 'notifySwitch', 'calmSwitch', 'skySeg', 'chimeVol', 'storageWarn', 'exportBtn', 'importBtn', 'resetBtn', 'sceneBtn', 'sceneIcon', 'sceneName', 'sceneMode', 'sceneGrid', 'sceneCount', 'toolsBtn', 'toolsList', 'followRow', 'followLinks', 'aboutBtn', 'toolsSearch', 'toolsChips', 'toolsCount', 'promo', 'promoX', 'promoLink', 'promoImg', 'promoKicker', 'promoTitle', 'promoCta', 'promoPrice',
-    'askBtn', 'askLog', 'askForm', 'askInput', 'confirmTitle', 'confirmText', 'confirmYes', 'confirmNo', 'onboard', 'obTitle', 'obText', 'obDots', 'obBtns', 'importFile', 'customBtn'
+    'askBtn', 'askLog', 'askForm', 'askInput', 'leadTitle', 'leadForm', 'leadName', 'leadPhone', 'leadEmail', 'leadNameRow', 'leadPhoneRow', 'leadEmailRow', 'leadPhoneNote',
+    'leadEmailNote', 'leadEither', 'leadOk', 'leadOkText', 'leadHp', 'leadMsg', 'leadSkip', 'friendRow', 'friendLinks', 'confirmTitle', 'confirmText', 'confirmYes', 'confirmNo', 'onboard', 'obTitle', 'obText', 'obDots', 'obBtns', 'importFile', 'customBtn'
   ].forEach(function (id) { el[id] = $(id); });
 
   // ---------- sound ----------
@@ -434,13 +435,23 @@
   var SHELF = Array.isArray(CFG.shelf) ? CFG.shelf.filter(function (p) {
     return p && p.title && /^(https:\/\/|\/tools\/[a-z0-9-]+\/$)/.test(p.url || '') && /^[a-z0-9_\/.-]+\.(jpg|jpeg|png|webp)$/i.test(p.image || '');
   }) : [];
+  // Every product link. A product set to "ask details first" opens the short form before its link.
   function shelfAnchor(p, cls) {
     var a = document.createElement('a');
     a.href = p.url; a.target = '_blank'; a.rel = 'noopener'; if (cls) a.className = cls;
+    if (askFields(p)) a.addEventListener('click', function (e) { e.preventDefault(); openLead(p); });
     return a;
   }
-  var TYPE_LABEL = { kit: 'Kit', ebook: 'Ebook', app: 'App', course: 'Video course', video: 'Video', website: 'Website', template: 'Template', tool: 'Tool' };
-  var TYPE_PLURAL = { kit: 'Kits', ebook: 'Ebooks', app: 'Apps', course: 'Video courses', video: 'Videos', website: 'Websites', template: 'Templates', tool: 'Tools' };
+  function priceText(p) { return p.free ? 'Free' : (p.noPrice ? '' : (p.price || '')); }
+  // The boxes a product's "Before you go" form shows, or null when the link just opens.
+  function askFields(p) {
+    var f = Array.isArray(p.ask) ? p.ask.filter(function (x) { return x === 'name' || x === 'phone' || x === 'email'; }) : [];
+    return f.indexOf('phone') >= 0 || f.indexOf('email') >= 0 ? f : null;
+  }
+  var TYPE_LABEL = { kit: 'Kit', ebook: 'Ebook', app: 'App', course: 'Video course', video: 'Video', website: 'Website', template: 'Template', tool: 'Tool',
+    group: 'Group', social: 'Social page' };
+  var TYPE_PLURAL = { kit: 'Kits', ebook: 'Ebooks', app: 'Apps', course: 'Video courses', video: 'Videos', website: 'Websites', template: 'Templates', tool: 'Tools',
+    group: 'Groups', social: 'Social pages' };
   SHELF.forEach(function (p) {
     p._hay = [p.title, p.text, p.kicker, p.hook, TYPE_LABEL[p.type], p.free ? 'free' : '', (p.tags || []).join(' ')].join(' ').toLowerCase();
   });
@@ -454,6 +465,7 @@
     var badges = document.createElement('span'); badges.className = 'tool-badges';
     var tb = document.createElement('i'); tb.textContent = TYPE_LABEL[p.type] || 'Tool'; badges.appendChild(tb);
     if (p.free) { var fb = document.createElement('i'); fb.className = 'free'; fb.textContent = 'Free'; badges.appendChild(fb); }
+    if (p.ad) { var ab = document.createElement('i'); ab.className = 'ad'; ab.textContent = 'Ad'; ab.title = 'Paid promotion'; badges.appendChild(ab); }
     pic.appendChild(badges);
     if (p.type === 'video' || p.type === 'course') {
       var play = document.createElement('span'); play.className = 'tool-play';
@@ -462,11 +474,11 @@
     }
     a.appendChild(pic);
     var body = document.createElement('span'); body.className = 'tool-body';
-    var small = document.createElement('small'); small.textContent = p.kicker || 'From the maker';
+    var small = document.createElement('small'); small.textContent = p.kicker || TYPE_LABEL[p.type] || 'Take a look';
     var b = document.createElement('b'); b.textContent = p.title;
     var d = document.createElement('span'); d.className = 'desc'; d.textContent = p.text || '';
     var buy = document.createElement('span'); buy.className = 'tool-buy';
-    var price = document.createElement('span'); price.className = 'price' + (p.free ? ' free' : ''); price.textContent = p.free ? 'Free' : (p.price || '');
+    var price = document.createElement('span'); price.className = 'price' + (p.free ? ' free' : ''); price.textContent = priceText(p);
     var cta = document.createElement('span'); cta.className = 'cta'; cta.textContent = (p.cta || 'Take a look') + ' →';
     buy.appendChild(price); buy.appendChild(cta);
     body.appendChild(small); body.appendChild(b); body.appendChild(d); body.appendChild(buy);
@@ -506,7 +518,7 @@
       el.toolsList.appendChild(e);
     }
   }
-  // Follow links (the maker's social pages), set in My Shop.
+  // Small follow links, set in My Shop: our own pages ("Follow Focus World") and other people's ("Worth a follow").
   var SOCIAL_NAME = { youtube: 'YouTube', instagram: 'Instagram', facebook: 'Facebook', x: 'X', threads: 'Threads', linkedin: 'LinkedIn',
     tiktok: 'TikTok', telegram: 'Telegram', whatsapp: 'WhatsApp', pinterest: 'Pinterest', website: 'Website' };
   var SOCIAL_ICON = { youtube: '\u25B6\uFE0F', instagram: '\uD83D\uDCF8', facebook: '\uD83D\uDC4D', x: '\u2716\uFE0F', threads: '\uD83E\uDDF5',
@@ -514,22 +526,29 @@
   var SOCIAL = Array.isArray(CFG.social) ? CFG.social.filter(function (x) {
     return x && SOCIAL_NAME[x.platform] && /^https:\/\/[^\s"'<>]+$/.test(x.url || '');
   }) : [];
+  var OWN_LINKS = SOCIAL.filter(function (x) { return !x.friend; });
+  var FRIEND_LINKS = SOCIAL.filter(function (x) { return !!x.friend; });
+  function followChip(x) {
+    var a = document.createElement('a');
+    a.className = 'follow-chip'; a.href = x.url; a.target = '_blank'; a.rel = 'noopener noreferrer' + (x.ad ? ' sponsored' : '');
+    var ic = document.createElement('span'); ic.setAttribute('aria-hidden', 'true'); ic.textContent = SOCIAL_ICON[x.platform];
+    var tx = document.createElement('span'); tx.textContent = x.label || SOCIAL_NAME[x.platform];
+    a.appendChild(ic); a.appendChild(tx);
+    if (x.ad) { var ad = document.createElement('i'); ad.className = 'ad'; ad.textContent = 'Ad'; a.appendChild(ad); }
+    a.setAttribute('aria-label', (x.label || SOCIAL_NAME[x.platform]) + (x.ad ? ', paid promotion' : '') + ' (opens in a new tab)');
+    return a;
+  }
   function renderFollow() {
-    el.followRow.hidden = !SOCIAL.length;
+    el.followRow.hidden = !OWN_LINKS.length;
     el.followLinks.textContent = '';
-    SOCIAL.forEach(function (x) {
-      var a = document.createElement('a');
-      a.className = 'follow-chip'; a.href = x.url; a.target = '_blank'; a.rel = 'noopener noreferrer';
-      var ic = document.createElement('span'); ic.setAttribute('aria-hidden', 'true'); ic.textContent = SOCIAL_ICON[x.platform];
-      var tx = document.createElement('span'); tx.textContent = x.label || SOCIAL_NAME[x.platform];
-      a.appendChild(ic); a.appendChild(tx);
-      a.setAttribute('aria-label', (x.label || SOCIAL_NAME[x.platform]) + ' (opens in a new tab)');
-      el.followLinks.appendChild(a);
-    });
+    OWN_LINKS.forEach(function (x) { el.followLinks.appendChild(followChip(x)); });
+    el.friendRow.hidden = !FRIEND_LINKS.length;
+    el.friendLinks.textContent = '';
+    FRIEND_LINKS.forEach(function (x) { el.friendLinks.appendChild(followChip(x)); });
   }
   function renderTools() { renderChips(); renderToolList(); renderFollow(); }
   el.toolsSearch.addEventListener('input', function () { clearTimeout(searchTimer); searchTimer = setTimeout(renderToolList, 120); });
-  var promoTimer = null, promoDismissed = false;
+  var promoTimer = null, promoDismissed = false, promoItem = null;
   function schedulePromo(ms) { clearTimeout(promoTimer); promoDismissed = false; promoTimer = setTimeout(showPromo, ms); }
   function showPromo() {
     if (mode() !== 'break' || promoDismissed || !SHELF.length || openSheetEl) return;
@@ -537,13 +556,13 @@
     var pool = SHELF.filter(function (x) { return x.featured; });
     if (!pool.length) pool = SHELF;
     var p = pool[(S.sessions || 0) % pool.length];
-    el.promoLink.href = p.url;
+    el.promoLink.href = p.url; promoItem = p;
     el.promoImg.hidden = !p.image;
     if (p.image) { el.promoImg.src = p.image; el.promoImg.alt = p.imageAlt || p.title; }
-    el.promoKicker.textContent = 'Psst\u2026 from the maker';
+    el.promoKicker.textContent = p.ad ? 'Ad \u00B7 Paid promotion' : 'Psst\u2026 you might like this';
     el.promoTitle.textContent = p.hook || p.title;
     el.promoCta.textContent = (p.cta || 'Take a look') + ' \u2192';
-    el.promoPrice.textContent = p.free ? 'Free' : (p.price || '');
+    el.promoPrice.textContent = priceText(p);
     el.promo.hidden = false;
   }
   function hidePromo() { clearTimeout(promoTimer); el.promo.hidden = true; }
@@ -968,6 +987,77 @@
     setInert(false);
   }
 
+  // ---------- "Before you go": a short form for products set to ask for details first ----------
+  // Each product picks its boxes (name, WhatsApp number, email). The details go to the owner's private list (live
+  // site only). A number or an email is needed; the visitor can always skip.
+  var LEAD_KEY = KEY + ':me', leadFor = null, leadAsk = [];
+  var PHONE_OK = /^\+[0-9]{8,15}$/;
+  var EMAIL_OK = /^[^\s@"'<>(),;:]{1,64}@[A-Za-z0-9](?:[A-Za-z0-9-]{0,62}[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,62}[A-Za-z0-9])?)+$/;
+  function openLead(p) {
+    leadFor = p; leadAsk = askFields(p) || ['phone'];
+    var has = function (f) { return leadAsk.indexOf(f) >= 0; };
+    var both = has('phone') && has('email');
+    el.leadTitle.textContent = p.title;
+    el.leadNameRow.hidden = !has('name');
+    el.leadPhoneRow.hidden = !has('phone');
+    el.leadEmailRow.hidden = !has('email');
+    el.leadEither.hidden = !both;
+    el.leadEmailNote.textContent = both ? 'or your number' : '';
+    el.leadOkText.textContent = 'Yes, ' + APP + ' can contact me about this' + (has('phone') && !has('email') ? ' on WhatsApp.' : '.');
+    var me = {};
+    try { me = JSON.parse(localStorage.getItem(LEAD_KEY) || '{}') || {}; } catch (e) { me = {}; }
+    el.leadName.value = typeof me.name === 'string' ? me.name : '';
+    el.leadPhone.value = typeof me.phone === 'string' ? me.phone : '';
+    el.leadEmail.value = typeof me.email === 'string' ? me.email : '';
+    el.leadOk.checked = false;                 // asked each time, never assumed
+    el.leadMsg.textContent = '';
+    hidePromo();
+    openSheet('sheetLead');
+  }
+  function leadBad(input, msg) {
+    el.leadMsg.textContent = msg;
+    input.focus();
+  }
+  el.leadForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var p = leadFor;
+    if (!p) return;
+    var has = function (f) { return leadAsk.indexOf(f) >= 0; };
+    var name = has('name') ? el.leadName.value.replace(/\s+/g, ' ').trim().slice(0, 60) : '';
+    var phone = has('phone') ? el.leadPhone.value.replace(/[\s\-().]/g, '') : '';
+    var email = has('email') ? el.leadEmail.value.trim().toLowerCase() : '';
+    if (has('name') && !name) return leadBad(el.leadName, 'Please add your name.');
+    if (phone && !PHONE_OK.test(phone)) return leadBad(el.leadPhone, 'Add your WhatsApp number starting with your country code, like +91 98123 45678.');
+    if (email && (email.length > 254 || !EMAIL_OK.test(email))) return leadBad(el.leadEmail, 'That email doesn’t look right. Check it, please.');
+    if (!phone && !email) {
+      return leadBad(has('phone') ? el.leadPhone : el.leadEmail,
+        has('phone') && has('email') ? 'Add your WhatsApp number or your email, or tap Skip.' : has('phone') ? 'Add your WhatsApp number, or tap Skip.' : 'Add your email, or tap Skip.');
+    }
+    if (!el.leadOk.checked) return leadBad(el.leadOk, 'Please tick the box so ' + APP + ' can contact you, or tap Skip.');
+    // Open the link now, inside the tap, so the browser allows it. The details are sent at the same time.
+    window.open(p.url, '_blank', 'noopener');
+    try {
+      var keep = {};
+      try { keep = JSON.parse(localStorage.getItem(LEAD_KEY) || '{}') || {}; } catch (er) { keep = {}; }
+      if (name) keep.name = name;
+      if (phone) keep.phone = phone;
+      if (email) keep.email = email;
+      localStorage.setItem(LEAD_KEY, JSON.stringify(keep));
+    } catch (er) { /* fine: just not prefilled next time */ }
+    if (CFG.pwa) {
+      fetch('/api/lead', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ product: p.id, title: p.title, name: name, phone: phone, email: email, ok: true, website: el.leadHp.value })
+      }).catch(function () { /* offline: the link still opens */ });
+    }
+    closeSheet();
+    toast('Thank you' + (name ? ', ' + name.split(' ')[0] : '') + '! Opening it now 🌱');
+  });
+  el.leadSkip.addEventListener('click', function () {
+    var p = leadFor;
+    if (p) window.open(p.url, '_blank', 'noopener');
+    closeSheet();
+  });
+
   // ---------- Ask Pip: a small helper chat. Not an AI: the answers live in helper.js and nothing typed leaves the device ----------
   var H = window.FWHelper;
   var GUIDES = Array.isArray(CFG.guides) ? CFG.guides.filter(function (g) {
@@ -990,7 +1080,7 @@
   function askCtx() {
     var total = L.totalMin(S), st = L.streakInfo(S.days, now()).current, p = L.progressToNext(total);
     return {
-      products: SHELF, categories: CATEGORIES, guides: GUIDES, hasSocial: SOCIAL.length > 0,
+      products: SHELF, categories: CATEGORIES, guides: GUIDES, hasSocial: OWN_LINKS.length > 0,
       streak: st + (st === 1 ? ' day' : ' days'), total: L.fmtDuration(S.totalMs),
       next: p.next ? p.next.name + ', ' + Math.max(1, Math.ceil(p.next.at - total)) + ' min away' : 'nothing left, your island is complete'
     };
@@ -1015,15 +1105,15 @@
     th.appendChild(im);
     if (p.type === 'video' || p.type === 'course') { var pl = document.createElement('span'); pl.className = 'play'; pl.innerHTML = PLAY_ICON; th.appendChild(pl); }
     var info = document.createElement('span'); info.className = 'info';
-    var k = document.createElement('small'); k.textContent = p.kicker || TYPE_LABEL[p.type] || 'From the maker';
+    var k = document.createElement('small'); k.textContent = (p.ad ? 'Ad \u00B7 ' : '') + (p.kicker || TYPE_LABEL[p.type] || 'Take a look');
     var t = document.createElement('b'); t.textContent = p.title;
     var buy = document.createElement('span'); buy.className = 'buy';
-    var pr = document.createElement('em'); pr.textContent = p.free ? 'Free' : (p.price || ''); if (p.free) pr.className = 'free';
+    var pr = document.createElement('em'); pr.textContent = priceText(p); if (p.free) pr.className = 'free';
     var cta = document.createElement('span'); cta.textContent = (p.cta || 'Take a look') + ' →';
     buy.appendChild(pr); buy.appendChild(cta);
     info.appendChild(k); info.appendChild(t); info.appendChild(buy);
     a.appendChild(th); a.appendChild(info);
-    a.setAttribute('aria-label', p.title + (p.free ? ', free' : (p.price ? ', ' + p.price : '')) + ' (opens in a new tab)');
+    a.setAttribute('aria-label', p.title + (priceText(p) ? ', ' + priceText(p) : '') + ' (opens in a new tab)');
     return a;
   }
   function chatLink(label, href, soft, newTab) {
@@ -1035,7 +1125,7 @@
     var row = document.createElement('div'); row.className = 'chat-acts';
     r.acts.forEach(function (id, i) {
       if (id === 'follow') {
-        SOCIAL.forEach(function (x) { row.appendChild(chatLink(SOCIAL_ICON[x.platform] + ' ' + (x.label || SOCIAL_NAME[x.platform]), x.url, true, true)); });
+        OWN_LINKS.forEach(function (x) { row.appendChild(chatLink(SOCIAL_ICON[x.platform] + ' ' + (x.label || SOCIAL_NAME[x.platform]), x.url, true, true)); });
       } else if (id === 'call-14416') row.appendChild(chatLink(H.ACTIONS[id], 'tel:14416', false, false));
       else if (id === 'helplines') row.appendChild(chatLink(H.ACTIONS[id], 'https://findahelpline.com/', true, true));
       else {
@@ -1176,7 +1266,10 @@
   el.menuBtn.addEventListener('click', function () { syncSettingsUI(); openSheet('sheetMenu'); });
   el.toolsBtn.addEventListener('click', function () { hidePromo(); renderTools(); openSheet('sheetTools'); });
   el.aboutBtn.addEventListener('click', function () { openSheet('sheetAbout'); });
-  el.promoLink.addEventListener('click', function () { promoDismissed = true; hidePromo(); });
+  el.promoLink.addEventListener('click', function (e) {
+    promoDismissed = true; hidePromo();
+    if (promoItem && askFields(promoItem)) { e.preventDefault(); openLead(promoItem); }
+  });
 
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') {

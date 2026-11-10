@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Privacy | {{APP_NAME}}</title>
+<meta name="description" content="What {{APP_NAME}} keeps about you (almost nothing), why, and how to delete it.">
+<meta name="theme-color" content="#16204a">
+<meta name="color-scheme" content="dark">
+{{CANONICAL}}
+<link rel="icon" href="/favicon.ico" sizes="48x48">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>{{CSS}}</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="/"><img src="/favicon.svg" alt="" width="28" height="28">{{APP_NAME}}</a>
+  <a class="top-cta" href="/">Open the timer</a>
+</header>
+<main class="page">
+  <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> <span aria-hidden="true">›</span> Privacy</nav>
+  <p class="kicker">Simple and honest</p>
+  <h1>Privacy</h1>
+  <p class="meta">Updated {{UPDATED}}</p>
+  <div class="answer"><b>Short version</b><p>No sign-up and no ads. Your island, timer and settings stay on your own device.
+    We only keep your details (name, WhatsApp number or email) if you choose to fill the &ldquo;Before you go&rdquo; form, and only so {{APP_NAME}} can help you.</p></div>
+  <article class="body">
+    <h2>What stays on your device</h2>
+    <p>Your island, your focus minutes, your streak, your settings, and what you type to Pip (the helper) are saved only in your browser, on your device.
+      They are never sent to us. Clearing your browser data erases them.</p>
+    <h2>The &ldquo;Before you go&rdquo; form</h2>
+    <p>Some products show a short form before their link opens. If you fill it, we keep:</p>
+    <ul>
+      <li>what you typed: your name, WhatsApp number and/or email (each product asks only for what it needs),</li>
+      <li>which product you opened, and the time.</li>
+    </ul>
+    <p><b>Why:</b> so {{APP_NAME}} can contact you about that product. <b>Who sees it:</b> only the owner of {{APP_NAME}}.
+      It is never sold or shared. <b>Where:</b> a private database on Cloudflare, the company that hosts this site.
+      <b>How long:</b> it is deleted by itself after 12 months, or sooner when you ask.</p>
+    <p>You never have to fill it: tap <b>Skip</b> and the link opens anyway.</p>
+    <p>To stop one person sending the form again and again, we keep a code made from your network address. The code changes every day,
+      and your network address itself is not stored.</p>
+    <h2>Links to other sites</h2>
+    <p>Products open other websites (for example Gumroad, WhatsApp, YouTube or Instagram). Those sites have their own privacy rules.</p>
+    {{ANALYTICS}}
+    <h2>See or delete your details</h2>
+    <p>Message us and ask. Your details are deleted, usually within a few days. {{CONTACT}}</p>
+    <h2>Paid promotions</h2>
+    <p>Some cards and links in the Toolshed are for other people&rsquo;s products or pages. When we are paid to show one, it says <b>Ad</b>.</p>
+  </article>
+</main>
+<footer class="foot">
+  <a href="/">{{APP_NAME}}</a> · <a href="/guides/">Study guides</a>
+  <p>Free focus timer. No sign-up. No ads.</p>
+</footer>
+</body>
+</html>

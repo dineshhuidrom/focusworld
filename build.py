@@ -29,16 +29,17 @@ APP_NAME = "Focus World"
 JS_ORDER = ["logic.js", "helper.js", "items.js", "places.js", "world.js", "audio.js", "app.js"]
 
 # ---- catalog rules: the same rules as lib/catalog-rules.mjs (tests/test_rules.mjs checks they agree) ----
-TYPES = ["kit", "ebook", "app", "course", "video", "website", "template", "tool"]
+TYPES = ["kit", "ebook", "app", "course", "video", "website", "template", "tool", "group", "social"]
+ASK_FIELDS = ["name", "phone", "email"]
 PLATFORMS = ["youtube", "instagram", "facebook", "x", "threads", "linkedin", "tiktok", "telegram", "whatsapp",
              "pinterest", "website"]
 LIMITS = {"items": 60, "social": 12, "id": 48, "title": 90, "hook": 100, "text": 260, "kicker": 40, "cta": 24,
           "price": 14, "imageAlt": 140, "tags": 24, "tag": 32, "url": 600, "label": 30, "help": 2000,
           "categories": 40, "catId": 32, "catName": 30, "catEmoji": 8, "catWords": 60, "catWord": 40, "itemCats": 3}
 ITEM_KEYS = ["id", "type", "kicker", "title", "hook", "text", "price", "free", "cta", "image", "imageAlt",
-             "url", "local", "tags", "categories", "featured", "hidden"]
+             "url", "local", "tags", "categories", "featured", "hidden", "noPrice", "ad", "ask"]
 CATEGORY_KEYS = ["id", "name", "emoji", "words"]
-SOCIAL_KEYS = ["platform", "url", "label"]
+SOCIAL_KEYS = ["platform", "url", "label", "friend", "ad"]
 ID_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 IMAGE_RE = re.compile(r"^shelf/[a-z0-9]+(-[a-z0-9]+)*\.(jpg|png|webp)$")
 LOCAL_RE = re.compile(r"^tools/[a-z0-9]+(-[a-z0-9]+)*\.html$")
@@ -132,11 +133,29 @@ def validate_catalog(cat, image_exists=None):
                 err(where, "image", "Cover picture is missing.")
         if _is_str(it.get("local")) and it.get("local") and not LOCAL_RE.fullmatch(it["local"]):
             err(where, "local", "Local page name is not allowed.")
-        for k in ("free", "featured", "hidden"):
+        for k in ("free", "featured", "hidden", "noPrice", "ad"):
             if k in it and not isinstance(it[k], bool):
                 err(where, k, k + " must be true or false.")
-        if it.get("free") is not True and not (_is_str(it.get("price")) and it.get("price")):
-            err(where, "price", "Add a price, or mark it Free.")
+        has_price = _is_str(it.get("price")) and it.get("price")
+        if it.get("free") is True and it.get("noPrice") is True:
+            err(where, "price", "Pick Free or No price, not both.")
+        elif it.get("noPrice") is True and has_price:
+            err(where, "price", "Remove the price, or turn off No price.")
+        elif it.get("free") is not True and it.get("noPrice") is not True and not has_price:
+            err(where, "price", "Add a price, or mark it Free or No price.")
+        if "ask" in it:
+            ask = it["ask"]
+            if not isinstance(ask, list) or not ask or len(ask) > len(ASK_FIELDS):
+                err(where, "ask", "Pick which details to ask for.")
+            else:
+                seen_ask = set()
+                for f in ask:
+                    if not _is_str(f) or f not in ASK_FIELDS or f in seen_ask:
+                        err(where, "ask", "Pick which details to ask for.")
+                    else:
+                        seen_ask.add(f)
+                if "phone" not in seen_ask and "email" not in seen_ask:
+                    err(where, "ask", "Ask for a WhatsApp number or an email.")
         if "tags" in it:
             if not isinstance(it["tags"], list):
                 err(where, "tags", "Search words must be a list.")
@@ -184,6 +203,9 @@ def validate_catalog(cat, image_exists=None):
                     lb = s["label"]
                     if not _is_str(lb) or not lb.strip(JS_WS) or _js_len(lb) > LIMITS["label"] or CTRL_RE.search(lb):
                         err(where, "label", "The name is empty or too long.")
+                for k in ("friend", "ad"):
+                    if k in s and not isinstance(s[k], bool):
+                        err(where, k, k + " must be true or false.")
     if "categories" in cat:
         cats = cat["categories"]
         if not isinstance(cats, list):
@@ -241,14 +263,32 @@ def load_catalog():
     return cat
 
 
+# When a paid promotion is on show (a product or link marked "Ad"), the site must stop saying "no ads".
+ADS_SHOWN = False
+_NO_ADS = (("No sign-up, no ads, and", "No sign-up, and"), ("No sign-up, no ads.", "No sign-up."),
+           ("no sign-up, no ads.", "no sign-up."), ("No sign-up. No ads.", "No sign-up."), ("No sign-up and no ads.", "No sign-up."),
+           (" with no ads.", "."), ("no sign-up, no ads", "no sign-up"))
+
+
+def ads_wording(html):
+    """Keeps every page honest: removes the "no ads" promise while a paid promotion is shown."""
+    if not ADS_SHOWN:
+        return html
+    for a, b in _NO_ADS:
+        html = html.replace(a, b)
+    if re.search(r"no ads", html, re.I):
+        raise SystemExit('A page still says "no ads" while a paid promotion is shown. Add the sentence to _NO_ADS in build.py.')
+    return html
+
+
 def shelf_for(items, site):
     """What the page needs. Hidden products are left out. On the live site, free tools open from our own address."""
     out = []
     for it in items:
         if it.get("hidden"):
             continue
-        d = {k: it[k] for k in ("id", "type", "kicker", "title", "hook", "text", "price", "free", "cta",
-                                "image", "imageAlt", "tags", "categories", "featured") if k in it}
+        d = {k: it[k] for k in ("id", "type", "kicker", "title", "hook", "text", "price", "free", "noPrice", "ad",
+                                "ask", "cta", "image", "imageAlt", "tags", "categories", "featured") if k in it}
         d["url"] = "/tools/%s/" % it["id"] if (site and it.get("local")) else it["url"]
         out.append(d)
     return out
@@ -265,7 +305,7 @@ def categories_for(cat):
 
 
 def social_for(cat):
-    return [{k: s[k] for k in ("platform", "url", "label") if k in s} for s in cat.get("social", [])]
+    return [{k: s[k] for k in ("platform", "url", "label", "friend", "ad") if k in s} for s in cat.get("social", [])]
 
 
 def build_html(site_url, pwa, analytics, shelf, social, categories=()):
@@ -323,7 +363,7 @@ def build_html(site_url, pwa, analytics, shelf, social, categories=()):
     left = re.findall(r"\{\{[A-Z_]+\}\}", html)
     if left:
         raise SystemExit("Unfilled template keys: %s" % left[:3])
-    return html
+    return ads_wording(html)
 
 
 SW = """const CACHE = 'focusworld-%s';
@@ -590,7 +630,7 @@ def render_guide(g, guides, site_url, is_index=False):
     left = re.findall(r"\{\{[A-Z_]+\}\}", page)
     if left:
         raise SystemExit("guide %s: unfilled keys %s" % (g["slug"], left[:3]))
-    return page
+    return ads_wording(page)
 
 
 def render_guides_index(guides, site_url):
@@ -601,6 +641,30 @@ def render_guides_index(guides, site_url):
          "answer": "Short, simple guides to help you study with focus. Each one comes with a free timer that is already set up for you.",
          "body": '<p class="list-intro">Pick a guide. Each one links to a free timer with the right times already set.</p>' + _guide_cards(guides)}
     return render_guide(dict(g, image=guides[0]["slug"]), guides, site_url, is_index=True)
+
+
+PRIVACY_UPDATED = "2026-11-10"
+
+
+def render_privacy(site_url, analytics, social):
+    """The privacy page: what is kept (only the optional "Before you go" form), why, and how to delete it."""
+    html = read("privacy.html")
+    names = {"youtube": "YouTube", "instagram": "Instagram", "facebook": "Facebook", "x": "X", "threads": "Threads",
+             "linkedin": "LinkedIn", "tiktok": "TikTok", "telegram": "Telegram", "whatsapp": "WhatsApp",
+             "pinterest": "Pinterest", "website": "Website"}
+    links = ['<a href="%s" target="_blank" rel="noopener noreferrer">%s</a>' % (_e(x["url"]), _e(x.get("label") or names.get(x["platform"], "Link")))
+             for x in social if not x.get("friend")]
+    contact = ("Message us here: " + ", ".join(links) + ".") if links else "Use the links in the Toolshed (Follow %s)." % APP_NAME
+    stats = ("<h2>Visit counts</h2><p>We count visits with Cloudflare Web Analytics. It uses no cookies and does not identify you.</p>"
+             if analytics else "")
+    for key, val in (("{{CSS}}", read(os.path.join("guides", "guide.css"))), ("{{APP_NAME}}", APP_NAME),
+                     ("{{UPDATED}}", _human_date(PRIVACY_UPDATED)), ("{{CONTACT}}", contact), ("{{ANALYTICS}}", stats),
+                     ("{{CANONICAL}}", '<link rel="canonical" href="%s/privacy/">' % site_url if site_url else "")):
+        html = html.replace(key, val)
+    left = re.findall(r"\{\{[A-Z_]+\}\}", html)
+    if left:
+        raise SystemExit("privacy page: unfilled %s" % left[:3])
+    return ads_wording(html)
 
 
 def copy_shelf(dest, items, site):
@@ -628,6 +692,8 @@ def main():
     os.makedirs(DIST, exist_ok=True)
     cat = load_catalog()
     items, social, cats = cat["items"], social_for(cat), categories_for(cat)
+    global ADS_SHOWN
+    ADS_SHOWN = any(it.get("ad") and not it.get("hidden") for it in items) or any(x.get("ad") for x in social)
     preview = build_html(site_url, pwa=False, analytics="", shelf=shelf_for(items, False), social=social, categories=cats)
     with open(os.path.join(DIST, "preview.html"), "w", encoding="utf-8") as f:
         f.write(preview)
@@ -658,12 +724,15 @@ def main():
     if guides:
         with open(os.path.join(out, "guides", "index.html"), "w", encoding="utf-8") as f:
             f.write(render_guides_index(guides, site_url))
+    os.makedirs(os.path.join(out, "privacy"))
+    with open(os.path.join(out, "privacy", "index.html"), "w", encoding="utf-8") as f:
+        f.write(render_privacy(site_url, analytics, social))
     os.makedirs(os.path.join(out, "admin"))
     with open(os.path.join(out, "admin", "index.html"), "w", encoding="utf-8") as f:
         f.write(build_admin())
-    # Only My Shop's server part runs code; everything else is plain files (free and unlimited).
+    # Only My Shop's server part and the "Before you go" form run code; everything else is plain files (free and unlimited).
     with open(os.path.join(out, "_routes.json"), "w") as f:
-        json.dump({"version": 1, "include": ["/admin/api/*"], "exclude": []}, f)
+        json.dump({"version": 1, "include": ["/admin/api/*", "/api/*"], "exclude": []}, f)
     commit = re.sub(r"[^0-9a-f]", "", os.environ.get("CF_PAGES_COMMIT_SHA", "").lower())[:40]
     with open(os.path.join(out, "version.json"), "w") as f:
         json.dump({"commit": commit, "version": VERSION}, f)
@@ -688,7 +757,7 @@ def main():
     with open(os.path.join(out, "robots.txt"), "w") as f:
         f.write(robots)
     if site_url:
-        pages = ["/"] + ["/tools/%s/" % it["id"] for it in items if it.get("local") and not it.get("hidden")]
+        pages = ["/"] + ["/tools/%s/" % it["id"] for it in items if it.get("local") and not it.get("hidden")] + ["/privacy/"]
         pages += (["/guides/"] + ["/guides/%s/" % g["slug"] for g in guides]) if guides else []
         with open(os.path.join(out, "sitemap.xml"), "w") as f:
             f.write('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'

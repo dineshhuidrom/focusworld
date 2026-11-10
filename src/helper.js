@@ -1,5 +1,5 @@
 /* Focus World — "Ask Pip", a small helper bot. It is NOT an AI: it matches what people type to answers written
-   here (study help, how Focus World works, a few real-life problems) and finds the maker's products by their tags,
+   here (study help, how Focus World works, a few real-life problems) and finds Toolshed products by their tags,
    so products added later in My Shop are found without changing this file. Everything runs on the device;
    nothing anyone types is sent anywhere. */
 (function (root) {
@@ -44,7 +44,7 @@
      products, pre: the line shown above them. guides: study guides to suggest, in order (only published ones).
      cat: the My Shop category this topic belongs to; Pip shows 1 product from it under study tips. */
   var TOPICS = [
-    // ----- real-life problems the maker has made something for -----
+    // ----- real-life problems the Toolshed has something for -----
     { id: 'ai', cat: 'school', label: '🤖 Teacher says I used AI',
       k: ['ai detector', 'ai detection', 'detector', 'turnitin!', 'gptzero!', 'zerogpt!', 'copyleaks!', 'chatgpt', 'chat gpt',
         'about ai', 'is ai', 'was ai', 'ai checker', 'ai check', 'ai score', 'ai report', 'ai percent',
@@ -55,7 +55,7 @@
         '• Collect your proof: drafts, version history, notes, browser history.',
         '• Ask politely to talk about it. AI detectors can be wrong.'],
       w: ['ai$'],
-      pre: 'The maker made something for exactly this:', q: 'ai detector accused of ai turnitin chatgpt',
+      pre: 'Here\u2019s something made for exactly this:', q: 'ai detector accused of ai turnitin chatgpt',
       next: ['stress', 'writing'] },
     { id: 'tax', cat: 'money', label: '📄 Scary IRS letter',
       k: ['irs', 'cp2000!', 'cp 2000', 'tax', 'taxes', 'tax return', 'underreport', '1099', 'owe more', 'audit'],
@@ -63,7 +63,7 @@
         '• Find the reply date first. Don’t ignore the letter.',
         '• If it’s a CP2000, it’s a proposal, not a bill. You can agree or disagree with it.',
         '• Gather your tax papers before you reply.'],
-      pre: 'The maker made calm help for this (it’s not tax advice):', q: 'irs tax cp2000 notice',
+      pre: 'Here’s calm help for this (it’s not tax advice):', q: 'irs tax cp2000 notice',
       next: ['stress', 'shop'] },
 
     // ----- studying -----
@@ -322,11 +322,11 @@
         'tracking', 'track me', 'safe', 'spy'],
       say: ['Yes, Focus World is free. No sign-up, no ads, and what you do here isn’t tracked.',
         '• Your world is saved only on your device.',
-        '• The Toolshed has helpers from the maker. Some are free, some are paid, and they keep Focus World free.'],
+        '• The Toolshed has helpers. Some are free, some are paid, and they keep Focus World free. Paid promotions always say “Ad”.'],
       acts: ['tools'], next: ['account', 'maker'] },
     { id: 'promo',
       k: ['promo', 'popup', 'pop up', 'hide the card', 'close the card', 'card during', 'annoying'],
-      say: ['During breaks you may see one small card from the maker. That\u2019s how Focus World stays free with no ads.',
+      say: ['During breaks you may see one small card with something you might like. That\u2019s how Focus World stays free.',
         'Tap \u2715 on it and it hides until your next break.'],
       next: ['free'] },
     { id: 'language', label: '🗣️ Other languages',
@@ -335,23 +335,23 @@
         'translate this', 'translate the app', 'translate it'],
       say: ['Right now Focus World and I only speak simple English. More languages may come later!'] },
 
-    // ----- the maker -----
+    // ----- the Toolshed and Focus World itself -----
     { id: 'shop', label: '🧰 Something else is wrong',
       k: ['product', 'products', 'shop', 'store', 'buy', 'sell', 'toolshed', 'what else', 'something else', 'other problem',
         'different problem', 'not study', 'real life', 'your apps', 'your kits', 'what do you have', 'recommend'],
       w: ['kit', 'ebook', 'course', 'tools'],
       say: ['Tell me in a few words what’s going on, like “my teacher says I used AI”, and I’ll look.'],
-      pre: 'Here’s everything the maker has made:', all: true, acts: ['tools'] },
-    { id: 'maker', label: '💌 Talk to the maker',
+      pre: 'Here’s everything in the Toolshed:', all: true, acts: ['tools'] },
+    { id: 'maker', label: '💌 Talk to Focus World',
       k: ['who made', 'who built', 'who created', 'maker', 'creator', 'developer', 'contact', 'feedback', 'suggest', 'idea',
         'bug', 'not working', 'doesnt work', 'broken', 'error', 'report', 'complain'],
       say: ['Focus World is made by one person, with a lot of love. 💛',
         'Something broken? Try reloading the page first.',
-        'Want to say hi, share an idea or report a problem? Message the maker here:'],
+        'Want to say hi, share an idea or report a problem? Message Focus World here:'],
       acts: ['follow'] },
-    { id: 'follow', label: '👋 Follow the maker',
+    { id: 'follow', label: '👋 Follow Focus World',
       k: ['instagram', 'follow', 'social', 'facebook', 'twitter', 'telegram', 'whatsapp', 'youtube channel'],
-      say: ['Say hi to the maker here:'], acts: ['follow'] },
+      say: ['Follow Focus World here:'], acts: ['follow'] },
 
     // ----- small talk -----
     { id: 'thanks', k: ['thank', 'thanks', 'thx', 'ty$', 'great', 'awesome', 'love it', 'helpful', 'dhanyavad', 'shukriya'],
@@ -368,7 +368,7 @@
       say: ['I’m Pip, a little helper bot. I’m not an AI: I know a set of answers, and I know them well! I can help you:',
         '• study better and stop getting distracted',
         '• use Focus World',
-        '• find something from the maker for a problem you’re facing'],
+        '• find something in the Toolshed for a problem you’re facing'],
       next: 'main' }
   ];
   var MAIN = ['study', 'focus', 'exam', 'stress', 'what', 'shop'];
@@ -551,7 +551,7 @@
     var list = productsIn(ctx, c.id);
     var chips = liveCategories(ctx).filter(function (x) { return x.c.id !== c.id; }).slice(0, 4).map(function (x) { return catChip(x.c); });
     if (firstChip) chips.unshift(firstChip);
-    return { id: 'cat:' + c.id, say: ['Here\u2019s what the maker has for ' + catLabel(c) + ':'], pre: null,
+    return { id: 'cat:' + c.id, say: ['Here\u2019s what we have for ' + catLabel(c) + ':'], pre: null,
       products: list.slice(0, 4), acts: list.length > 4 ? ['tools'] : [], guides: [], chips: chips.slice(0, 6) };
   }
 
@@ -607,18 +607,18 @@
     } else if (extraText) {
       found = findProducts(extraText, products, 3, 2);
     }
-    if (found.length) { out.pre = topic.pre || (topic.cat && !topic.q ? 'From the maker:' : 'This might help:'); out.products = found; }
-    else if (topic.all && !live.length) out.say = ['The maker\u2019s shelf is still being stocked. Check back soon! \uD83C\uDF31'];
+    if (found.length) { out.pre = topic.pre || (topic.cat && !topic.q ? 'This might help too:' : 'This might help:'); out.products = found; }
+    else if (topic.all && !live.length) out.say = ['The Toolshed is still being stocked. Check back soon! \uD83C\uDF31'];
     if (topic.all && live.length) {
       out.say = ['Tell me in a few words what\u2019s going on, like \u201Cmy teacher says I used AI\u201D, or pick a topic:'];
-      if (found.length) out.pre = 'Or see everything the maker has made:';
+      if (found.length) out.pre = 'Or see everything in the Toolshed:';
     }
     out.acts = (topic.acts || []).filter(function (a) {
       if (a === 'follow') return !!ctx.hasSocial;
       return !!ACTIONS[a];
     });
     if (topic.id === 'maker' && !ctx.hasSocial) out.say = out.say.slice(0, 2);
-    if (topic.id === 'follow' && !ctx.hasSocial) out.say = ['The maker’s social links aren’t up yet. Check back soon!'];
+    if (topic.id === 'follow' && !ctx.hasSocial) out.say = ['Focus World\u2019s social links aren\u2019t up yet. Check back soon!'];
     var have = {};
     (ctx.guides || []).forEach(function (g) { have[g.slug] = g; });
     out.guides = (topic.guides || []).filter(function (s) { return have[s]; }).slice(0, 2).map(function (s) { return have[s]; });
@@ -663,7 +663,7 @@
     if (textCat && !ownAnswer && (bestScore < 2 || chatty || (textCat.score >= 3 && textCat.score >= bestScore + 2))) {
       return categoryAnswer(textCat.c, ctx, best && !chatty && bestScore >= 2 && best.label ? chip(best.id) : null);
     }
-    // A category the maker has no products for yet: say so honestly instead of "I didn't catch that".
+    // A category with no products yet: say so honestly instead of "I didn't catch that".
     var known = null;
     (ctx.categories || []).forEach(function (c) {
       var sc = categoryScore(c, norm, toks);
@@ -671,7 +671,7 @@
     });
     if (known && (!(best && bestScore >= 2) || chatty)) {
       return { id: 'cat-empty:' + known.c.id,
-        say: ['That sounds like ' + catLabel(known.c) + '. The maker hasn\u2019t made anything for that yet. Check back soon! \uD83C\uDF31'],
+        say: ['That sounds like ' + catLabel(known.c) + '. There\u2019s nothing for that in the Toolshed yet. Check back soon! \uD83C\uDF31'],
         pre: null, products: [], acts: [], guides: [], chips: mainChips() };
     }
     if (best && bestScore >= 2) {

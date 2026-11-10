@@ -115,7 +115,7 @@
   </div>
 </div>
 
-<aside id="promo" class="promo" aria-label="From the maker" hidden>
+<aside id="promo" class="promo" aria-label="You might like this" hidden>
   <button class="promo-x" id="promoX" type="button" aria-label="Hide this">&#x2715;</button>
   <a id="promoLink" target="_blank" rel="noopener">
     <img id="promoImg" alt="" width="960" height="540">
@@ -152,7 +152,7 @@
 
 <section id="sheetTools" class="sheet" role="dialog" aria-modal="true" aria-labelledby="ttlTools" hidden>
   <div class="sheet-head"><h2 id="ttlTools">The Toolshed</h2><button class="icon-btn close" type="button" data-close aria-label="Close">&#x2715;</button></div>
-  <p class="note">Handy little helpers from the maker of {{APP_NAME}}. Every visit here helps keep the island free.</p>
+  <p class="note">Handy helpers, groups and pages we like. Every visit here helps keep the island free.</p>
   <div class="shop-search">
     <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M15.5 15.5 20 20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
     <input type="search" id="toolsSearch" placeholder="What do you need help with?" aria-label="Search the Toolshed" autocomplete="off" enterkeyhint="search">
@@ -162,8 +162,12 @@
   <p class="tools-count" id="toolsCount" aria-live="polite"></p>
   <div class="tools" id="toolsList"></div>
   <div class="follow" id="followRow" hidden>
-    <h3>Say hi to the maker &#x1F44B;</h3>
+    <h3>Follow {{APP_NAME}} &#x1F44B;</h3>
     <div class="follow-links" id="followLinks"></div>
+  </div>
+  <div class="follow" id="friendRow" hidden>
+    <h3>Worth a follow &#x2728;</h3>
+    <div class="follow-links" id="friendLinks"></div>
   </div>
 </section>
 
@@ -220,7 +224,7 @@
     Every minute you focus grows your own little world: grass, trees, a cottage, a windmill, a lighthouse and more. &#x1F331;</p>
   <div class="faq">
     <details><summary>Is it really free?</summary>
-      <p>Yes! No sign-up, no ads, no payment. The Toolshed has a few handy helpers from the maker. Some are free, some are paid, and they help keep {{APP_NAME}} free for everyone.</p></details>
+      <p>Yes! No sign-up, no payment. The Toolshed has a few handy helpers. Some are free, some are paid, and they help keep {{APP_NAME}} free for everyone. Paid promotions always show an &ldquo;Ad&rdquo; label.</p></details>
     <details><summary>How does my world grow?</summary>
       <p>Every focused minute counts. 31 things unlock as your minutes add up, from a first sprout all the way to a whale. Your garden also visits a new place every day: a mountain valley, a desert oasis, a city rooftop, an underwater dome, a space garden and more. Focus more to unlock them all.</p></details>
     <details><summary>Which timer lengths can I use?</summary>
@@ -233,6 +237,8 @@
       <p>Only on this device, in your browser. Nothing is sent anywhere. To move it to another phone or laptop, use &ldquo;Save backup&rdquo; in Settings. Clearing your browser data erases it, so save a backup now and then.</p></details>
     <details><summary>Does it work offline? Can I install it?</summary>
       <p>After your first visit it works offline. On your phone, use &ldquo;Add to Home Screen&rdquo; to keep it like an app.</p></details>
+    <details><summary>Do you collect my details?</summary>
+      <p>No sign-up, ever. A few products show a short &ldquo;Before you go&rdquo; form (your name, WhatsApp number or email) so {{APP_NAME}} can help you with them. You can always tap Skip. <a href="/privacy/">Privacy</a></p></details>
     <details><summary>What is phone-free mode?</summary>
       <p>An optional challenge for big study days. If you leave the page for more than 10 seconds while focusing, your sprout droops. Turn it on in Settings.</p></details>
   </div>
@@ -250,6 +256,26 @@
     <button type="submit" class="chat-send" id="askSend" aria-label="Send">
       <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M12 19V5M5.5 11.5 12 5l6.5 6.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
+  </form>
+</section>
+
+<section id="sheetLead" class="sheet small" role="dialog" aria-modal="true" aria-labelledby="ttlLead" hidden>
+  <div class="sheet-head"><h2 id="ttlLead">Before you go &#x1F331;</h2><button class="icon-btn close" type="button" data-close aria-label="Close">&#x2715;</button></div>
+  <p class="note">You&rsquo;re opening <b id="leadTitle"></b>. Leave your details so {{APP_NAME}} can help you with it.</p>
+  <form id="leadForm" class="lead-form" novalidate autocomplete="on">
+    <label class="lead-field" id="leadNameRow"><span>Your name</span>
+      <input id="leadName" name="name" autocomplete="name" maxlength="60" enterkeyhint="next"></label>
+    <label class="lead-field" id="leadPhoneRow"><span>WhatsApp number <small id="leadPhoneNote">with country code</small></span>
+      <input id="leadPhone" name="tel" type="tel" inputmode="tel" autocomplete="tel" maxlength="22" placeholder="+91 98123 45678" enterkeyhint="next"></label>
+    <label class="lead-field" id="leadEmailRow"><span>Email <small id="leadEmailNote"></small></span>
+      <input id="leadEmail" name="email" type="email" inputmode="email" autocomplete="email" maxlength="254" placeholder="you@example.com" enterkeyhint="done" spellcheck="false" autocapitalize="off"></label>
+    <p class="lead-either" id="leadEither" hidden>Fill in at least one: your WhatsApp number or your email.</p>
+    <label class="lead-ok"><input type="checkbox" id="leadOk"><span id="leadOkText">Yes, {{APP_NAME}} can contact me about this.</span></label>
+    <input type="text" id="leadHp" name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+    <p class="note warn" id="leadMsg" role="alert"></p>
+    <button type="submit" class="btn primary wide">Continue &rarr;</button>
+    <button type="button" class="lead-skip" id="leadSkip">Skip, just open it</button>
+    <p class="lead-privacy">Saved only so {{APP_NAME}} can contact you. Ask to delete it any time. <a href="/privacy/" target="_blank" rel="noopener">Privacy</a></p>
   </form>
 </section>
 

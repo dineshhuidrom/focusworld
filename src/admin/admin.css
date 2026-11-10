@@ -287,3 +287,29 @@ a { color: var(--accent); }
   .tabs button { font-size: 13.5px; padding: 0 2px; }
   .tabs em { margin-left: 2px; padding: 1px 5px; min-width: 0; }
 }
+
+/* ---------- when someone taps it / leads ---------- */
+.gates { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.gates button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 84px; padding: 8px 6px; border-radius: 16px;
+  border: 1.5px solid var(--line); background: rgba(8, 12, 32, .25); font-weight: 700; font-size: 13px; line-height: 1.25; color: var(--muted); text-align: center;
+  transition: transform .15s var(--ease), border-color .2s, background .2s, color .2s; }
+.gates button b { font-size: 22px; transition: transform .25s var(--ease); }
+.gates button[aria-checked="true"] { border-color: var(--accent); background: rgba(255, 198, 109, .12); color: var(--text); }
+.gates button[aria-checked="true"] b { transform: scale(1.15) rotate(-6deg); }
+.gates button:active { transform: scale(.95); }
+#gateHint { margin: 10px 2px 4px; }
+#askBox { margin-top: 12px; }
+.ask-q { margin: 0 2px 8px; }
+.cp-badges i.ad, .row .meta i.ad { background: #fff1c9; color: #6b4a00; }
+.owner-hint { margin: 8px 2px 0; }
+.row.lead .tools .mail-btn { display: inline-grid; place-items: center; min-width: 38px; min-height: 38px; border-radius: 12px; border: 1px solid var(--line); text-decoration: none; }
+.leads-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 4px 0 12px; }
+.leads-bar .btn { min-height: 42px; padding: 0 14px; font-size: 14px; }
+.danger-text { color: var(--danger); margin-left: auto; }
+.setup-card { border: 1.5px dashed rgba(255, 198, 109, .5); }
+.row.lead { grid-template-columns: 52px 1fr auto; }
+.row.lead .tools { grid-column: auto; }
+.row.lead .thumb.wa { display: grid; place-items: center; text-decoration: none; background: rgba(159, 227, 184, .16); }
+.row.lead .meta i { overflow-wrap: anywhere; }
+@media (max-width: 420px) { .gates button { font-size: 12.5px; min-height: 90px; } }
+.leads-bar .btn { width: auto; margin-top: 0; }

@@ -11,6 +11,8 @@ import { join, dirname, extname, relative } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { handle } from '../lib/admin-core.mjs';
 import { makeFakeGitHub } from './fake_github.mjs';
+import { handleLead } from '../lib/leads.mjs';
+import { makeFakeD1 } from './fake_d1.mjs';
 
 const PORT = Number(process.argv[2] || 8790);
 const WORK = process.argv[3] || '/tmp/fw-dev';
@@ -60,7 +62,9 @@ const gh = makeFakeGitHub({
   }
 });
 build(gh.head);
-const env = { ADMIN_PASSWORD: PASSWORD, GITHUB_TOKEN: 'local-test-token', GITHUB_REPO: 'test/focusworld' };
+// LEADS_DB: an in-memory stand-in for the Cloudflare D1 database (set NO_LEADS_DB=1 to test "not set up yet").
+const env = { ADMIN_PASSWORD: PASSWORD, GITHUB_TOKEN: 'local-test-token', GITHUB_REPO: 'test/focusworld',
+  LEADS_DB: process.env.NO_LEADS_DB ? undefined : makeFakeD1() };
 
 function parseHeaders(text) {
   const rules = []; let cur = null;
@@ -88,11 +92,12 @@ const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '
 http.createServer(async (req, res) => {
   const url = new URL(req.url, ORIGIN);
   try {
-    if (url.pathname.startsWith('/admin/api/')) {
+    if (url.pathname.startsWith('/admin/api/') || url.pathname.startsWith('/api/')) {
       const chunks = []; for await (const c of req) chunks.push(c);
       const headers = new Headers();
       for (const [k, v] of Object.entries(req.headers)) if (typeof v === 'string') headers.set(k, v);
-      const r = await handle(new Request(ORIGIN + req.url, { method: req.method, headers, body: ['GET', 'HEAD'].includes(req.method) ? undefined : Buffer.concat(chunks) }), env, { fetch: gh.fetch });
+      const request = new Request(ORIGIN + req.url, { method: req.method, headers, body: ['GET', 'HEAD'].includes(req.method) ? undefined : Buffer.concat(chunks) });
+      const r = url.pathname.startsWith('/api/') ? await handleLead(request, env) : await handle(request, env, { fetch: gh.fetch });
       const h = {}; r.headers.forEach((v, k) => { h[k] = v; });
       // Browsers only keep Secure cookies on https or localhost; 127.0.0.1 is treated like localhost in Chrome.
       res.writeHead(r.status, h);

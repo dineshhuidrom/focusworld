@@ -132,3 +132,14 @@ Tip for dinesh: in My Shop, give each product tags in the words people use ("tea
 | Already set | Paper Trail + First Reply → School & college problems; CP2000 kit + IRS check → Money & taxes (change any time in My Shop) |
 | Rules | Same rules in `lib/catalog-rules.mjs` and `build.py`, checked by `tests/test_rules.mjs` (83 cases agree) |
 | Tests | `test_helper.js` (19), `ask_test.py`, `admin_cats_e2e.py` (24), all older tests still pass |
+
+## 10 Nov 2026 — v1.8 Link cards, paid promotions, small links, details form, Leads (dinesh: "show my WhatsApp group / YouTube / app links, promote other people's pages, and get name + number before they buy")
+| What | How |
+|---|---|
+| Big card or small button | Each link: a **product** (big card with picture + words) or a **small link**. New product kinds **Group** (WhatsApp/Telegram, "Join the group") and **Social page** (Instagram/YouTube page, "Follow"); a pasted link picks the kind by itself. **No price** option |
+| Other people's things | Small links: **Whose page is it?** Mine → "Follow Focus World", someone else's → "Worth a follow". **Paid promotion** switch (products and small links) shows **Ad**. Only paid ones are labelled (dinesh's choice) |
+| Honest wording | "The maker" replaced by "Focus World" / neutral words. While any Ad is shown, the build removes every "no ads" promise (`ads_wording` in build.py; the build stops if one is missed). Note: the link-preview picture `og.jpg` still says "No ads"; redraw it (`build.py --icons`) if paid promotions become regular |
+| "Before you go" form | Per product: **Ask for their details first** + which boxes (Name, WhatsApp number, Email). Visitors give a number or an email, tick consent, or Skip. The link opens in the same tap. Spam guard: hidden field + max 5 a day per visitor |
+| Leads tab | My Shop → **Leads**: newest first, 💬 WhatsApp / ✉️ email in one tap, delete one or all, download a spreadsheet (CSV). Auto-deleted after 12 months. Stored in a free Cloudflare D1 database: **needs Part F of SETUP.md once** |
+| Privacy | New page `/privacy/` (what is kept, why, who sees it, how long, how to delete; paid promotions say Ad). Linked from the form and About |
+| Tests | `test_leads.mjs` (10), `admin_links_e2e.py` (39), rules agree on 104 cases, all older tests pass |

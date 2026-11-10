@@ -192,7 +192,7 @@ async def main():
         await site.click("#toolsBtn")
         await site.wait_for_timeout(600)
         tool_text = await text(site, "#sheetTools")
-        check("Study Planner" in tool_text and "say hi to the maker" in tool_text.lower() and "Golu Paisa on YouTube" in tool_text,
+        check("Study Planner" in tool_text and "follow focus world" in tool_text.lower() and "Golu Paisa on YouTube" in tool_text,
               "Toolshed shows the new product and the follow links")
         await site.screenshot(path=SHOTS + "shop_09_toolshed.png")
         await site.evaluate("document.querySelector('#sheetTools').scrollTop = 99999")

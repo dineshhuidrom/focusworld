@@ -200,7 +200,7 @@ t('study tips stay, with just 1 product from the matching category', () => {
     const r = H.reply(q, cctx);
     assert.strictEqual(r.id, id, q);
     assert.deepStrictEqual(ids(r), [prod], q);
-    assert.strictEqual(r.pre, 'From the maker:');
+    assert.strictEqual(r.pre, 'This might help too:');
   }
   // a clear category in the words beats the topic's own category
   assert.deepStrictEqual(ids(H.reply('I am nervous about my english speaking test', cctx)), ['speak-ahead-course']);
@@ -221,7 +221,7 @@ t('a category with no products yet gets an honest answer', () => {
   for (const q of ['learn korean', 'I want to learn French', 'hi i want to learn guitar']) {
     const r = H.reply(q, cctx);
     assert.ok(r.id.indexOf('cat-empty:') === 0, q + ' -> ' + r.id);
-    assert.ok(/hasn.t made anything/.test(r.say[0]));
+    assert.ok(/nothing for that in the Toolshed yet/.test(r.say[0]));
   }
 });
 

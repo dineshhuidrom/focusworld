@@ -95,7 +95,29 @@ const cases = {
   catTooManyWords: Object.assign({}, base, { categories: base.categories.concat([{ id: 'x1', name: 'X', words: Array.from({ length: 61 }, (_, i) => 'w' + i) }]) }),
   catExtraField: Object.assign({}, base, { categories: base.categories.concat([{ id: 'x1', name: 'X', words: ['x'], color: 'red' }]) }),
   catNotObject: Object.assign({}, base, { categories: base.categories.concat(['study']) }),
-  catTooMany: Object.assign({}, base, { categories: Array.from({ length: 41 }, (_, i) => ({ id: 'c' + i, name: 'C' + i, words: ['w'] })).concat(base.categories) })
+  catTooMany: Object.assign({}, base, { categories: Array.from({ length: 41 }, (_, i) => ({ id: 'c' + i, name: 'C' + i, words: ['w'] })).concat(base.categories) }),
+  // link cards, no price, paid promotions, friends' links, and the "Before you go" form
+  groupOk: withItem({ type: 'group', free: true, price: undefined }),
+  socialNoPriceOk: withItem({ type: 'social', noPrice: true, price: undefined, ad: true }),
+  noPriceWithPrice: withItem({ noPrice: true }),
+  freeAndNoPrice: withItem({ free: true, noPrice: true, price: undefined }),
+  noPriceString: withItem({ noPrice: 'yes', price: undefined }),
+  adBad: withItem({ ad: 1 }),
+  askOk: withItem({ ask: ['name', 'phone', 'email'] }),
+  askEmailOnlyOk: withItem({ ask: ['email'] }),
+  askNameOnly: withItem({ ask: ['name'] }),
+  askEmpty: withItem({ ask: [] }),
+  askUnknown: withItem({ ask: ['name', 'address'] }),
+  askTwice: withItem({ ask: ['phone', 'phone'] }),
+  askTooMany: withItem({ ask: ['name', 'phone', 'email', 'name'] }),
+  askNotList: withItem({ ask: 'phone' }),
+  askInherited: withItem({ ask: ['toString', 'phone'] }),
+  oldGate: withItem({ gate: 'form' }),
+  oldPartner: withItem({ partner: true }),
+  oldWhatsapp: Object.assign({}, base, { whatsapp: '919812345678' }),
+  friendLinkOk: Object.assign({}, base, { social: [{ platform: 'instagram', url: 'https://instagram.com/a', label: 'A friend', friend: true, ad: true }] }),
+  friendLinkBad: Object.assign({}, base, { social: [{ platform: 'instagram', url: 'https://instagram.com/a', friend: 'yes' }] }),
+  adLinkBad: Object.assign({}, base, { social: [{ platform: 'instagram', url: 'https://instagram.com/a', ad: null }] })
 };
 // remove undefined keys (JSON has no undefined)
 const fixtures = JSON.parse(JSON.stringify(cases));
@@ -117,7 +139,8 @@ for (const name of Object.keys(fixtures)) {
 }
 // a few expectations, so "both wrong the same way" is caught too
 const okNames = ['real', 'empty', 'freeNoPrice', 'portUrl', 'emojiTitleOk', 'tabOkInside', 'hiddenOk', 'socialOk', 'nullKicker',
-  'catsOk', 'catsEmptyOk', 'itemIdConstructor', 'catListNone', 'catNew', 'catNoEmojiOk', 'catEmojiOk'];
+  'catsOk', 'catsEmptyOk', 'itemIdConstructor', 'catListNone', 'catNew', 'catNoEmojiOk', 'catEmojiOk',
+  'groupOk', 'socialNoPriceOk', 'askOk', 'askEmailOnlyOk', 'friendLinkOk'];
 okNames.forEach((n) => assert.deepEqual(pyOut[n], [], n + ' should be fine'));
 Object.keys(fixtures).filter((n) => okNames.indexOf(n) < 0).forEach((n) => assert.ok(pyOut[n].length > 0, n + ' should be refused'));
 
