@@ -114,5 +114,11 @@
       ]
     }
   ],
-  "social": []
+  "social": [
+    {
+      "platform": "instagram",
+      "url": "https://www.instagram.com/speakaheadacademy?mdxt=M3V3ZXk1ZnFzcHhx",
+      "label": "Speak Ahead Academy"
+    }
+  ]
 }
