@@ -51,7 +51,8 @@
 
   <nav class="tabs" role="tablist" aria-label="Shop parts">
     <button type="button" role="tab" id="tabProducts" aria-selected="true" aria-controls="paneProducts">Products <em id="countProducts">0</em></button>
-    <button type="button" role="tab" id="tabLinks" aria-selected="false" aria-controls="paneLinks">Links <em id="countLinks">0</em></button>
+    <!-- Small text links were replaced by picture cards (dinesh: "only text, I don't like it"). Kept hidden so old data still loads. -->
+    <button type="button" role="tab" id="tabLinks" aria-selected="false" aria-controls="paneLinks" hidden>Links <em id="countLinks">0</em></button>
     <button type="button" role="tab" id="tabCats" aria-selected="false" aria-controls="paneCats">Categories <em id="countCats">0</em></button>
     <button type="button" role="tab" id="tabLeads" aria-selected="false" aria-controls="paneLeads">Leads <em id="countLeads">&middot;</em></button>
   </nav>
@@ -130,6 +131,7 @@
 
     <fieldset class="step" id="stepKind">
       <legend><i>1</i> What is it?</legend>
+      <p class="hint">Your Instagram, YouTube channel or WhatsApp group? Pick <b>Social page</b> or <b>Group</b>, or just paste the link in step 2.</p>
       <div class="kinds" id="kinds" role="radiogroup" aria-label="Kind of product"></div>
     </fieldset>
 

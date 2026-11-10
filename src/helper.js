@@ -348,10 +348,10 @@
       say: ['Focus World is made by one person, with a lot of love. 💛',
         'Something broken? Try reloading the page first.',
         'Want to say hi, share an idea or report a problem? Message Focus World here:'],
-      acts: ['follow'] },
+      follow: true },
     { id: 'follow', label: '👋 Follow Focus World',
       k: ['instagram', 'follow', 'social', 'facebook', 'twitter', 'telegram', 'whatsapp', 'youtube channel'],
-      say: ['Follow Focus World here:'], acts: ['follow'] },
+      say: ['Follow Focus World here:'], follow: true },
 
     // ----- small talk -----
     { id: 'thanks', k: ['thank', 'thanks', 'thx', 'ty$', 'great', 'awesome', 'love it', 'helpful', 'dhanyavad', 'shukriya'],
@@ -617,8 +617,14 @@
       if (a === 'follow') return !!ctx.hasSocial;
       return !!ACTIONS[a];
     });
-    if (topic.id === 'maker' && !ctx.hasSocial) out.say = out.say.slice(0, 2);
-    if (topic.id === 'follow' && !ctx.hasSocial) out.say = ['Focus World\u2019s social links aren\u2019t up yet. Check back soon!'];
+    // Focus World's own pages and groups (picture cards, never plain text links).
+    if (topic.follow) {
+      var pages = (ctx.products || []).filter(function (p) { return (p.type === 'social' || p.type === 'group') && !p.ad; }).slice(0, 3);
+      out.products = pages; out.pre = null;
+      if (!pages.length) {
+        out.say = topic.id === 'maker' ? out.say.slice(0, 2) : ['Focus World\u2019s pages aren\u2019t up yet. Check back soon!'];
+      }
+    }
     var have = {};
     (ctx.guides || []).forEach(function (g) { have[g.slug] = g; });
     out.guides = (topic.guides || []).filter(function (s) { return have[s]; }).slice(0, 2).map(function (s) { return have[s]; });

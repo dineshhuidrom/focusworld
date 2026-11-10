@@ -132,11 +132,14 @@ async def main():
               "someone in danger gets helplines, not products")
 
         r = await say(pg, "something else is wrong")
-        check(len(r["cards"]) == 4 and any("School" in c for c in r["chips"]) and any("Money" in c for c in r["chips"]),
-              "'something else' shows the shelf and category buttons: %s" % r["chips"])
+        check(any("English" in c for c in r["chips"]) and any("School" in c for c in r["chips"]) and any("Money" in c for c in r["chips"]),
+              "'something else' shows category buttons: %s" % r["chips"])
         await pg.locator("#askLog .chat-chips button", has_text="Money").click(); await pg.wait_for_timeout(150)
         r = await last_bot(pg)
         check("Money & taxes" in r["text"] and len(r["cards"]) == 2, "a category button shows that category's products")
+
+        r = await say(pg, "how do I follow you on instagram")
+        check(r["cards"] and "instagram.com/speakaheadacademy" in r["cards"][0], "follow: Pip shows the Speak Ahead picture card")
 
         r = await say(pg, "qwzx")
         check("didn’t catch" in r["text"] and r["chips"], "unknown message gets a gentle hint and buttons")
@@ -152,7 +155,7 @@ async def main():
         # The chat is still there when it opens again
         await pg.click("#askBtn"); await pg.wait_for_timeout(500)
         n = await pg.evaluate("document.querySelectorAll('#askLog .msg.me').length")
-        check(n >= 9, "conversation is kept while the page is open (%d of my messages)" % n)
+        check(n >= 10, "conversation is kept while the page is open (%d of my messages)" % n)
 
         # Keyboard: Escape closes, focus goes back to the button
         await pg.keyboard.press("Escape"); await pg.wait_for_timeout(500)
@@ -160,6 +163,11 @@ async def main():
 
         # Ways in from the Toolshed and About pages
         await pg.click("#toolsBtn"); await pg.wait_for_timeout(400)
+        first = await pg.evaluate("""() => { const a = document.querySelector('#toolsList .tool-card');
+          return { href: a.getAttribute('href'), img: !!a.querySelector('img'), text: a.innerText }; }""")
+        text_only = await pg.evaluate("document.querySelectorAll('#sheetTools .follow-chip').length")
+        check("speakaheadacademy" in first["href"] and first["img"] and "Follow" in first["text"] and text_only == 0,
+              "Toolshed: Speak Ahead is a picture card with a Follow button; no text-only links")
         await pg.click("#sheetTools [data-ask]"); await pg.wait_for_timeout(500)
         check(await pg.is_visible("#sheetAsk") and not await pg.is_visible("#sheetTools"), "Toolshed link opens Ask Pip")
         await pg.keyboard.press("Escape"); await pg.wait_for_timeout(400)

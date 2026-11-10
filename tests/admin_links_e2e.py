@@ -72,7 +72,7 @@ async def main():
         await pg.click("#loginBtn")
         await pg.wait_for_selector("#productList .row")
         fit = await pg.evaluate("[...document.querySelectorAll('.tabs button')].every(b => b.scrollWidth <= b.clientWidth + 1)")
-        check(fit, "phone: the 4 tab names fit")
+        check(fit, "phone: the tab names fit")
 
         # 1. a WhatsApp group: the link picks Group + Free by itself
         async def group_checks():
@@ -114,25 +114,13 @@ async def main():
         await pg.click("#edSave")
         await pg.wait_for_selector("#editor", state="hidden", timeout=8000)
 
-        # 4. small links: a friend's page (paid) goes in its own row
-        await pg.click("#tabLinks")
-        await pg.click("#addLink")
-        await pg.wait_for_selector("#linkEditor:not([hidden])")
-        await pg.fill("#lUrl", "https://www.youtube.com/@a.friend")
-        await pg.fill("#lLabel", "A friend's channel")
-        await pg.click("#ownerSeg button[data-friend='1']")
-        check("Worth a follow" in await text(pg, "#ownerHint"), "someone else's page goes under Worth a follow")
-        await pg.click("label:has(#lAd)")
-        await pg.screenshot(path=SHOTS + "links_05_small_link.png")
-        await pg.click("#leSave")
-        await pg.wait_for_selector("#linkEditor", state="hidden")
-        lrow = await text(pg, "#linkList .row:last-child")
-        check("Someone else" in lrow and "Ad" in lrow, "the small link row shows whose it is and Ad")
+        # 4. no text-only links: the old small-links tab is gone
+        check(not await pg.is_visible("#tabLinks"), "no text-only links tab")
 
         # 5. publish
         await pg.click("#publishBtn")
         await pg.wait_for_selector("#dialog:not([hidden])")
-        check("Small links" in await text(pg, "#dialog"), "publish lists the small links change")
+        check("Learn English with a friend" in await text(pg, "#dialog"), "publish lists the changes")
         await pg.click("#dlgYes")
         await wait_js(pg, "document.querySelector('#status span').textContent.indexOf('Live now') >= 0", 40000)
         check(True, "published and live")
@@ -152,11 +140,10 @@ async def main():
         friend = site.locator(".tool-card", has_text="Learn English with a friend")
         ftext = await friend.inner_text()
         check("Ad" in ftext and "Follow" in ftext and "Recommended" not in ftext, "the paid card shows Ad and its button")
-        own = (await text(site, "#followRow")).lower()      # headings are shown in capitals by the page style
-        frow = (await text(site, "#friendRow")).lower()
-        check("follow focus world" in own and "speak ahead" in own and "a friend's channel" not in own, "your own links: Follow Focus World")
-        check("worth a follow" in frow and "a friend's channel" in frow and "ad" in frow.split(), "a friend's paid link: Worth a follow + Ad")
-        await site.locator("#friendRow").scroll_into_view_if_needed()
+        sa = site.locator(".tool-card", has_text="Speak Ahead Academy")
+        check(await sa.locator("img").count() == 1 and "Follow" in await sa.inner_text(), "Speak Ahead is a picture card with a Follow button")
+        check(await site.evaluate("document.querySelectorAll('#sheetTools .follow-chip').length") == 0, "no text-only links anywhere")
+        await friend.scroll_into_view_if_needed()
         await site.screenshot(path=SHOTS + "links_02_toolshed.png")
 
         # 7. the visitor form: name + email for the friend's page

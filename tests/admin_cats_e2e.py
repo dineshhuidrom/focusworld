@@ -90,7 +90,7 @@ async def main():
 
         # 4. pick categories on a product (up to 3)
         await pg.click("#tabProducts")
-        await pg.click("#productList .row:nth-child(1) .edit")
+        await pg.locator("#productList .row", has_text="Flagged by an AI detector").locator(".edit").click()
         await pg.wait_for_selector("#editor:not([hidden])")
         pressed = await pg.eval_on_selector_all("#catPick .cat-chip[aria-pressed='true']", "n => n.map(x => x.textContent)")
         check(pressed == ["🎓School & college problems"], "the product shows its current category: %s" % pressed)
@@ -105,7 +105,7 @@ async def main():
         await pg.screenshot(path=SHOTS + "cats_04_pick.png")
         await pg.click("#edSave")
         await pg.wait_for_selector("#editor", state="hidden")
-        meta = await pg.get_attribute("#productList .row:nth-child(1) .meta i.cats", "aria-label")
+        meta = await pg.locator("#productList .row", has_text="Flagged by an AI detector").locator(".meta i.cats").get_attribute("aria-label")
         check(meta and "English speaking" in meta and "Cooking" in meta, "the product row shows its categories: %s" % meta)
 
         # 5. delete a category that a product uses -> removed from the product too
@@ -118,7 +118,7 @@ async def main():
         await pg.click("#dlgYes")
         await pg.wait_for_selector("#catEditor", state="hidden")
         check(await text(pg, "#countCats") == "12", "category deleted")
-        cats = await pg.evaluate("""() => JSON.parse(localStorage.getItem('fw-myshop-draft-v1')).catalog.items[0].categories""")
+        cats = await pg.evaluate("""() => JSON.parse(localStorage.getItem('fw-myshop-draft-v1')).catalog.items.find(i => i.id === 'paper-trail').categories""")
         check(cats == ["school", "english"], "and removed from the product: %s" % cats)
 
         # 6. publish, then Ask Pip on the live site uses the new category
@@ -132,7 +132,7 @@ async def main():
         await site.goto(BASE + "/")
         await site.wait_for_timeout(800)
         cfg = await site.evaluate("window.FW_CONFIG")
-        first = cfg["shelf"][0]
+        first = next(x for x in cfg["shelf"] if x["id"] == "paper-trail")
         check(first.get("categories") == ["school", "english"] and len(cfg["categories"]) == 12, "live site has the categories")
         await site.click("#obBtns .btn.primary"); await site.click("#obBtns .btn.primary"); await site.click("#obBtns .btn.soft")
         await site.wait_for_timeout(300)
@@ -142,7 +142,7 @@ async def main():
         await site.wait_for_timeout(1200)
         bubble = await site.evaluate("""() => { const b = [...document.querySelectorAll('#askLog .msg.bot .bubble')].pop();
           return { text: b.innerText, cards: b.querySelectorAll('.chat-card').length }; }""")
-        check("English speaking" in bubble["text"] and bubble["cards"] == 1, "Ask Pip recommends the product by its new category")
+        check("English speaking" in bubble["text"] and bubble["cards"] == 2, "Ask Pip recommends products by the new category (Speak Ahead + the edited one)")
         await site.locator("#askLog .chat-chips button", has_text="School").click()
         await site.wait_for_timeout(1200)
         n = await site.evaluate("[...document.querySelectorAll('#askLog .msg.bot .bubble')].pop().querySelectorAll('.chat-card').length")

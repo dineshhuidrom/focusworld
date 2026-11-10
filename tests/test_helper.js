@@ -137,8 +137,13 @@ t('personal numbers fill in, or the line is left out', () => {
 });
 
 t('buttons only show what exists', () => {
-  assert.ok(!H.replyTopic('maker', Object.assign({}, ctx, { hasSocial: false })).acts.includes('follow'));
-  assert.ok(H.replyTopic('maker', ctx).acts.includes('follow'));
+  // "Talk to / follow Focus World" shows its own pages as picture cards (never plain text links)
+  assert.deepStrictEqual(H.replyTopic('maker', ctx).products.map((p) => p.id), ['speak-ahead-academy']);
+  assert.deepStrictEqual(H.replyTopic('follow', ctx).products.map((p) => p.id), ['speak-ahead-academy']);
+  const noPages = Object.assign({}, ctx, { products: products.filter((p) => p.type !== 'social' && p.type !== 'group') });
+  assert.deepStrictEqual(H.replyTopic('follow', noPages).products, []);
+  assert.ok(/aren.t up yet/.test(H.replyTopic('follow', noPages).say[0]));
+  assert.strictEqual(H.replyTopic('maker', noPages).say.length, 2);
   assert.deepStrictEqual(H.replyTopic('howlong', ctx).guides.map((g) => g.slug), ['50-10-study-method']);
   assert.deepStrictEqual(H.replyTopic('howlong', Object.assign({}, ctx, { guides: [] })).guides, []);
   const empty = H.replyTopic('shop', Object.assign({}, ctx, { products: [] }));
@@ -180,12 +185,12 @@ t('every starter category is well formed and has words', () => {
 
 t('typed problems find the products in that category', () => {
   const want = [
-    ['how to speak english fluently', 'cat:english', ['speak-ahead-course']],
-    ['i want to improve my english speaking', 'cat:english', ['speak-ahead-course']],
-    ['public speaking tips', 'cat:english', ['speak-ahead-course']],
+    ['how to speak english fluently', 'cat:english', ['speak-ahead-academy', 'speak-ahead-course']],
+    ['i want to improve my english speaking', 'cat:english', ['speak-ahead-academy', 'speak-ahead-course']],
+    ['public speaking tips', 'cat:english', ['speak-ahead-academy', 'speak-ahead-course']],
     ['resume tips', 'cat:jobs', ['speak-ahead-course']],
     ['how do i grow my youtube channel', 'cat:content', ['yt-growth']],
-    ['hi, how can I improve my pronounciation', 'cat:english', ['speak-ahead-course']]   // typo still works
+    ['hi, how can I improve my pronounciation', 'cat:english', ['speak-ahead-academy', 'speak-ahead-course']]   // typo still works
   ];
   for (const [q, id, prods] of want) {
     const r = H.reply(q, cctx);
@@ -203,7 +208,7 @@ t('study tips stay, with just 1 product from the matching category', () => {
     assert.strictEqual(r.pre, 'This might help too:');
   }
   // a clear category in the words beats the topic's own category
-  assert.deepStrictEqual(ids(H.reply('I am nervous about my english speaking test', cctx)), ['speak-ahead-course']);
+  assert.deepStrictEqual(ids(H.reply('I am nervous about my english speaking test', cctx)), ['speak-ahead-academy']);
 });
 
 t('real-life problems still get their own advice and products', () => {
@@ -230,11 +235,14 @@ t('"Something else is wrong" shows topic buttons for categories that have produc
   const cats = r.chips.map((c) => c.cat);
   assert.deepStrictEqual(cats, ['study', 'english', 'school', 'jobs', 'money', 'content', 'focus', 'calm']);
   assert.deepStrictEqual(ids(r), []);           // 8 products: too many to list, the buttons lead to them
-  const small = H.replyTopic('shop', Object.assign({}, cctx, { products }));
-  assert.strictEqual(ids(small).length, 4);    // the real shop today: 4 products, all shown, plus buttons
+  const small = H.replyTopic('shop', Object.assign({}, cctx, { products: products.slice(1) }));
+  assert.strictEqual(ids(small).length, 4);    // a small shop (4 products): all shown, plus buttons
   assert.deepStrictEqual(small.chips.map((c) => c.cat), ['school', 'money']);
+  const real = H.replyTopic('shop', Object.assign({}, cctx, { products }));
+  assert.deepStrictEqual(ids(real), []);       // the real shop today (5): topic buttons lead to them
+  assert.deepStrictEqual(real.chips.map((c) => c.cat), ['english', 'school', 'money']);
   const c = H.replyCategory('english', cctx);
-  assert.deepStrictEqual(ids(c), ['speak-ahead-course']);
+  assert.deepStrictEqual(ids(c), ['speak-ahead-academy', 'speak-ahead-course']);
   assert.ok(c.chips.every((x) => x.cat !== 'english'));
   assert.strictEqual(H.replyCategory('languages', cctx).id, 'shop');   // empty category button can't exist; falls back
 });

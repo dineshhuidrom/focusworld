@@ -122,9 +122,9 @@ The table is made by itself the first time. Leads older than 12 months delete th
 | Hide a product for now | **👁️ Shown** → becomes **🙈 Hidden** (it stays in your list) |
 | Show on the break card | **☆ Feature** → **⭐ Featured** |
 | Change the order | **↑** / **↓** |
-| Add your YouTube, Instagram… as a small button | **Links** tab → **+ Add a small link** → **Whose page is it?** Mine / Someone else's |
-| Show a WhatsApp group, Instagram or YouTube page as a big card | **+ Add a product** → paste the link (it picks **Group** or **Social page**) → picture + words → **Save** |
-| Promote someone else's product or page | Add it as a product (big card) or small link. If they pay you, switch on **Paid promotion** (shows **Ad**) |
+| Show your Instagram, YouTube channel or WhatsApp group | **+ Add a product** → paste the link (it picks **Social page** or **Group**) → picture + words → **Save**. Every link is a picture card |
+| Change the Speak Ahead Academy picture | **Products** → Speak Ahead Academy → **Edit** → step 3 **Cover picture** → pick your logo → **Save** → **Publish** |
+| Promote someone else's product or page | Add it as a product. If they pay you, switch on **Paid promotion** (shows **Ad**) |
 | Ask for name, WhatsApp number or email before the link | Edit the product → step 6 **When someone taps it** → **Ask for their details first** → tap the boxes you want |
 | See who left details | **Leads** tab → 💬 WhatsApp or ✉️ email them in one tap → **Download list** for a spreadsheet |
 | Let Ask Pip recommend a product | Edit the product → step 6 **Problems it solves** → tap up to 3 categories → **Save** |

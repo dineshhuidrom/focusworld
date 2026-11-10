@@ -446,9 +446,10 @@
   }
 
   // tabs
-  const TABS = [['products', 'tabProducts', 'paneProducts'], ['links', 'tabLinks', 'paneLinks'], ['cats', 'tabCats', 'paneCats'],
-    ['leads', 'tabLeads', 'paneLeads']];
+  // (the old small-links tab is hidden: every link is now a product card with a picture)
+  const TABS = [['products', 'tabProducts', 'paneProducts'], ['cats', 'tabCats', 'paneCats'], ['leads', 'tabLeads', 'paneLeads']];
   function selectTab(which) {
+    $('paneLinks').hidden = true;
     TABS.forEach((t) => {
       const on = t[0] === which;
       $(t[1]).setAttribute('aria-selected', String(on)); $(t[1]).tabIndex = on ? 0 : -1; $(t[2]).hidden = !on;

@@ -67,7 +67,7 @@ async def main():
         await pg.wait_for_selector("#app:not([hidden])", timeout=8000)
         await pg.wait_for_selector("#productList .row")
         rows = await pg.eval_on_selector_all("#productList .row", "n => n.length")
-        check(rows == 4, "shop loads the 4 products from GitHub: %d" % rows)
+        check(rows == 5, "shop loads the 5 products from GitHub: %d" % rows)
         check("All live" in await text(pg, "#status"), "status says all live")
         await pg.screenshot(path=SHOTS + "shop_02_list.png")
 
@@ -107,7 +107,7 @@ async def main():
         await pg.click("#edSave")
         await pg.wait_for_selector("#editor", state="hidden", timeout=8000)
         rows = await pg.eval_on_selector_all("#productList .row", "n => n.length")
-        check(rows == 5, "new product is in the list")
+        check(rows == 6, "new product is in the list")
         first = await text(pg, "#productList .row:first-child")
         check("Study Planner" in first and "New" in first, "new product is at the top, marked New")
         check("1 change" in await text(pg, "#changeCount"), "publish bar counts 1 change")
@@ -133,22 +133,8 @@ async def main():
         await cp.locator("button", has_text="Shown").click()
         check(await cp.locator("button", has_text="Hidden").count() == 1, "a product can be hidden with one tap")
 
-        # 6. follow links
-        await pg.click("#tabLinks")
-        links_before = await pg.eval_on_selector_all("#linkList .row", "n => n.length")   # the real shop may already have some
-        await pg.click("#addLink")
-        await pg.wait_for_selector("#linkEditor:not([hidden])")
-        await pg.fill("#lUrl", "https://www.instagram.com/focusworld")
-        check(await pg.get_attribute("#platforms button[data-p='instagram']", "aria-checked") == "true", "link picks Instagram by itself")
-        await pg.click("#leSave")
-        await pg.click("#addLink")
-        await pg.fill("#lUrl", "youtube.com/@golupaisa")
-        await pg.fill("#lLabel", "Golu Paisa on YouTube")
-        await pg.click("#leSave")
-        await pg.wait_for_selector("#linkEditor", state="hidden")
-        links = await pg.eval_on_selector_all("#linkList .row", "n => n.length")
-        check(links == links_before + 2, "2 follow links added")
-        await pg.screenshot(path=SHOTS + "shop_05_links.png")
+        # 6. links are picture cards now: the old small text-links tab is gone
+        check(not await pg.is_visible("#tabLinks"), "no text-only links tab (every link is a picture card)")
 
         # 7. drafts survive a reload
         n_before = await text(pg, "#changeCount")
@@ -183,7 +169,7 @@ async def main():
         check(any("Study Planner" in t for t in titles), "live site has the new product")
         check(any("focused study day" in t for t in titles), "live site has the YouTube video")
         check(not any("IRS letter saying" in t for t in titles), "hidden product is not on the live site")
-        check(len(cfg["social"]) == links_before + 2, "live site has the 2 new follow links")
+        check(cfg["social"] == [] and any(x["id"] == "speak-ahead-academy" for x in cfg["shelf"]), "Speak Ahead is a card, not a text link")
         pic = next(x for x in cfg["shelf"] if "Study Planner" in x["title"])["image"]
         r = await site.request.get(BASE + "/" + pic)
         check(r.status == 200 and r.headers.get("content-type") == "image/jpeg", "new cover picture is served: " + pic)
@@ -192,8 +178,9 @@ async def main():
         await site.click("#toolsBtn")
         await site.wait_for_timeout(600)
         tool_text = await text(site, "#sheetTools")
-        check("Study Planner" in tool_text and "follow focus world" in tool_text.lower() and "Golu Paisa on YouTube" in tool_text,
-              "Toolshed shows the new product and the follow links")
+        chips = await site.evaluate("document.querySelectorAll('#sheetTools .follow-chip').length")
+        check("Study Planner" in tool_text and "Speak Ahead Academy" in tool_text and chips == 0,
+              "Toolshed shows the new product and Speak Ahead as a card, no text-only links")
         await site.screenshot(path=SHOTS + "shop_09_toolshed.png")
         await site.evaluate("document.querySelector('#sheetTools').scrollTop = 99999")
         await site.wait_for_timeout(300)

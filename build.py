@@ -646,7 +646,7 @@ def render_guides_index(guides, site_url):
 PRIVACY_UPDATED = "2026-11-10"
 
 
-def render_privacy(site_url, analytics, social):
+def render_privacy(site_url, analytics, social, items=()):
     """The privacy page: what is kept (only the optional "Before you go" form), why, and how to delete it."""
     html = read("privacy.html")
     names = {"youtube": "YouTube", "instagram": "Instagram", "facebook": "Facebook", "x": "X", "threads": "Threads",
@@ -654,7 +654,10 @@ def render_privacy(site_url, analytics, social):
              "pinterest": "Pinterest", "website": "Website"}
     links = ['<a href="%s" target="_blank" rel="noopener noreferrer">%s</a>' % (_e(x["url"]), _e(x.get("label") or names.get(x["platform"], "Link")))
              for x in social if not x.get("friend")]
-    contact = ("Message us here: " + ", ".join(links) + ".") if links else "Use the links in the Toolshed (Follow %s)." % APP_NAME
+    # Our own pages are shown as picture cards (products of kind Social page or Group), not as small links.
+    links += ['<a href="%s" target="_blank" rel="noopener noreferrer">%s</a>' % (_e(it["url"]), _e(it["title"]))
+              for it in items if it.get("type") in ("social", "group") and not it.get("ad") and not it.get("hidden")]
+    contact = ("Message us here: " + ", ".join(links) + ".") if links else "Use the links in the Toolshed."
     stats = ("<h2>Visit counts</h2><p>We count visits with Cloudflare Web Analytics. It uses no cookies and does not identify you.</p>"
              if analytics else "")
     for key, val in (("{{CSS}}", read(os.path.join("guides", "guide.css"))), ("{{APP_NAME}}", APP_NAME),
@@ -726,7 +729,7 @@ def main():
             f.write(render_guides_index(guides, site_url))
     os.makedirs(os.path.join(out, "privacy"))
     with open(os.path.join(out, "privacy", "index.html"), "w", encoding="utf-8") as f:
-        f.write(render_privacy(site_url, analytics, social))
+        f.write(render_privacy(site_url, analytics, social, items))
     os.makedirs(os.path.join(out, "admin"))
     with open(os.path.join(out, "admin", "index.html"), "w", encoding="utf-8") as f:
         f.write(build_admin())

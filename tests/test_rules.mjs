@@ -7,9 +7,11 @@ import { execFileSync } from 'node:child_process';
 import { validateCatalog, slugify, youtubeId } from '../lib/catalog-rules.mjs';
 
 const base = JSON.parse(readFileSync(new URL('../src/catalog.json', import.meta.url), 'utf8'));
-const good = base.items[0];
-function withItem(patch) { const c = JSON.parse(JSON.stringify(base)); c.items[0] = Object.assign({}, good, patch); return c; }
-function without(key) { const c = JSON.parse(JSON.stringify(base)); delete c.items[0][key]; return c; }
+// the first product with a price (the shop may start with a link card that has no price)
+const gi = base.items.findIndex((i) => typeof i.price === 'string');
+const good = base.items[gi];
+function withItem(patch) { const c = JSON.parse(JSON.stringify(base)); c.items[gi] = Object.assign({}, good, patch); return c; }
+function without(key) { const c = JSON.parse(JSON.stringify(base)); delete c.items[gi][key]; return c; }
 
 const cases = {
   real: base,

@@ -228,7 +228,7 @@ async def main():
         check("$19" in await pg.inner_text("#toolsList"), "Tools page shows the price")
         await snap(pg, "e2e_11b_tools")
         cards = await pg.eval_on_selector_all("#toolsList .tool-card", "n => n.length")
-        check(cards == 4, "Toolshed shows all 4 items: %s" % cards)
+        check(cards == 5, "Toolshed shows all 5 items: %s" % cards)
         await pg.fill("#toolsSearch", "irs letter")
         await pg.wait_for_timeout(400)
         cards = await pg.eval_on_selector_all("#toolsList .tool-card", "n => n.length")
