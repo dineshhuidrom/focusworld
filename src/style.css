@@ -158,6 +158,21 @@ canvas#world { position: fixed; inset: 0; display: block; width: 100vw; height: 
 .sheet h3 { margin: 20px 0 8px; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); }
 .note { color: var(--muted); font-size: 14px; line-height: 1.45; margin: 6px 0; }
 .note.warn { color: var(--danger); }
+.note.big { font-size: 15.5px; color: var(--text); }
+.btn.wide { width: 100%; }
+.faq { display: flex; flex-direction: column; gap: 8px; margin: 12px 0 14px; }
+.faq details { border-radius: 16px; background: rgba(255, 255, 255, .06); border: 1px solid var(--line); transition: background .2s; }
+.faq details[open] { background: rgba(255, 255, 255, .09); }
+.faq summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  min-height: 50px; padding: 12px 16px; font-weight: 700; font-size: 15px; border-radius: 16px; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: '+'; flex: none; width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%;
+  background: rgba(255, 255, 255, .1); font-size: 18px; transition: transform .25s var(--ease); }
+.faq details[open] summary::after { transform: rotate(45deg); }
+.faq summary:focus-visible { outline: 3px solid #ffd27f; outline-offset: 2px; }
+.faq details p { margin: 0; padding: 0 16px 14px; color: var(--muted); font-size: 14.5px; line-height: 1.5; }
+.faq details[open] p { animation: faqIn .3s var(--ease); }
+@keyframes faqIn { from { opacity: 0; transform: translateY(-4px); } }
 .icon-btn.close { background: rgba(255, 255, 255, .08); font-size: 16px; }
 kbd { font: inherit; font-size: 12px; padding: 1px 6px; border-radius: 6px; border: 1px solid var(--line); background: rgba(255, 255, 255, .06); }
 @media (min-width: 900px) {

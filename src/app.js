@@ -32,7 +32,7 @@
     'startBtn', 'tinyBtn', 'pauseBtn', 'stopBtn', 'skipBreakBtn', 'nextName', 'nextLeft', 'nextBar', 'nextBarWrap', 'soundBtn', 'soundDot',
     'progressBtn', 'shareBtn', 'streakBtn', 'streakNum', 'menuBtn', 'live', 'pip', 'pipText', 'pipBtns', 'toast', 'scrim',
     'soundList', 'masterVol', 'soundWarn', 'stats', 'week', 'collection', 'collTitle', 'progressBackupBtn', 'shareImg', 'shareNowBtn',
-    'saveImgBtn', 'notifySwitch', 'calmSwitch', 'skySeg', 'chimeVol', 'storageWarn', 'exportBtn', 'importBtn', 'resetBtn', 'sceneBtn', 'sceneIcon', 'sceneName', 'sceneMode', 'sceneGrid', 'sceneCount', 'toolsBtn', 'toolsList', 'followRow', 'followLinks', 'toolsSearch', 'toolsChips', 'toolsCount', 'promo', 'promoX', 'promoLink', 'promoImg', 'promoKicker', 'promoTitle', 'promoCta', 'promoPrice',
+    'saveImgBtn', 'notifySwitch', 'calmSwitch', 'skySeg', 'chimeVol', 'storageWarn', 'exportBtn', 'importBtn', 'resetBtn', 'sceneBtn', 'sceneIcon', 'sceneName', 'sceneMode', 'sceneGrid', 'sceneCount', 'toolsBtn', 'toolsList', 'followRow', 'followLinks', 'aboutBtn', 'toolsSearch', 'toolsChips', 'toolsCount', 'promo', 'promoX', 'promoLink', 'promoImg', 'promoKicker', 'promoTitle', 'promoCta', 'promoPrice',
     'confirmTitle', 'confirmText', 'confirmYes', 'confirmNo', 'onboard', 'obTitle', 'obText', 'obDots', 'obBtns', 'importFile', 'customBtn'
   ].forEach(function (id) { el[id] = $(id); });
 
@@ -987,6 +987,7 @@
   el.shareBtn.addEventListener('click', openShare);
   el.menuBtn.addEventListener('click', function () { syncSettingsUI(); openSheet('sheetMenu'); });
   el.toolsBtn.addEventListener('click', function () { hidePromo(); renderTools(); openSheet('sheetTools'); });
+  el.aboutBtn.addEventListener('click', function () { openSheet('sheetAbout'); });
   el.promoLink.addEventListener('click', function () { promoDismissed = true; hidePromo(); });
 
   document.addEventListener('keydown', function (e) {

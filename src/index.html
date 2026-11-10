@@ -15,6 +15,7 @@
 <style>{{CSS}}</style>
 </head>
 <body>
+<h1 class="sr-only">{{APP_NAME}}: a free focus timer that grows your own little world</h1>
 <canvas id="world" aria-hidden="true"></canvas>
 <p id="worldDesc" class="sr-only"></p>
 
@@ -204,6 +205,32 @@
   <button class="btn ghost wide danger" type="button" id="resetBtn">Start a brand-new island</button>
   <h3>About</h3>
   <p class="note">{{APP_NAME}} is free. No sign-up. No ads. Every sound and picture is made right here on your device, with a lot of love.</p>
+  <button class="btn soft wide" type="button" id="aboutBtn">&#x1F4D6; About &amp; help</button>
+  <p class="note">Keyboard: <kbd>Space</kbd> start / pause, <kbd>Esc</kbd> close.</p>
+</section>
+
+<section id="sheetAbout" class="sheet" role="dialog" aria-modal="true" aria-labelledby="ttlAbout" hidden>
+  <div class="sheet-head"><h2 id="ttlAbout">About {{APP_NAME}}</h2><button class="icon-btn close" type="button" data-close aria-label="Close">&#x2715;</button></div>
+  <p class="note big">{{APP_NAME}} is a free focus timer for studying and work. Pick a time, press start, and focus.
+    Every minute you focus grows your own little world: grass, trees, a cottage, a windmill, a lighthouse and more. &#x1F331;</p>
+  <div class="faq">
+    <details><summary>Is it really free?</summary>
+      <p>Yes! No sign-up, no ads, no payment. The Toolshed has a few handy helpers from the maker. Some are free, some are paid, and they help keep {{APP_NAME}} free for everyone.</p></details>
+    <details><summary>How does my world grow?</summary>
+      <p>Every focused minute counts. 31 things unlock as your minutes add up, from a first sprout all the way to a whale. Your garden also visits a new place every day: a mountain valley, a desert oasis, a city rooftop, an underwater dome, a space garden and more. Focus more to unlock them all.</p></details>
+    <details><summary>Which timer lengths can I use?</summary>
+      <p>15, 25, 50 or 90 minutes, or any time from 1 to 180 minutes, with short breaks in between. Can&rsquo;t get started? Tap &ldquo;2 tiny minutes&rdquo;. Starting is the hardest part!</p></details>
+    <details><summary>Is it good for the Pomodoro technique?</summary>
+      <p>Yes. The classic Pomodoro is 25 minutes of focus and a 5-minute break. {{APP_NAME}} can start your breaks by itself, and your streak grows every day you focus.</p></details>
+    <details><summary>Can I study with music?</summary>
+      <p>Yes: soft rain, ocean waves, forest birds, a crackling fire, brown noise and calm lofi music. Mix them however you like in Sounds. They are made right on your device, so they work offline too.</p></details>
+    <details><summary>Where is my world saved?</summary>
+      <p>Only on this device, in your browser. Nothing is sent anywhere. To move it to another phone or laptop, use &ldquo;Save backup&rdquo; in Settings. Clearing your browser data erases it, so save a backup now and then.</p></details>
+    <details><summary>Does it work offline? Can I install it?</summary>
+      <p>After your first visit it works offline. On your phone, use &ldquo;Add to Home Screen&rdquo; to keep it like an app.</p></details>
+    <details><summary>What is phone-free mode?</summary>
+      <p>An optional challenge for big study days. If you leave the page for more than 10 seconds while focusing, your sprout droops. Turn it on in Settings.</p></details>
+  </div>
   <p class="note">Keyboard: <kbd>Space</kbd> start / pause, <kbd>Esc</kbd> close.</p>
 </section>
 

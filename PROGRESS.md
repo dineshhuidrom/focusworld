@@ -96,3 +96,17 @@ To add a product later: put its cover in src/shelf/ and add one entry to SHELF i
 
 ## 🚀 LAUNCHED — 10 Nov 2026
 Focus World is live at https://focusworld-bj0.pages.dev. dinesh adds products himself at /admin/ (see SETUP.md).
+
+## 10 Nov 2026 — Getting found on Google (step 1 and 2)
+| Done | Detail |
+|---|---|
+| Google Search Console | Focus World added (same Google account as Speak Ahead, separate property). Ownership verified with the file `src/static/googlef5947e8e96c6c51d.html`. **Never delete this file.** Sitemap submitted |
+| Logo for Google | Real icon files: `/favicon.ico`, `/favicon.svg`, `/favicon-96.png` (Google shows them after its next visit) |
+| Words for Google | Hidden main heading, an "About & help" page (⋯ menu → About & help, 8 questions), structured data saying "free web app", sitemap now lists the 2 free tool pages too |
+
+### Next (search)
+1. 11 Nov: Search Console → URL inspection → `https://focusworld-bj0.pages.dev/` → Request indexing (today said "quota exceeded").
+2. Guide pages that answer what students search (Claude writes them).
+3. Bing Webmaster Tools: import from Google Search Console.
+4. Share the link on Instagram, YouTube Shorts, study communities.
+

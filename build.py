@@ -213,6 +213,14 @@ def build_html(site_url, pwa, analytics, shelf, social):
         head.append('<link rel="manifest" href="/manifest.webmanifest">')
         head.append('<link rel="apple-touch-icon" href="/icons/icon-180.png">')
     if site_url:
+        # Tells search engines what this site is: a free web app (shown as structured data, not on screen).
+        ld = {"@context": "https://schema.org", "@type": "WebApplication", "name": APP_NAME, "url": site_url + "/",
+              "description": "A free focus timer for studying and work. Every minute you focus grows your own little "
+                             "world. Calm sounds and lofi music, no sign-up, no ads.",
+              "applicationCategory": "EducationalApplication", "operatingSystem": "Any (web browser)",
+              "image": site_url + "/og.jpg", "isAccessibleForFree": True,
+              "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}}
+        head.append('<script type="application/ld+json">%s</script>' % json.dumps(ld).replace("</", "<\\/"))
         head.append('<link rel="canonical" href="%s/">' % site_url)
         head.append('<meta property="og:url" content="%s/">' % site_url)
         head.append('<meta property="og:image" content="%s/og.jpg">' % site_url)
@@ -466,9 +474,10 @@ def main():
     with open(os.path.join(out, "robots.txt"), "w") as f:
         f.write(robots)
     if site_url:
+        pages = ["/"] + ["/tools/%s/" % it["id"] for it in items if it.get("local") and not it.get("hidden")]
         with open(os.path.join(out, "sitemap.xml"), "w") as f:
             f.write('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
-                    "<url><loc>%s/</loc></url></urlset>\n" % site_url)
+                    + "".join("<url><loc>%s%s</loc></url>" % (site_url, p) for p in pages) + "</urlset>\n")
     print("site folder:", out, sorted(os.listdir(out)))
 
 
