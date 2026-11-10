@@ -186,5 +186,10 @@ v1.6 to v1.9 are live: Ask Pip, categories, picture cards, Ad label, details for
 |---|---|
 | While a timer runs | The bar under it shows **this round**: a 2-minute round fills it in exactly 2 minutes. Right side: "Wildflowers pops up at the end ✨" when this round unlocks it, else "+25 min for your island". Says "Paused" when paused, "Break" in breaks |
 | When no timer runs | Unchanged: "Next up: Wildflowers · 6 min away", to help pick a length |
-| Tests | `sound_test.py` now 31 checks (bar empty at start, half full after 1 of 2 minutes, Paused, Break), e2e 58, Ask Pip pass |
+| Tests | `sound_test.py` now 31 checks (bar empty at start, half full after 1 of 2 minutes, Paused, Break), e2e 58, Ask Pip pass || Live | 10 Nov 22:36 |
+
+## ⏭️ Tomorrow, 11 Nov 2026 — Google Search Console (dinesh: "we continue the SEO tomorrow")
+1. Search Console → Sitemaps → send `sitemap.xml` again (it now has `/shop/` and the 5 product pages)
+2. URL inspection → Request indexing for `/shop/` and each product page (Speak Ahead first)
+3. Then, later: Bing (import from Google), study guides 2–5 (each previewed first), AlternativeTo / Product Hunt
 
