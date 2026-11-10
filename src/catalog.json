@@ -57,11 +57,7 @@
         "money",
         "tech"
       ],
-      "featured": true,
-      "ask": [
-        "name",
-        "email"
-      ]
+      "featured": true
     },
     {
       "id": "paper-trail",
