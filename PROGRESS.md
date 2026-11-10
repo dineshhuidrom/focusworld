@@ -92,4 +92,7 @@ To add a product later: put its cover in src/shelf/ and add one entry to SHELF i
 1. ~~dinesh makes a private GitHub repo `focusworld` → Claude uploads the code.~~ Done 10 Nov (github.com/dineshhuidrom/focusworld).
 2. ~~dinesh creates the new Cloudflare account (new email) → connects it to the repo.~~ Done 10 Nov. Live at https://focusworld-bj0.pages.dev
 3. ~~dinesh makes the GitHub key (no expiry, focusworld only) and saves the 4 settings.~~ Done 10 Nov.
-4. Test My Shop live: log in at https://focusworld-bj0.pages.dev/admin/ and publish one change.
+4. ~~Test My Shop live.~~ Done 10 Nov 18:05: dinesh logged in, added an Instagram follow link, Published → "Live now!" ✅
+
+## 🚀 LAUNCHED — 10 Nov 2026
+Focus World is live at https://focusworld-bj0.pages.dev. dinesh adds products himself at /admin/ (see SETUP.md).
