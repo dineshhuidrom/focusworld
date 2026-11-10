@@ -170,7 +170,12 @@
       "categories": [
         "money"
       ],
-      "featured": true
+      "featured": true,
+      "ask": [
+        "name",
+        "phone",
+        "email"
+      ]
     }
   ],
   "social": [],
