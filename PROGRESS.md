@@ -89,6 +89,6 @@ To add a product later: put its cover in src/shelf/ and add one entry to SHELF i
 | Guide | SETUP.md: go-live steps and how to use My Shop |
 
 ### Next
-1. dinesh makes a private GitHub repo `focusworld` and tells Claude his GitHub username → Claude uploads the code.
+1. ~~dinesh makes a private GitHub repo `focusworld` → Claude uploads the code.~~ Done 10 Nov (github.com/dineshhuidrom/focusworld).
 2. dinesh creates the new Cloudflare account (new email) → connects it to the repo (SETUP.md Part C).
 3. dinesh makes the GitHub key and saves the 4 settings (SETUP.md Part D) → My Shop works.
