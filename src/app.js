@@ -991,7 +991,19 @@
   // Each product picks its boxes (name, WhatsApp number, email). The details go to the owner's private list (live
   // site only). A number or an email is needed; the visitor can always skip.
   var LEAD_KEY = KEY + ':me', leadFor = null, leadAsk = [];
-  var PHONE_OK = /^\+[0-9]{8,15}$/;
+  // A WhatsApp number as people really type it. No "+" means an Indian number: 98123 45678, 098123 45678 and
+  // 91 98123 45678 all become +919812345678. Numbers from other countries start with + (or 00) and their code.
+  // Returns '' when empty, null when it can't be a phone number. (Same rule as lib/leads.mjs.)
+  function cleanPhone(raw) {
+    var s = String(raw || '').trim();
+    if (!s) return '';
+    var intl = s.charAt(0) === '+' || /^00/.test(s);
+    var d = s.replace(/[^0-9]/g, '');
+    if (intl) { if (/^00/.test(s)) d = d.slice(2); return d.length >= 8 && d.length <= 15 ? '+' + d : null; }
+    if (d.length === 11 && d.charAt(0) === '0') d = d.slice(1);
+    else if (d.length === 12 && d.slice(0, 2) === '91') d = d.slice(2);
+    return /^[6-9][0-9]{9}$/.test(d) ? '+91' + d : null;
+  }
   var EMAIL_OK = /^[^\s@"'<>(),;:]{1,64}@[A-Za-z0-9](?:[A-Za-z0-9-]{0,62}[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,62}[A-Za-z0-9])?)+$/;
   function openLead(p) {
     leadFor = p; leadAsk = askFields(p) || ['phone'];
@@ -1024,10 +1036,10 @@
     if (!p) return;
     var has = function (f) { return leadAsk.indexOf(f) >= 0; };
     var name = has('name') ? el.leadName.value.replace(/\s+/g, ' ').trim().slice(0, 60) : '';
-    var phone = has('phone') ? el.leadPhone.value.replace(/[\s\-().]/g, '') : '';
+    var phone = has('phone') ? cleanPhone(el.leadPhone.value) : '';
     var email = has('email') ? el.leadEmail.value.trim().toLowerCase() : '';
     if (has('name') && !name) return leadBad(el.leadName, 'Please add your name.');
-    if (phone && !PHONE_OK.test(phone)) return leadBad(el.leadPhone, 'Add your WhatsApp number starting with your country code, like +91 98123 45678.');
+    if (phone === null) return leadBad(el.leadPhone, 'That number doesn\u2019t look right. Type your 10-digit number, like 98123 45678.');
     if (email && (email.length > 254 || !EMAIL_OK.test(email))) return leadBad(el.leadEmail, 'That email doesn’t look right. Check it, please.');
     if (!phone && !email) {
       return leadBad(has('phone') ? el.leadPhone : el.leadEmail,

@@ -191,10 +191,10 @@ async def main():
         await site.wait_for_selector("#sheetLead:not([hidden])")
         check(await site.is_visible("#leadPhone") and not await site.is_visible("#leadName") and not await site.is_visible("#leadEmail"),
               "another product asks only for a WhatsApp number")
-        await site.fill("#leadPhone", "98123 45678")
+        await site.fill("#leadPhone", "12345")
         await site.click("#sheetLead button[type='submit']")
-        check("country code" in await text(site, "#leadMsg"), "a number without country code is explained")
-        await site.fill("#leadPhone", "+91 98123 45678")
+        check("10-digit" in await text(site, "#leadMsg"), "a wrong number is explained simply")
+        await site.fill("#leadPhone", "98123 45678")   # no +91: the site adds it (saved as +919812345678, checked below)
         await site.click("label:has(#leadOk)")
         async with ctx.expect_page() as newp3:
             await site.click("#sheetLead button[type='submit']")

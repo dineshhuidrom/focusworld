@@ -1,7 +1,8 @@
 // Tests for the "Before you go" form's server part (lib/leads.mjs) and My Shop's Leads routes.
 // Run: node --no-warnings tests/test_leads.mjs
 import assert from 'node:assert/strict';
-import { handleLead, resetForTests, ensureTable } from '../lib/leads.mjs';
+import { handleLead, resetForTests, ensureTable, cleanPhone } from '../lib/leads.mjs';
+import { readFileSync } from 'node:fs';
 import { handle } from '../lib/admin-core.mjs';
 import { makeFakeD1 } from './fake_d1.mjs';
 
@@ -43,7 +44,7 @@ await t('a visitor\'s details are saved, tidy', async () => {
 
 await t('bad or missing details are refused kindly', async () => {
   const s = setup();
-  for (const [patch, code] of [[{ phone: '9812345678' }, 'phone'], [{ phone: '+12' }, 'phone'],
+  for (const [patch, code] of [[{ phone: '12345' }, 'phone'], [{ phone: '+12' }, 'phone'], [{ phone: '4155550123' }, 'phone'], [{ phone: 'call me' }, 'phone'],
     [{ name: 'x'.repeat(61) }, 'name'], [{ name: 'a\u0007b' }, 'name'], [{ ok: false }, 'consent'], [{ ok: 'yes' }, 'consent'],
     [{ email: 'not-an-email' }, 'email'], [{ email: 'a b@x.com' }, 'email'], [{ email: 'a@x' }, 'email'],
     [{ phone: '', email: '' }, 'contact'], [{ phone: undefined }, 'contact'],
@@ -146,6 +147,26 @@ await t('My Shop: without the database, the Leads tab is told to set it up', asy
   const r = await adminCall(s.env, 'GET', '/admin/api/leads', undefined, c, s.now);
   assert.equal(r.status, 200);
   assert.equal(r.data.setup, false);
+});
+
+await t('WhatsApp numbers: no +91 needed, and the site forms use the same rule', async () => {
+  const cases = [['98123 45678', '+919812345678'], ['9812345678', '+919812345678'], ['098123-45678', '+919812345678'],
+    ['91 98123 45678', '+919812345678'], ['+91 98123 45678', '+919812345678'], ['0091 98123 45678', '+919812345678'],
+    ['(981) 234-5678', '+919812345678'], ['+1 415 555 0123', '+14155550123'], ['+44 7700 900123', '+447700900123'],
+    ['', ''], ['   ', ''], ['12345', null], ['4155550123', null], ['5812345678', null], ['981234567', null],
+    ['98123456789', null], ['+12', null], ['call me', null], ['+1234567890123456', null]];
+  const copies = { 'lib/leads.mjs': cleanPhone };
+  for (const f of ['src/app.js', 'src/shop/shop.js']) {
+    const src = readFileSync(new URL('../' + f, import.meta.url), 'utf8');
+    const m = src.match(/function cleanPhone\(raw\) \{[\s\S]*?\n  \}\n/);
+    assert.ok(m, 'cleanPhone found in ' + f);
+    copies[f] = new Function(m[0] + '; return cleanPhone;')();
+  }
+  for (const [input, want] of cases) for (const [f, fn] of Object.entries(copies)) assert.equal(fn(input), want, f + ': ' + JSON.stringify(input));
+  const s = setup();
+  const r = await s.post(Object.assign({}, good, { phone: '98123 45678' }));
+  assert.equal(r.status, 200);
+  assert.equal((await s.rows())[0].phone, '+919812345678');
 });
 
 console.log('lead tests passed:', passed);

@@ -8,7 +8,19 @@
   var has = function (f) { return ask.indexOf(f) >= 0; };
   var $ = function (id) { return document.getElementById(id); };
   var KEY = 'focusworld:v1:me';
-  var PHONE_OK = /^\+[0-9]{8,15}$/;
+  // A WhatsApp number as people really type it. No "+" means an Indian number: 98123 45678, 098123 45678 and
+  // 91 98123 45678 all become +919812345678. Numbers from other countries start with + (or 00) and their code.
+  // Returns '' when empty, null when it can't be a phone number. (Same rule as lib/leads.mjs.)
+  function cleanPhone(raw) {
+    var s = String(raw || '').trim();
+    if (!s) return '';
+    var intl = s.charAt(0) === '+' || /^00/.test(s);
+    var d = s.replace(/[^0-9]/g, '');
+    if (intl) { if (/^00/.test(s)) d = d.slice(2); return d.length >= 8 && d.length <= 15 ? '+' + d : null; }
+    if (d.length === 11 && d.charAt(0) === '0') d = d.slice(1);
+    else if (d.length === 12 && d.slice(0, 2) === '91') d = d.slice(2);
+    return /^[6-9][0-9]{9}$/.test(d) ? '+91' + d : null;
+  }
   var EMAIL_OK = /^[^\s@"'<>(),;:]{1,64}@[A-Za-z0-9](?:[A-Za-z0-9-]{0,62}[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,62}[A-Za-z0-9])?)+$/;
   var url = btn.getAttribute('href');
   function open() { window.open(url, '_blank', 'noopener'); }
@@ -31,10 +43,10 @@
   $('leadForm').addEventListener('submit', function (e) {
     e.preventDefault();
     var name = has('name') ? $('l_name').value.replace(/\s+/g, ' ').trim().slice(0, 60) : '';
-    var phone = has('phone') ? $('l_phone').value.replace(/[\s\-().]/g, '') : '';
+    var phone = has('phone') ? cleanPhone($('l_phone').value) : '';
     var email = has('email') ? $('l_email').value.trim().toLowerCase() : '';
     if (has('name') && !name) return bad($('l_name'), 'Please add your name.');
-    if (phone && !PHONE_OK.test(phone)) return bad($('l_phone'), 'Add your WhatsApp number starting with your country code, like +91 98123 45678.');
+    if (phone === null) return bad($('l_phone'), 'That number doesn\u2019t look right. Type your 10-digit number, like 98123 45678.');
     if (email && (email.length > 254 || !EMAIL_OK.test(email))) return bad($('l_email'), 'That email doesn’t look right. Check it, please.');
     if (!phone && !email) return bad(has('phone') ? $('l_phone') : $('l_email'), 'Add your WhatsApp number or email, or tap Skip.');
     if (!$('l_ok').checked) return bad($('l_ok'), 'Please tick the box, or tap Skip.');

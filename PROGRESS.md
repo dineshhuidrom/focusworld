@@ -161,3 +161,11 @@ v1.6 to v1.9 are live: Ask Pip, categories, picture cards, Ad label, details for
 - dinesh: add the full Speak Ahead details (one-on-one practice, tongue twisters…) and his logo in My Shop
 - ✅ Part F done 10 Nov 21:45: D1 `focusworld-leads` made, `LEADS_DB` connected, Leads tab shows "No leads yet"
 - Search Console: send the sitemap again so Google finds the new product pages
+
+## 10 Nov 2026 — v1.9.1 Numbers without +91 (dinesh: "people shouldn't have to add +91, just type the number")
+| What | How |
+|---|---|
+| Rule | No "+" means an Indian number: `98123 45678`, `098123 45678`, `91 98123 45678` all save as `+919812345678`. Other countries type + and their code. A wrong number gets a simple message ("Type your 10-digit number") |
+| Where | Same rule in the site form (`src/app.js`), the product page form (`src/shop/shop.js`) and the server (`lib/leads.mjs`); a test checks the three copies agree. "with country code" removed from the forms |
+| Tests | `test_leads.mjs` 11 (19 number cases), `admin_links_e2e.py` 42, all others pass |
+
